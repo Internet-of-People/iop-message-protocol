@@ -1,0 +1,22 @@
+package org.fermat.contract;
+
+// All status codes are collected here. I am thinking to redo this based on a scheme similar to https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
+enum Status {
+  UNKNOWN = 0; // No extra information, retry in an hour
+  TEMPORARY = 1; // Overload, downtime, retry in an hour
+  BANNED = 2; // The profile has been temporarily banned, retry in a day
+  PERMANENT = 3; // Permanent ban or some other policy. Do not retry this node again
+}
+
+// An administrative message to test whether the peer is there and responds to requests.
+message Ping {
+  required bytes version = 1; // 3 bytes: major.minor.patch See semver.org
+  required bytes payload = 2; // At most 1kB of arbitrary data that will be just sent back by the peer
+}
+
+// A response to Ping to reassure the connection works fine.
+message Pong {
+  required bytes version = 2; // 3 bytes: major.minor.patch See semver.org
+  required bytes payload = 3; // At most 1kB of arbitrary data that has been sent by the peer
+  required sint64 clock = 4; // 64-bit signed Unix timestamp for the UTC time on the server
+}
