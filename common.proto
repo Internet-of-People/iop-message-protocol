@@ -1,4 +1,4 @@
-package org.fermat.contract;
+package org.fermat.common;
 
 // All status codes are collected here. I am thinking to redo this based on a scheme similar to https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
 enum Status {
