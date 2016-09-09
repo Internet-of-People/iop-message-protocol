@@ -1,18 +1,18 @@
 package org.fermat.homenode2homenode;
 
-import "contract.proto";
+import "common.proto";
 
 // A union of all possible requests made by home nodes to other home nodes
 message Request {
 
-  optional contract.Ping ping = 1;
+  optional common.Ping ping = 1;
 
 }
 
 // A union of all possible responses coming from a home node to a client
 message Response {
 
-  required contract.Status status = 1; // All responses will have a status. Some positive, some negative.
-  optional contract.Pong pong = 2;
+  required common.Status status = 1; // All responses will have a status. Some positive, some negative.
+  optional common.Pong pong = 2;
 
 }
