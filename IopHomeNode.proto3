@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+
+package iop.homenode;
+
+// Return codes to requests that inform requestor about whether the operation completed successfully or which error occurred.
+enum Status {
+  // General codes that can be returned to any message.
+  STATUS_OK = 0;                                   // The operation completed successfully.
+
+  ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
+  ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
+  ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in Response.timestamp.
+  ERROR_BUSY = 4;                                  // The peer will not process the request because it is too busy. The requestor can try later.
+
+  // Return codes specific to a request.
+}
+
+
+// This is complete message as it goes over the wire. It includes the 32-bit header with message length.
+message MessageWithHeader {
+  fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
+  Message body = 2;                                // Message itself.
+}
+
+
+
+// Format of a single message.
+message Message {
+  uint32 id = 1;                                   // Requestor defined message ID that the requestee has to return in the response. 
+                                                   // Requestor is responsible for using different ID for every unprocessed message.
+                                                   // If at any point there exist two open requests (i.e. without a response) with the same ID, it is a violation of the protocol and the behavior is undefined.
+
+  oneof MessageType {                              // Message can be either:
+    Request request = 2;                           //  * a new request,
+    Response response = 3;                         //  * or response to a previous request.
+  }
+}
+
+
+// Every conversation starts with a request of a requestor.
+// This can be either a single request, for which it is expected to receive a single response,
+// or this can be part of a longer conversation between the peers.
+message Request {
+  oneof ConversationType {                         // Either a request lives on its own without any session or context, or it is a part of a conversation.
+    SingleRequest singleRequest = 1;               // Single requests are requests that are supposed to be sent without further context.
+    ConversationRequest conversationRequest = 2;   // Conversation requests form a session with a context that has to be maintained by peers in order to correctly interpret the messages.
+  }  
+}
+
+
+// To every request there is a response.
+message Response {
+  Status status = 1;                               // Return code.
+  sint64 timestamp = 2;                            // If status is ERROR_BANNED, this field contains 64-bit signed Unix UTC timestamp specifying when the blacklist entry expires.
+
+  oneof ConversationType {                         // See Request.ConversationType. 
+    SingleResponse singleResponse = 3;             // Responses to single requests are sent as single responses,
+    ConversationResponse conversationResponse = 4; // responses to conversation requests are sent as conversation responses.
+  }
+}
+
+
+// Single requests live on their own without any session or context. 
+// It is always possible to process a single request without any additional informaiton.
+message SingleRequest {
+  bytes version = 1;                               // Protocol version specification encoded in 3 bytes - see http://semver.org/. First byte is MAJOR, second byte is MINOR, third byte is PATCH.
+  oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
+    PingRequest ping = 2;
+  }
+}
+
+
+
+// Single response is a reaction to single request. 
+message SingleResponse {
+  bytes version = 1;                               // See SingleRequest.version. The version of response can be different than the version in request, 
+                                                   // if the requestee does not support the version by the requestor.
+                                                   // If the requestor is able to process the message using the version of protocol, the version value is the same as in the request.
+
+  oneof ResponseType {                             // See SingleRequest.RequestType. Each request has its corresponding response.
+    PingResponse ping = 2;
+  }
+}
+
+
+
+// Conversation requests live in a session with a context that is important for the interpretation of the requests.
+// Unlike single requests, the order of messages is very important as each message may change the session context.
+message ConversationRequest {
+  oneof RequestType {                              // There are many different requests that can be sent in the conversation.
+    // TBD
+    uint32 dummy = 1;
+  }
+}
+
+
+// Conversation response is a reaction to a conversation request.
+message ConversationResponse {
+  oneof RequestType {                              // There are many different requests that can be sent in the conversation.
+    // TBD
+    uint32 dummy = 2;
+  }
+}
+
+
+
+// An administrative message to test whether the peer is there and responds to requests.
+message PingRequest {
+  bytes payload = 1;                               // At most 64 bytes of arbitrary data that will be sent back by the peer.
+}
+
+// A response to PingRequest to reassure the connection works fine.
+message PingResponse {
+  bytes payload = 1;                               // See PingRequest.payload.
+  sint64 clock = 2;                                // 64-bit signed Unix UTC time on the requestee's machine.
+}
+
+
+
+
+
+
