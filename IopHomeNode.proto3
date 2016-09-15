@@ -1,3 +1,27 @@
+//
+// Definition of IoP Home Node protocol.
+// We strictly use only features that are binary compatible in ProtoBuf v2 and v3.
+// We use no v2 or v3 specific features.
+//
+
+//
+// Each node has several roles. Each message belongs to one or more roles.
+// If a request is sent to a port that does not handle the specific role, 
+// it is a protocol violation error.
+//
+// Existing roles and their short names are:
+//
+//   * Primary and Unrelated Nodes Interface = "primary"
+//   * Neighbors Interface = "ndNeighbor"
+//   * Colleagues Interface = "ndColleague"
+//   * Customer Clients Interface = "clCustomer"
+//   * Non Customer Clients Interface = "clNonCustomer"
+//
+//
+// We mark each request with a list of roles that can serve that request.
+// If all roles can serve the request, we use "any" marker.
+//
+
 syntax = "proto3";
 
 
@@ -67,6 +91,7 @@ message SingleRequest {
   bytes version = 1;                               // Protocol version specification encoded in 3 bytes - see http://semver.org/. First byte is MAJOR, second byte is MINOR, third byte is PATCH.
   oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
     PingRequest ping = 2;
+    ListRolesRequest listRoles = 3;
   }
 }
 
@@ -80,6 +105,7 @@ message SingleResponse {
 
   oneof ResponseType {                             // See SingleRequest.RequestType. Each request has its corresponding response.
     PingResponse ping = 2;
+    ListRolesResponse listRoles = 3;
   }
 }
 
@@ -105,7 +131,13 @@ message ConversationResponse {
 
 
 
+
+
+//
 // An administrative message to test whether the peer is there and responds to requests.
+//
+// Roles: any
+//
 message PingRequest {
   bytes payload = 1;                               // At most 64 bytes of arbitrary data that will be sent back by the peer.
 }
@@ -119,5 +151,36 @@ message PingResponse {
 
 
 
+//
+// Request server to provide a mapping between ports and roles.
+//
+// Roles: primary
+//
+message ListRolesRequest {
+}
+
+// A response to ListRolesRequest with a list of all open ports and associated roles.
+message ListRolesResponse {
+  repeated ServerRole role = 1;                    // List of server roles.
+}
+
+
+// Known server roles.
+enum ServerRoleType {
+  PRIMARY = 0;                                     // Primary and Unrelated Nodes Interface server role.
+  ND_NEIGHBOR = 1;                                 // Neighbors Interface server role.
+  ND_COLLEAGUE = 2;                                // Colleagues Interface server role.
+  CL_NON_CUSTOMER = 3;                             // Customer Clients Interface server role.
+  CL_CUSTOMER = 4;                                 // Non Customer Clients Interface server role.
+}
+
+
+// Description of a single server role.
+message ServerRole {
+  ServerRoleType role = 1;                         // Server role type.
+  uint32 port = 2;                                 // On which port is this server role provided.
+  bool isTcp = 3;                                  // true if the port is TCP port, false means UDP.
+  bool isTls = 4;                                  // true if the port is TLS encrypted, false otherwise.
+}
 
 
