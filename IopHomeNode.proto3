@@ -37,7 +37,15 @@ enum Status {
   ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in Response.timestamp.
   ERROR_BUSY = 4;                                  // The peer will not process the request because it is too busy. The requestor can try later.
 
+  ERROR_UNAUTHORIZED = 5;                          // Within conversation, some server roles require authorization of the peer before certain requests are allowed.
+                                                   // For example, the clCustomer role requires clients to authorize themselves before certain requests can be sent.
+                                                   // This means that such requests require authorization and this error code is returned if a peer sends a request without prior authorization.
+
   // Return codes specific to a request.
+  ERROR_QUOTA_EXCEEDED = 51;                       // The peer refuses the request because it reached or exceeded prescribed limits.
+  ERROR_INVALID_SIGNATURE = 52;                    // The signature provided be the peer does not correspond to the peer's key or the message being signed.
+  ERROR_NOT_FOUND = 53;                            // The peer refuses the request because a referenced object was not found.
+  ERROR_INVALID_VALUE = 54;                        // The peer refuses the request because one of the values provided is invalid.
 }
 
 
@@ -92,6 +100,7 @@ message SingleRequest {
   oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
+    ListHomeNodePlansRequest listHomeNodePlans = 4;
   }
 }
 
@@ -106,6 +115,7 @@ message SingleResponse {
   oneof ResponseType {                             // See SingleRequest.RequestType. Each request has its corresponding response.
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
+    ListHomeNodePlansResponse listHomeNodePlans = 4;
   }
 }
 
@@ -114,18 +124,28 @@ message SingleResponse {
 // Conversation requests live in a session with a context that is important for the interpretation of the requests.
 // Unlike single requests, the order of messages is very important as each message may change the session context.
 message ConversationRequest {
+  bytes signature = 1;                             // Optional (request specific) signature that signs the Protobuf binary form of the included request body.
+
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
-    // TBD
-    uint32 dummy = 1;
+    // Request body.
+    StartConversationRequest start = 2;
+    HomeNodeRequest homeNodeRequest = 3;
+    CheckInRequest checkIn = 4;
+    CheckInChallengeRequest checkInChallenge = 5;
   }
 }
 
 
 // Conversation response is a reaction to a conversation request.
 message ConversationResponse {
+  bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body.
+
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
-    // TBD
-    uint32 dummy = 2;
+    // Response body.
+    StartConversationResponse start = 2;
+    HomeNodeResponse homeNodeRequest = 3;
+    CheckInReseponse checkIn = 4;
+    CheckInChallengeResponse checkInChallenge = 5;
   }
 }
 
@@ -147,7 +167,6 @@ message PingResponse {
   bytes payload = 1;                               // See PingRequest.payload.
   sint64 clock = 2;                                // 64-bit signed Unix UTC time on the requestee's machine.
 }
-
 
 
 
@@ -181,6 +200,148 @@ message ServerRole {
   uint32 port = 2;                                 // On which port is this server role provided.
   bool isTcp = 3;                                  // true if the port is TCP port, false means UDP.
   bool isTls = 4;                                  // true if the port is TLS encrypted, false otherwise.
+}
+
+
+//
+// A client asks node for its home node plans that match the given criteria.
+//
+// Roles: clNonCustomer
+//
+message ListHomeNodePlansRequest {
+  string identityType = 1;                         // A specific identity type, for which the client searches the plan.
+  // Other criteria TBD.
+}
+
+
+//
+// A response to ListHomeNodePlansRequest that contains a list of matching plans.
+//
+// Error Responses: 
+//   * ERROR_QUOTA_EXCEEDED - A node users this error code in case it wants to express that it will not accept any new clients because it has no free slots.
+//
+message ListHomeNodePlansRequest {
+  repeated HomeNodePlan plans = 1;                 // List of matching plans.
+}
+
+
+// Description of a home node hosting plan.
+message HomeNodePlan {
+  bytes planId = 1;                                // GUID of the plan. If a node wants to change the plan, it has to change the GUID as well,
+                                                   // thus effectively creating a new plan.
+  string identityType = 2;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
+                                                   // at the end of the type to support multiple types to be served with a single plan. 
+                                                   // For example, the value "*" would mean that any identity type is supported,
+                                                   // and the value "Taxi *" would mean that any identity type that starts with "Taxi *"
+                                                   // would match this plan.
+  uint64 fee = 3;                                  // Price of the plan per billing period in IoP tokens.
+  uint32 billingPeriodSeconds = 4;                 // Length of the billing period in seconds.
+  repeated NameStringValuePair planParameters = 9; // List of additional service parameters that define the plan.
+}
+
+// Description of name-value structure with string values.
+message NameStringValuePair {
+  string name = 1;                                 // Name of the object.
+  string value = 2;                                // String value.
+}
+
+
+
+//
+// Every conversation starts with this request, in which the requestor sends a list of protocol versions 
+// it supports and its public key that identifies it.
+//
+// Roles: any
+//
+// Authorization: not required
+//
+message StartConversationRequest {
+  repeated bytes supportedVersions = 1;            // List of 3-byte versions order by requestor's preference.
+  bytes publicKey = 2;                             // Public key of the requestor.
+}
+
+
+//
+// A response to StartConversationRequest in case the requestee found at least one protocol version that 
+// both peers are willing to use. 
+// 
+//
+// After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
+//
+// Error Responses:
+//   * ERROR_UNSUPPORTED - If the requestee does not support any of the requestor's versions, it replies with this error code.
+//
+message StartConversationResponse {
+  bytes version = 1;                               // The version that the requestee selected from the offered set.
+  bytes publicKey = 2;                             // Public key of the requestee.
+
+  bytes challenge = 3;                             // 32 byte challenge data (random bytes generated by the requestee) that is used for later authentication purposes.
+                                                   // This field is required only for clCustomer server role.
+}
+
+
+//
+// A client asks node to become its home node by sending HomeNodeRequest
+// with a signed contract. The signature is provided in ConversationRequest.signature.
+//
+// Roles: clNonCustomer
+//
+// Authorization: not required
+//
+message HomeNodeRequest {
+  HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node.
+                                                   // The contract.plan has to be the exact copy of a node offer, no field can be changed, otherwise node will refuse it.
+                                                   // The contract.startTime field has to be set either to the future, or to a time that is not 
+                                                   // more than 1 hour in past from the current node's time.
+}
+
+
+//
+// A response to HomeNodeRequest in case the node wants to accept the request.
+// The contract is signed with a signature in ConversationResponse.signature.
+//
+// Error Responses:
+//   * ERROR_QUOTA_EXCEEDED - A node uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
+//   * ERROR_NOT_FOUND - The contract.plan.planId does not correspond to a node's plan, or the plan values are different from what the node offers.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
+//   * ERROR_INVALID_VALUE - The contract.startTime is more than 1 hour in the past.
+//
+message HomeNodeResponse {
+  HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node and the node accepted it.
+                                                   // This has to be exactly the same contract as the node received in HomeNodeRequest.contract,
+                                                   // otherwise it is a protocol violation.
+}
+
+
+// A description of the contract between a client and a home node.
+message HomeNodePlanContract {
+  HomeNodePlan plan = 1;                           // Description of the home node hosting plan.
+  bytes nodePublicKey = 2;                         // Public key of the node.
+  bytes identityPublicKey = 3;                     // Public key of the identity.
+  sint64 startTime = 4;                            // 64-bit signed Unix UTC timestamp specifying the start time of the contract.
+}
+
+
+
+// 
+// A customer client announces it is online and it "logs in".
+// The client has to provide a signature in ConversationRequest.signature.
+//
+// Roles: clCustomer
+//
+// Authorization: not required
+//
+message CheckInRequest {
+  bytes challenge;                                 // The exact copy of StartConversationResponse.challenge from the start of the conversation.
+}
+
+//
+// A response to CheckInRequest.
+//
+// Error Responses:
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
+//
+message CheckInResponse {
 }
 
 
