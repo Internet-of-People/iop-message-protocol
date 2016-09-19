@@ -134,7 +134,6 @@ message ConversationRequest {
     StartConversationRequest start = 2;
     HomeNodeRequest homeNodeRequest = 3;
     CheckInRequest checkIn = 4;
-    CheckInChallengeRequest checkInChallenge = 5;
   }
 }
 
@@ -147,8 +146,7 @@ message ConversationResponse {
     // Response body.
     StartConversationResponse start = 2;
     HomeNodeResponse homeNodeRequest = 3;
-    CheckInReseponse checkIn = 4;
-    CheckInChallengeResponse checkInChallenge = 5;
+    CheckInResponse checkIn = 4;
   }
 }
 
@@ -223,7 +221,7 @@ message ListHomeNodePlansRequest {
 // Error Responses: 
 //   * ERROR_QUOTA_EXCEEDED - A node users this error code in case it wants to express that it will not accept any new clients because it has no free slots.
 //
-message ListHomeNodePlansRequest {
+message ListHomeNodePlansResponse {
   repeated HomeNodePlan plans = 1;                 // List of matching plans.
 }
 
@@ -335,7 +333,7 @@ message HomeNodePlanContract {
 // Authorization: not required
 //
 message CheckInRequest {
-  bytes challenge;                                 // The exact copy of StartConversationResponse.challenge from the start of the conversation.
+  bytes challenge = 1;                             // The exact copy of StartConversationResponse.challenge from the start of the conversation.
 }
 
 //
