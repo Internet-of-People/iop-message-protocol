@@ -7,7 +7,7 @@
 //
 // Each node has several roles. Each message belongs to one or more roles.
 // If a request is sent to a port that does not handle the specific role, 
-// it is a protocol violation error.
+// ERROR_BAD_ROLE is returned.
 //
 // Existing roles and their short names are:
 //
@@ -40,6 +40,9 @@ enum Status {
   ERROR_UNAUTHORIZED = 5;                          // Within conversation, some server roles require authorization of the peer before certain requests are allowed.
                                                    // For example, the clCustomer role requires clients to authorize themselves before certain requests can be sent.
                                                    // This means that such requests require authorization and this error code is returned if a peer sends a request without prior authorization.
+
+  ERROR_BAD_ROLE = 6;                              // If a request is sent to a port that does not handle the specific role, this error is returned.
+
 
   // Return codes specific to a request.
   ERROR_QUOTA_EXCEEDED = 51;                       // The peer refuses the request because it reached or exceeded prescribed limits.
@@ -256,7 +259,7 @@ message NameStringValuePair {
 // Authorization: not required
 //
 message StartConversationRequest {
-  repeated bytes supportedVersions = 1;            // List of 3-byte versions order by requestor's preference.
+  repeated bytes supportedVersions = 1;            // List of 3 byte versions order by requestor's preference. See SingleRequest.version.
   bytes publicKey = 2;                             // Public key of the requestor.
 }
 
