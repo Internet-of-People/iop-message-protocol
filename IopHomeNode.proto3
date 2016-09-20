@@ -5,7 +5,9 @@
 //
 //
 //
+//
 // * Roles *
+// ~~~~~~~~~
 //
 // Each node has several roles. Each message belongs to one or more roles.
 // If a request is sent to a port that does not handle the specific role, 
@@ -25,7 +27,9 @@
 //
 //
 //
+//
 // * Reused Types *
+// ~~~~~~~~~~~~~~~~
 //
 // Protobuf does not allow us to specify some types completely, this is why we 
 // define some of the types we reuse a lot here.
@@ -35,6 +39,43 @@
 //
 //  * TimestampType - 64-bit signed timestamp that is similar to Unix timestamp, except that it counts 
 //                    milliseconds since the epoch start instead of seconds and is 64-bit instead of 32-bit.
+//
+//  * TokenAmountType - IoP token amounts are represented by 64-bit unsigned integers similarly how bitcoins
+//                      are represented in the Bitcoin protocol. Each IoP token is divisible to 100,000,000 
+//                      smallest units and all amounts in the protocol are in these smallest units. Thus 
+//                      a numberical value of 100,000,000 within a TokenAmountType field represents 1 full 
+//                      IoP token.
+//
+//
+//
+//
+// * Conversations *
+// ~~~~~~~~~~~~~~~~~
+//
+// Each message in the protocol can either be a separated message called "Single Message" or it can be a part 
+// of a longer conversation. Response to a Single Message is a "Single Response". These request and response 
+// exist without any context. All the information needed to process the request has to be included in the message.
+//
+// Conversations are different. They establish a context and conversation messages can thus rely on the 
+// information provided earlier in the conversation. These are the possible conversation states:
+//
+//   * NoConversation - No conversation has been started.
+//
+//   * ConversationStarted - There is an established conversation with the client, but no authentication 
+//                           has been done.
+//
+//   * Authenticated - There is an established conversation with the client and the authentication process 
+//                     has already been completed.
+//
+//
+// For each conversation messages we define in which state must the conversation be. If the conversation 
+// message is sent in a different state, it is an error:
+//
+//   * ERROR_BAD_CONVERSATION_STATUS - If the required state is NoConversation or ConversationStarted, 
+//                                     but the current state is different.
+//
+//   * ERROR_UNAUTHORIZED - If the required state is Authenticated, but the current state is different.
+// 
 //
 
 
@@ -58,6 +99,7 @@ enum Status {
                                                    // This means that such requests require authorization and this error code is returned if a peer sends a request without prior authorization.
 
   ERROR_BAD_ROLE = 6;                              // If a request is sent to a port that does not handle the specific role, this error is returned.
+  ERROR_BAD_CONVERSATION_STATUS = 7;               // The conversation status is different from what the message requires.
 
 
   // Return codes specific to a request.
@@ -251,7 +293,7 @@ message HomeNodePlan {
                                                    // For example, the value "*" would mean that any identity type is supported,
                                                    // and the value "Taxi *" would mean that any identity type that starts with "Taxi *"
                                                    // would match this plan.
-  uint64 fee = 3;                                  // Price of the plan per billing period in IoP tokens.
+  uint64 fee = 3;                                  // TokenAmountType. Price of the plan per billing period.
   uint32 billingPeriodSeconds = 4;                 // Length of the billing period in seconds.
   repeated NameStringValuePair planParameters = 9; // List of additional service parameters that define the plan.
 }
@@ -270,7 +312,7 @@ message NameStringValuePair {
 //
 // Roles: any
 //
-// Authorization: not required
+// Conversation state: NoConversation
 //
 message StartConversationRequest {
   repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See SingleRequest.version.
@@ -303,7 +345,7 @@ message StartConversationResponse {
 //
 // Roles: clNonCustomer
 //
-// Authorization: not required
+// Conversation state: ConversationStarted
 //
 message HomeNodeRequest {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node.
@@ -346,7 +388,7 @@ message HomeNodePlanContract {
 //
 // Roles: clCustomer
 //
-// Authorization: not required
+// Conversation state: ConversationStarted
 //
 message CheckInRequest {
   bytes challenge = 1;                             // The exact copy of StartConversationResponse.challenge from the start of the conversation.
