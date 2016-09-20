@@ -191,7 +191,7 @@ message ConversationRequest {
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
     // Request body.
     StartConversationRequest start = 2;
-    HomeNodeRequest homeNodeRequest = 3;
+    HomeNodeRequestRequest homeNodeRequest = 3;
     CheckInRequest checkIn = 4;
   }
 }
@@ -204,7 +204,7 @@ message ConversationResponse {
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
     // Response body.
     StartConversationResponse start = 2;
-    HomeNodeResponse homeNodeRequest = 3;
+    HomeNodeRequestResponse homeNodeRequest = 3;
     CheckInResponse checkIn = 4;
   }
 }
@@ -341,14 +341,14 @@ message StartConversationResponse {
 
 
 //
-// A client asks node to become its home node by sending HomeNodeRequest
+// A client asks node to become its home node by sending HomeNodeRequestRequest
 // with a signed contract. The signature is provided in ConversationRequest.signature.
 //
 // Roles: clNonCustomer
 //
 // Conversation status: ConversationStarted
 //
-message HomeNodeRequest {
+message HomeNodeRequestRequest {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node.
                                                    // The contract.plan has to be the exact copy of a node offer, no field can be changed, otherwise node will refuse it.
                                                    // The contract.startTime field has to be set either to the future, or to a time that is not 
@@ -357,7 +357,7 @@ message HomeNodeRequest {
 
 
 //
-// A response to HomeNodeRequest in case the node wants to accept the request.
+// A response to HomeNodeRequestRequest in case the node wants to accept the request.
 // The contract is signed with a signature in ConversationResponse.signature.
 //
 // Error Responses:
@@ -366,7 +366,7 @@ message HomeNodeRequest {
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
 //   * ERROR_INVALID_VALUE - The contract.startTime is more than 1 hour in the past.
 //
-message HomeNodeResponse {
+message HomeNodeRequestResponse {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node and the node accepted it.
                                                    // This has to be exactly the same contract as the node received in HomeNodeRequest.contract,
                                                    // otherwise it is a protocol violation.
