@@ -402,6 +402,7 @@ message CheckInRequest {
 //
 // Error Responses:
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
+//   * ERROR_NOT_FOUND - The identity is not a client of the node.
 //
 message CheckInResponse {
 }
