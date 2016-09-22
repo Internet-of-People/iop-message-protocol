@@ -195,6 +195,7 @@ message ConversationRequest {
     StartConversationRequest start = 2;
     HomeNodeRequestRequest homeNodeRequest = 3;
     CheckInRequest checkIn = 4;
+    UpdateProfileRequest updateProfile = 5;
   }
 }
 
@@ -208,6 +209,7 @@ message ConversationResponse {
     StartConversationResponse start = 2;
     HomeNodeRequestResponse homeNodeRequest = 3;
     CheckInResponse checkIn = 4;
+    UpdateProfileResponse updateProfile = 5;
   }
 }
 
