@@ -91,7 +91,7 @@ enum Status {
 
   ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
   ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
-  ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in Response.timestamp.
+  ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in 'Response.timestamp'.
   ERROR_BUSY = 4;                                  // The peer will not process the request because it is too busy. The requestor can try later.
 
   ERROR_UNAUTHORIZED = 5;                          // Within conversation, some server roles require authorization of the peer before certain requests are allowed.
@@ -148,10 +148,11 @@ message Request {
 message Response {
   Status status = 1;                               // Return code.
   sint64 timestamp = 2;                            // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
+  string details = 3;                              // In case of an error, this field may contain additional details.
 
-  oneof ConversationType {                         // See Request.ConversationType. 
-    SingleResponse singleResponse = 3;             // Responses to single requests are sent as single responses,
-    ConversationResponse conversationResponse = 4; // responses to conversation requests are sent as conversation responses.
+  oneof ConversationType {                         // See 'Request.ConversationType'.
+    SingleResponse singleResponse = 8;             // Responses to single requests are sent as single responses,
+    ConversationResponse conversationResponse = 9; // responses to conversation requests are sent as conversation responses.
   }
 }
 
@@ -171,11 +172,11 @@ message SingleRequest {
 
 // Single response is a reaction to single request. 
 message SingleResponse {
-  bytes version = 1;                               // VersionType. See SingleRequest.version. The version of response can be different than the version in request, 
+  bytes version = 1;                               // VersionType. See 'SingleRequest.version'. The version of response can be different than the version in request, 
                                                    // if the requestee does not support the version by the requestor.
                                                    // If the requestor is able to process the message using the version of protocol, the version value is the same as in the request.
 
-  oneof ResponseType {                             // See SingleRequest.RequestType. Each request has its corresponding response.
+  oneof ResponseType {                             // See 'SingleRequest.RequestType'. Each request has its corresponding response.
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
     ListHomeNodePlansResponse listHomeNodePlans = 4;
@@ -194,6 +195,7 @@ message ConversationRequest {
     StartConversationRequest start = 2;
     HomeNodeRequestRequest homeNodeRequest = 3;
     CheckInRequest checkIn = 4;
+    UpdateProfileRequest updateProfile = 5;
   }
 }
 
@@ -207,6 +209,7 @@ message ConversationResponse {
     StartConversationResponse start = 2;
     HomeNodeRequestResponse homeNodeRequest = 3;
     CheckInResponse checkIn = 4;
+    UpdateProfileResponse updateProfile = 5;
   }
 }
 
@@ -225,7 +228,7 @@ message PingRequest {
 
 // A response to PingRequest to reassure the connection works fine.
 message PingResponse {
-  bytes payload = 1;                               // See PingRequest.payload.
+  bytes payload = 1;                               // See 'PingRequest.payload'.
   sint64 clock = 2;                                // 64-bit signed Unix UTC time on the requestee's machine.
 }
 
@@ -278,7 +281,7 @@ message ListHomeNodePlansRequest {
 //
 // A response to ListHomeNodePlansRequest that contains a list of matching plans.
 //
-// Error Responses: 
+// Specific Error Responses: 
 //   * ERROR_QUOTA_EXCEEDED - A node users this error code in case it wants to express that it will not accept any new clients because it has no free slots.
 //
 message ListHomeNodePlansResponse {
@@ -317,7 +320,7 @@ message NameStringValuePair {
 // Conversation status: NoConversation
 //
 message StartConversationRequest {
-  repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See SingleRequest.version.
+  repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
   bytes publicKey = 2;                             // Public key of the requestor.
 }
 
@@ -329,7 +332,7 @@ message StartConversationRequest {
 //
 // After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
 //
-// Error Responses:
+// Specific Error Responses:
 //   * ERROR_UNSUPPORTED - If the requestee does not support any of the requestor's versions, it replies with this error code.
 //
 message StartConversationResponse {
@@ -343,7 +346,7 @@ message StartConversationResponse {
 
 //
 // A client asks node to become its home node by sending HomeNodeRequestRequest
-// with a signed contract. The signature is provided in ConversationRequest.signature.
+// with a signed contract. The signature is provided in 'ConversationRequest.signature'.
 //
 // Roles: clNonCustomer
 //
@@ -351,8 +354,8 @@ message StartConversationResponse {
 //
 message HomeNodeRequestRequest {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node.
-                                                   // The contract.plan has to be the exact copy of a node offer, no field can be changed, otherwise node will refuse it.
-                                                   // The contract.startTime field has to be set either to the future, or to a time that is not 
+                                                   // The 'contract.plan' has to be the exact copy of a node offer, no field can be changed, otherwise node will refuse it.
+                                                   // The 'contract.startTime' field has to be set either to the future, or to a time that is not 
                                                    // more than 1 hour in past from the current node's time.
 }
 
@@ -361,16 +364,19 @@ message HomeNodeRequestRequest {
 // A response to HomeNodeRequestRequest in case the node wants to accept the request.
 // The contract is signed with a signature in ConversationResponse.signature.
 //
-// Error Responses:
+// Specific Error Responses:
 //   * ERROR_QUOTA_EXCEEDED - A node uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
-//   * ERROR_NOT_FOUND - The contract.plan.planId does not correspond to a node's plan, or the plan values are different from what the node offers.
+//   * ERROR_NOT_FOUND - 'HomeNodePlanContract.contract.plan.planId' does not correspond to a node's plan, or the plan values are different from what the node offers.
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
-//   * ERROR_INVALID_VALUE - The contract.startTime is more than 1 hour in the past.
 //   * ERROR_ALREADY_EXISTS - The identity is hosted by the node already.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "contract.startTime" - 'HomeNodeRequestRequest.contract.startTime' is more than 1 hour in the past. 
+//     * Response.details == "contract.nodePublicKey" - 'HomeNodeRequestRequest.contract.nodePublicKey' does not match node's public key. 
+//     * Response.details == "contract.identityPublicKey" - 'HomeNodeRequestRequest.contract.identityPublicKey' does not match identity's public key.
 //
 message HomeNodeRequestResponse {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node and the node accepted it.
-                                                   // This has to be exactly the same contract as the node received in HomeNodeRequest.contract,
+                                                   // This has to be exactly the same contract as the node received in 'HomeNodeRequest.contract',
                                                    // otherwise it is a protocol violation.
 }
 
@@ -387,20 +393,20 @@ message HomeNodePlanContract {
 
 // 
 // A customer client announces it is online and it "logs in".
-// The client has to provide a signature in ConversationRequest.signature.
+// The client has to provide a signature in 'ConversationRequest.signature'.
 //
 // Roles: clCustomer
 //
 // Conversation status: ConversationStarted
 //
 message CheckInRequest {
-  bytes challenge = 1;                             // The exact copy of StartConversationResponse.challenge from the start of the conversation.
+  bytes challenge = 1;                             // The exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
 }
 
 //
 // A response to CheckInRequest.
 //
-// Error Responses:
+// Specific Error Responses:
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
 //   * ERROR_NOT_FOUND - The identity is not a client of the node.
 //
@@ -408,3 +414,46 @@ message CheckInResponse {
 }
 
 
+//
+// A customer client updates its profile hosted at the node.
+// The client must make sure that its profile is complete after processing the request.
+// After sending HomeNodeRequest, its profile is almost empty - only identity type 
+// and public key are known. This means that the first call of this request 
+// has to contain all required information to make the profile complete. Namely the first 
+// UpdateProfileRequest has to have setVersion, setName, and setLocation set to true.
+// 
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message UpdateProfileRequest {
+  bool setVersion = 1;                             // Profile version should be updated. 'version' must contain valid data.
+  bool setName = 2;                                // Profile name should be updated. 'name' must contain valid data.
+  bool setImage = 3;                               // Profile image should be updated. 'image' must contain valid data.
+  bool setLocation = 4;                            // Profile location should be updated. 'location' must contain valid data.
+  bool setExtraData = 5;                           // Profile extra data should be updated. 'extraData' must contain valid data.
+
+  bytes version = 8;                               // VersionType. Version of the profile structure.
+  string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
+  bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long.
+  fixed32 location = 11;                           // Encoded GPS location information.
+  string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
+}
+
+
+//
+// A response to UpdateProfileRequest.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "setVersion" - 'UpdateProfileRequest.setVersion' is not set during the first request.
+//     * Response.details == "setName" - 'UpdateProfileRequest.setName' is not set during the firts request.
+//     * Response.details == "setLocation" - 'UpdateProfileRequest.setLocation' is not set during the firts request.
+//     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
+//     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
+//     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
+//     * Response.details == "location" - 'UpdateProfileRequest.image' does not contain a valid location information.
+//     * Response.details == "extraData" - 'UpdateProfileRequest.extraData' does not contain a valid extra data information.
+//
+message UpdateProfileResponse {
+}
