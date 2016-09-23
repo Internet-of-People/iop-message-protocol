@@ -445,6 +445,7 @@ message UpdateProfileRequest {
 // A response to UpdateProfileRequest.
 //
 // Specific Error Responses:
+//   * ERROR_NOT_FOUND - The identity is not a client of the node.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "setVersion" - 'UpdateProfileRequest.setVersion' is not set during the first request.
 //     * Response.details == "setName" - 'UpdateProfileRequest.setName' is not set during the firts request.
