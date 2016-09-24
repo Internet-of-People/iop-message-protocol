@@ -452,6 +452,7 @@ message UpdateProfileRequest {
 //     * Response.details == "setVersion" - 'UpdateProfileRequest.setVersion' is not set during the first request.
 //     * Response.details == "setName" - 'UpdateProfileRequest.setName' is not set during the firts request.
 //     * Response.details == "setLocation" - 'UpdateProfileRequest.setLocation' is not set during the firts request.
+//     * Response.details == "set*" - Nothing was set to be updated.
 //     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
 //     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
 //     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
