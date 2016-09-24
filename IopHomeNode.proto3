@@ -473,8 +473,8 @@ message UpdateProfileResponse {
 // Conversation status: Authenticated
 //
 message CancelHomeNodeAgreementRequest {
-  bool redirectToNewHomeNode;                      // true, if the client wants to inform the home node about its new home node location, false otherwise.
-  bytes newHomeNodeNetworkId;                      // If 'redirectToNewHomeNode' is true, an identifier of the new home node.
+  bool redirectToNewHomeNode = 1;                  // true, if the client wants to inform the home node about its new home node location, false otherwise.
+  bytes newHomeNodeNetworkId = 2;                  // If 'redirectToNewHomeNode' is true, an identifier of the new home node.
 }
 
 //
