@@ -196,6 +196,7 @@ message ConversationRequest {
     HomeNodeRequestRequest homeNodeRequest = 3;
     CheckInRequest checkIn = 4;
     UpdateProfileRequest updateProfile = 5;
+    CancelHomeNodeAgreementRequest cancelHomeNodeAgreement = 6;
   }
 }
 
@@ -210,6 +211,7 @@ message ConversationResponse {
     HomeNodeRequestResponse homeNodeRequest = 3;
     CheckInResponse checkIn = 4;
     UpdateProfileResponse updateProfile = 5;
+    CancelHomeNodeAgreementResponse cancelHomeNodeAgreement = 6;
   }
 }
 
@@ -450,6 +452,7 @@ message UpdateProfileRequest {
 //     * Response.details == "setVersion" - 'UpdateProfileRequest.setVersion' is not set during the first request.
 //     * Response.details == "setName" - 'UpdateProfileRequest.setName' is not set during the firts request.
 //     * Response.details == "setLocation" - 'UpdateProfileRequest.setLocation' is not set during the firts request.
+//     * Response.details == "set*" - Nothing was set to be updated.
 //     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
 //     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
 //     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
@@ -457,4 +460,31 @@ message UpdateProfileRequest {
 //     * Response.details == "extraData" - 'UpdateProfileRequest.extraData' does not contain a valid extra data information.
 //
 message UpdateProfileResponse {
+}
+
+
+
+// 
+// A customer client cancels the home node agreement and optionally informs 
+// the node about its new home node location. The node will keep the information 
+// about identity's new location for some time.
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message CancelHomeNodeAgreementRequest {
+  bool redirectToNewHomeNode = 1;                  // true, if the client wants to inform the home node about its new home node location, false otherwise.
+  bytes newHomeNodeNetworkId = 2;                  // If 'redirectToNewHomeNode' is true, an identifier of the new home node.
+}
+
+//
+// A response to CancelHomeNodeAgreementRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "newHomeNodeNetworkId" - 'CancelHomeNodeAgreementRequest.newHomeNodeNetworkId' is not a valid node network identifier.
+//
+message CancelHomeNodeAgreementResponse {
 }
