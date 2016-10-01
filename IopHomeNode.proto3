@@ -587,7 +587,7 @@ message ApplicationServiceRemoveResponse {
 // If the identity is online, the information includes a list of application services 
 // that the identity supports in the currently active session.
 //
-// Roles: clNonCustomer
+// Roles: clNonCustomer, clCustomer
 //
 message GetIdentityOnlineInformationRequest {
   bytes identityNetworkId = 1;                     // Identity's network identifier.
@@ -626,7 +626,7 @@ message GetIdentityOnlineInformationResponse {
 // If the callee wants to accept the call, the node informs the caller and sends it the caller's token. Both clients are then expected 
 // to establish new connections to the node's Application Service Interface and use their tokens to send a message to the other client.
 //
-// Roles: clNonCustomer
+// Roles: clNonCustomer, clCustomer
 //
 // Conversation status: Verified
 //
