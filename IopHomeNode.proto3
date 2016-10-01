@@ -20,6 +20,7 @@
 //   * Colleagues Interface = "ndColleague"
 //   * Customer Clients Interface = "clCustomer"
 //   * Non Customer Clients Interface = "clNonCustomer"
+//   * Application Service Interface = "clAppService"
 //
 //
 // We mark each request with a list of roles that can serve that request.
@@ -64,17 +65,23 @@
 //   * ConversationStarted - There is an established conversation with the client, but no authentication 
 //                           has been done.
 //
-//   * Authenticated - There is an established conversation with the client and the authentication process 
+//   * Verified - There is an established conversation with the non-customer client and the verification process 
+//                has already been completed. 
+//
+//   * Authenticated - There is an established conversation with the customer client and the authentication process 
 //                     has already been completed.
 //
 //
 // For each conversation messages we define in which state must the conversation be. If the conversation 
-// message is sent in a different state, it is an error:
+// message is sent in a different state, it is an error. Note that if the required status is Verified
+// and the current status is Authenticated, the requirement is satisfied.
 //
 //   * ERROR_BAD_CONVERSATION_STATUS - If the required state is NoConversation or ConversationStarted, 
 //                                     but the current state is different.
 //
-//   * ERROR_UNAUTHORIZED - If the required state is Authenticated, but the current state is different.
+//   * ERROR_UNAUTHORIZED - If the required status is Authenticated, but the current status is different; 
+//                          OR the required status is Verified and the current status is neither Verified 
+//                          nor Authenticated.
 // 
 //
 
@@ -109,6 +116,8 @@ enum Status {
   ERROR_NOT_FOUND = 53;                            // A referenced object was not found.
   ERROR_INVALID_VALUE = 54;                        // One of the values provided is invalid.
   ERROR_ALREADY_EXISTS = 55;                       // An object with the same identifier already exists.
+  ERROR_NOT_AVAILABLE = 56;                        // A request object is not available.
+  ERROR_REJECTED = 57;                             // A third party rejected the requested action.
 }
 
 
@@ -165,6 +174,8 @@ message SingleRequest {
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
     ListHomeNodePlansRequest listHomeNodePlans = 4;
+    GetIdentityOnlineInformationRequest getIdentityOnlineInformation = 5;
+    ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
   }
 }
 
@@ -180,6 +191,8 @@ message SingleResponse {
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
     ListHomeNodePlansResponse listHomeNodePlans = 4;
+    GetIdentityOnlineInformationResponse getIdentityOnlineInformation = 5;
+    ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
   }
 }
 
@@ -195,8 +208,13 @@ message ConversationRequest {
     StartConversationRequest start = 2;
     HomeNodeRequestRequest homeNodeRequest = 3;
     CheckInRequest checkIn = 4;
-    UpdateProfileRequest updateProfile = 5;
-    CancelHomeNodeAgreementRequest cancelHomeNodeAgreement = 6;
+    VerifyIdentityRequest verifyIdentity = 5;
+    UpdateProfileRequest updateProfile = 6;
+    CancelHomeNodeAgreementRequest cancelHomeNodeAgreement = 7;
+    ApplicationServiceAddRequest applicationServiceAdd = 8;
+    ApplicationServiceRemoveRequest applicationServiceRemove = 9;
+    CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
+    IncomingCallNotificationRequest incomingCallNotification = 11;
   }
 }
 
@@ -210,8 +228,13 @@ message ConversationResponse {
     StartConversationResponse start = 2;
     HomeNodeRequestResponse homeNodeRequest = 3;
     CheckInResponse checkIn = 4;
-    UpdateProfileResponse updateProfile = 5;
-    CancelHomeNodeAgreementResponse cancelHomeNodeAgreement = 6;
+    VerifyIdentityResponse verifyIdentity = 5;
+    UpdateProfileResponse updateProfile = 6;
+    CancelHomeNodeAgreementResponse cancelHomeNodeAgreement = 7;
+    ApplicationServiceAddResponse applicationServiceAdd = 8;
+    ApplicationServiceRemoveResponse applicationServiceRemove = 9;
+    CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
+    IncomingCallNotificationResponse incomingCallNotification = 11;
   }
 }
 
@@ -406,13 +429,35 @@ message CheckInRequest {
 }
 
 //
-// A response to CheckInRequest.
+// A response to CheckInRequest. If no error occurs, the conversation status is upgraded to Authenticated.
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
 //   * ERROR_NOT_FOUND - The identity is not a client of the node.
 //
 message CheckInResponse {
+}
+
+
+// 
+// A non-customer client verifies its public key by signing the challenge. This request is similar to CheckInRequest, 
+// but it is intended for non-customer clients. The client has to provide a signature in 'ConversationRequest.signature'.
+//
+// Roles: clNonCustomer
+//
+// Conversation status: ConversationStarted
+//
+message VerifyIdentityRequest {
+  bytes challenge = 1;                             // The exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
+}
+
+//
+// A response to VerifyIdentityRequest. If no error occurs, the conversation status is upgraded to Verified.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
+//
+message VerifyIdentityResponse {
 }
 
 
@@ -488,3 +533,168 @@ message CancelHomeNodeAgreementRequest {
 //
 message CancelHomeNodeAgreementResponse {
 }
+
+
+
+// 
+// Adds (checks-in) one or more application services to the list of services that the customer 
+// client supports in the current session.
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message ApplicationServiceAddRequest {
+  repeated string serviceNames = 1;                // List of application service names to add to the list. If a service name is already 
+                                                   // in the list, it will remain in the list and no error is reported.
+}
+
+//
+// A response to ApplicationServiceAddRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//
+message ApplicationServiceAddResponse {
+}
+
+
+
+// 
+// Removes (checks-out) a single application service from the list of services that the customer 
+// client supports in the current session.
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message ApplicationServiceRemoveRequest {
+  string serviceName = 1;                          // Name of the application service to remove. The service must be in the customer client's list.
+}
+
+//
+// A response to ApplicationServiceRemoveRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'ApplicationServiceRemoveRequest.serviceName' does not refer to an application service that was previously added using ApplicationServiceAddRequest.
+//
+message ApplicationServiceRemoveResponse {
+}
+
+
+// 
+// Obtains a basic information about an identity hosted on the node.
+// If the identity is online, the information includes a list of application services 
+// that the identity supports in the currently active session.
+//
+// Roles: clNonCustomer
+//
+message GetIdentityOnlineInformationRequest {
+  bytes identityNetworkId = 1;                     // Identity's network identifier.
+  bool includeProfileImage = 2;                    // If set to true, the response will include a profile image.
+  bool includeThumbnailImage = 3;                  // If set to true, the response will include a thumbnail image.
+  bool includeApplicationServices = 4;             // If set to true and the given identity is online, the response will include 
+                                                   // a list of application services that the identity supports in the currently active session.
+}
+
+
+//
+// A response to GetIdentityOnlineInformationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'ApplicationServiceRemoveRequest.identityNetworkId' does not identify an identity hosted by the node.
+//
+message GetIdentityOnlineInformationResponse {
+  bool isOnline = 1;                               // True if the requested identity is currently online.
+  bytes identityPublicKey = 2;                     // The requested identity's public key.
+  string name = 3;                                 // The requested identity's name.
+  string extraData = 4;                            // The requested identity's extra data.
+  bytes profileImage = 5;                          // If 'GetIdentityOnlineInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 6;                        // If 'GetIdentityOnlineInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+
+  repeated string applicationServices = 10;        // If 'GetIdentityOnlineInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+                                                   // the list of application services that the requested identity supports in the currently active session.
+}
+
+
+// 
+// Request to establish a bridged connection between a requestor (the caller) and an identity (the callee) hosted on the node 
+// via one of its supported application service. The callee has to be online, otherwise the request will fail.
+//
+// The node informs the callee about the incoming call and issues a token pair (caller's and callee's tokens) to identify the caller 
+// and the callee on the Application Service Interface. The callee's token is sent to the callee with the information about the incoming call. 
+// If the callee wants to accept the call, the node informs the caller and sends it the caller's token. Both clients are then expected 
+// to establish new connections to the node's Application Service Interface and use their tokens to send a message to the other client.
+//
+// Roles: clNonCustomer
+//
+// Conversation status: Verified
+//
+message CallIdentityApplicationServiceRequest {
+  bytes identityNetworkId = 1;                     // Network identifier of the identity to call.
+  string serviceName = 2;                          // Name of the application service to use.
+}
+
+
+//
+// A response to CallIdentityApplicationServiceRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_AVAILABLE - The callee is not online.
+//   * ERROR_REJECTED - The callee rejected the call.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "identityNetworkId" - 'CallIdentityApplicationServiceRequest.identityNetworkId' does not identify an identity hosted by the node.
+//     * Response.details == "serviceName" - 'CallIdentityApplicationServiceRequest.serviceName' is not an application service supported by the callee in the current session.
+//
+message CallIdentityApplicationServiceResponse {
+  bytes callerToken = 1;                           // Token for the caller to identify the session on the Application Service Interface.
+}
+
+
+// 
+// This request is sent by node to its customer client (the callee) when another client (the caller) wants 
+// to establish a call over the customer client's application service.
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message IncomingCallNotificationRequest {
+  bytes callerPublicKey = 1;                       // Public key of the caller.
+  string serviceName = 2;                          // Name of the application service the caller wants to use.
+  bytes calleeToken = 3;                           // Token for the callee to identify the session on the Application Service Interface.
+}
+
+
+//
+// A response to CallIdentityApplicationServiceRequest. This is sent by the customer client (the callee) to its home node.
+//
+// Specific Error Responses:
+//   * ERROR_REJECTED - The callee rejects the call.
+//
+message IncomingCallNotificationResponse {
+}
+
+
+
+// 
+// This request is sent by a client to the node in order to deliver a message to the other client over the opened 
+// application service call session.
+//
+// Roles: clAppService
+//
+message ApplicationServiceSendMessageRequest {
+  bytes token = 1;                                 // Client's token to identify the session.
+  bytes message = 2;                               // Message to send to the other client.
+}
+
+
+//
+// A response to ApplicationServiceSendMessageRequest. This is sent by the node to the client to confirm that it sent 
+// the message to the other client.
+// 
+// If the connection to one of the clients is terminated, the node closes the connection to the other client.
+//
+message ApplicationServiceSendMessageResponse {
+}
+
