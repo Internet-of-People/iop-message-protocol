@@ -176,6 +176,7 @@ message SingleRequest {
     ListHomeNodePlansRequest listHomeNodePlans = 4;
     GetIdentityOnlineInformationRequest getIdentityOnlineInformation = 5;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
+    ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
   }
 }
 
@@ -193,6 +194,7 @@ message SingleResponse {
     ListHomeNodePlansResponse listHomeNodePlans = 4;
     GetIdentityOnlineInformationResponse getIdentityOnlineInformation = 5;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
+    ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
   }
 }
 
@@ -696,5 +698,24 @@ message ApplicationServiceSendMessageRequest {
 // If the connection to one of the clients is terminated, the node closes the connection to the other client.
 //
 message ApplicationServiceSendMessageResponse {
+}
+
+
+
+// 
+// This request is sent by a home node after it received ApplicationServiceSendMessageRequest from one of the clients.
+// This forwards the message to its intended recipient.
+//
+// Roles: clAppService
+//
+message ApplicationServiceReceiveMessageNotificationRequest {
+  bytes message = 1;                               // Message that was sent to the intended recipient - a copy of 'ApplicationServiceSendMessageRequest.message'.
+}
+
+
+//
+// A response to ApplicationServiceReceiveMessageNotificationRequest.
+// 
+message ApplicationServiceReceiveMessageNotificationResponse {
 }
 
