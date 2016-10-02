@@ -609,7 +609,7 @@ message GetIdentityInformationRequest {
 // A response to GetIdentityInformationRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - 'ApplicationServiceRemoveRequest.identityNetworkId' does not identify an identity hosted by the node.
+//   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the node.
 //
 message GetIdentityInformationResponse {
   bool isOnline = 1;                               // True if the requested identity is currently online.
