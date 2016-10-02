@@ -612,12 +612,17 @@ message GetIdentityInformationRequest {
 //   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the node.
 //
 message GetIdentityInformationResponse {
-  bool isOnline = 1;                               // True if the requested identity is currently online.
-  bytes identityPublicKey = 2;                     // The requested identity's public key.
-  string name = 3;                                 // The requested identity's name.
-  string extraData = 4;                            // The requested identity's extra data.
-  bytes profileImage = 5;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 6;                        // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  bool isHosted = 1;                               // True if the requested identity is a customer of the node.
+  bool isTargetHomeNodeKnown = 2;                  // If 'isHosted' is false then this is true if the identity's new home node is known to the node. In all other cases, this is false.
+  bytes targetHomeNodeNetworkId = 3;               // If 'isTargetHomeNodeKnown' is true then this field contains the identity's new home node network ID.
+
+  // Following fields are valid only if 'isHosted' is true.
+  bool isOnline = 4;                               // True if the requested identity is currently online.
+  bytes identityPublicKey = 5;                     // The requested identity's public key.
+  string name = 6;                                 // The requested identity's name.
+  string extraData = 7;                            // The requested identity's extra data.
+  bytes profileImage = 8;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 9;                        // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
   repeated string applicationServices = 10;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.
