@@ -436,6 +436,8 @@ message CheckInRequest {
 // Specific Error Responses:
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
 //   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "challenge" - 'CheckInRequest.challenge' is not the exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
 //
 message CheckInResponse {
 }
@@ -458,6 +460,8 @@ message VerifyIdentityRequest {
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "challenge" - 'VerifyIdentityRequest.challenge' is not the exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
 //
 message VerifyIdentityResponse {
 }
