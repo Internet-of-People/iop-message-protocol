@@ -553,13 +553,14 @@ message CancelHomeNodeAgreementResponse {
 message ApplicationServiceAddRequest {
   repeated string serviceNames = 1;                // List of application service names to add to the list. If a service name is already 
                                                    // in the list, it will remain in the list and no error is reported.
+                                                   // Each service name has to be a non-empty string, max 32 bytes long.
 }
 
 //
 // A response to ApplicationServiceAddRequest.
 //
-// Specific Error Responses:
-//   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is the zero-based index.
 //
 message ApplicationServiceAddResponse {
 }
