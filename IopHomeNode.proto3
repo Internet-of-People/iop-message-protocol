@@ -174,7 +174,7 @@ message SingleRequest {
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
     ListHomeNodePlansRequest listHomeNodePlans = 4;
-    GetIdentityOnlineInformationRequest getIdentityOnlineInformation = 5;
+    GetIdentityInformationRequest getIdentityInformation = 5;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
   }
@@ -192,7 +192,7 @@ message SingleResponse {
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
     ListHomeNodePlansResponse listHomeNodePlans = 4;
-    GetIdentityOnlineInformationResponse getIdentityOnlineInformation = 5;
+    GetIdentityInformationResponse getIdentityInformation = 5;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
   }
@@ -596,7 +596,7 @@ message ApplicationServiceRemoveResponse {
 //
 // Roles: clNonCustomer, clCustomer
 //
-message GetIdentityOnlineInformationRequest {
+message GetIdentityInformationRequest {
   bytes identityNetworkId = 1;                     // Identity's network identifier.
   bool includeProfileImage = 2;                    // If set to true, the response will include a profile image.
   bool includeThumbnailImage = 3;                  // If set to true, the response will include a thumbnail image.
@@ -606,20 +606,20 @@ message GetIdentityOnlineInformationRequest {
 
 
 //
-// A response to GetIdentityOnlineInformationRequest.
+// A response to GetIdentityInformationRequest.
 //
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - 'ApplicationServiceRemoveRequest.identityNetworkId' does not identify an identity hosted by the node.
 //
-message GetIdentityOnlineInformationResponse {
+message GetIdentityInformationResponse {
   bool isOnline = 1;                               // True if the requested identity is currently online.
   bytes identityPublicKey = 2;                     // The requested identity's public key.
   string name = 3;                                 // The requested identity's name.
   string extraData = 4;                            // The requested identity's extra data.
-  bytes profileImage = 5;                          // If 'GetIdentityOnlineInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 6;                        // If 'GetIdentityOnlineInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  bytes profileImage = 5;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 6;                        // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 10;        // If 'GetIdentityOnlineInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 10;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.
 }
 
