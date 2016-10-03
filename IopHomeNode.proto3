@@ -118,6 +118,7 @@ enum Status {
   ERROR_ALREADY_EXISTS = 55;                       // An object with the same identifier already exists.
   ERROR_NOT_AVAILABLE = 56;                        // A request object is not available.
   ERROR_REJECTED = 57;                             // A third party rejected the requested action.
+  ERROR_UNINITIALIZED = 58;                        // The requested object can not be obtained, queried or used as it is not initialized.
 }
 
 
@@ -292,6 +293,185 @@ message ServerRole {
   bool isTcp = 3;                                  // true if the port is TCP port, false means UDP.
   bool isTls = 4;                                  // true if the port is TLS encrypted, false otherwise.
 }
+
+
+
+
+
+
+
+
+
+//
+// Home Node Request and Check-in - Identity registration and first login full sequence
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// A) Provided that the node's clNonCustomer port is different from clCustomer port, the sequence is as follows:
+//   1) Identity connects to the node on its primary port and gets information about its roles to ports mapping.
+//   2) Identity connects to the clNonCustomer port and sends a home node request.
+//   3) Identity connects to the clCustomer port and performs a check-in.
+//
+// B) If clNonCustomer port is equal to clCustomer port, the sequence is as follows:
+//   1) Identity connects to the node on its primary port and gets information about its roles to ports mapping.
+//   2) Identity connects to the clNonCustomer+clCustomer port and sends a home node request.
+//   3) Identity performs a check-in over the connection from 2).
+//
+//
+//
+// Sequence diagram A.1) - this is called "Port Discovery Process":
+//
+// [ Identity ]                                                         [ Node:primary ] 
+//      |                                                                     |
+//      |                                                                     | status = NoConversation
+//      |                                                                     |
+//      |  ListRolesRequest                                                   |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     |
+//      |                                                                     |
+//      |                                                  ListRolesResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
+//
+//
+// Now the identity knows the list of node's roles and on which ports they are served.
+//
+//
+//
+// Sequence diagram A.2):
+//
+// [ Identity ]                                                         [ Node:clNonCustomer ] 
+//      |                                                                     |
+//      |                                                                     | status = NoConversation
+//      |                                                                     |
+//      |  StartConversationRequest                                           |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     | status := ConversationStarted
+//      |                                                                     |
+//      |                                          StartConversationResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
+//      |                                                                     |
+//      |  HomeNodeRequestRequest                                             |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     |
+//      |                                                                     |
+//      |                                            HomeNodeRequestResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
+//
+// Now the identity is registered and the node is its home node, it can proceed with the check-in process.
+//
+//
+//
+// Sequence diagram A.3) - this is called "Check-in Process":
+//
+// [ Identity ]                                                         [ Node:clCustomer ] 
+//      |                                                                     |
+//      |                                                                     | status = NoConversation
+//      |                                                                     |
+//      |  StartConversationRequest                                           |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     | status := ConversationStarted
+//      |                                                                     |
+//      |                                                                     |
+//      |                                          StartConversationResponse  |
+//      *<--------------------------------------------------------------------*
+//      |                                                        <challenge>  |
+//      |                                                                     |
+//      |                                                                     |
+//      |  CheckInRequest                                                     |
+//      *-------------------------------------------------------------------> *
+//      |  <signed challenge>                                                 |
+//      |                                                                     | status := Authenticated
+//      |                                                                     |
+//      |                                                    CheckInResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
+//
+//
+//
+// Sequence diagram B.1) is same as A.1)
+// Sequence diagram B.2) + B.3):
+//
+// [ Identity ]                                                         [ Node:clNonCustomer+clCustomer ] 
+//      |                                                                     |
+//      |                                                                     | status = NoConversation
+//      |                                                                     |
+//      |  StartConversationRequest                                           |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     | status := ConversationStarted
+//      |                                                                     |
+//      |                                          StartConversationResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                        <challenge>  |
+//      |                                                                     |
+//      |                                                                     |
+//      |  HomeNodeRequestRequest                                             |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     |
+//      |                                                                     |
+//      |                                            HomeNodeRequestResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
+//      |                                                                     |
+//      |  CheckInRequest                                                     |
+//      *-------------------------------------------------------------------> *
+//      |  <signed challenge>                                                 |
+//      |                                                                     | status := Authenticated
+//      |                                                                     |
+//      |                                                    CheckInResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
+//
+//
+// 
+//
+// Identity Verification Process
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// Similarly to how a node's customer checks-in in order to get to the Authenticated conversation 
+// status, a remote identity (not hosted by the node) can verify its public key by signing
+// a challenge provided by the node in order to get to the Verified conversation status.
+//
+//
+// Sequence diagram for so called "Identity Verification Process":
+//
+// [ Identity ]                                                         [ Node:clNonCustomer ] 
+//      |                                                                     |
+//      |                                                                     | status = NoConversation
+//      |                                                                     |
+//      |  StartConversationRequest                                           |
+//      *-------------------------------------------------------------------> *
+//      |                                                                     |
+//      |                                                                     | status := ConversationStarted
+//      |                                                                     |
+//      |                                                                     |
+//      |                                          StartConversationResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                        <challenge>  |
+//      |                                                                     |
+//      |                                                                     |
+//      |  VerifyIdentityRequest                                              |
+//      *-------------------------------------------------------------------> *
+//      |  <signed challenge>                                                 |
+//      |                                                                     | status := Authenticated
+//      |                                                                     |
+//      |                                             VerifyIdentityResponse  |
+//      * <-------------------------------------------------------------------*
+//      |                                                                     |
+//      |                                                                     |
 
 
 //
@@ -470,10 +650,15 @@ message VerifyIdentityResponse {
 //
 // A customer client updates its profile hosted at the node.
 // The client must make sure that its profile is complete after processing the request.
-// After sending HomeNodeRequest, its profile is almost empty - only identity type 
+// After sending HomeNodeRequestRequest, its profile is almost empty - only identity type 
 // and public key are known. This means that the first call of this request 
 // has to contain all required information to make the profile complete. Namely the first 
 // UpdateProfileRequest has to have setVersion, setName, and setLocation set to true.
+//
+// The customer client is required to initialize its profile just after finishing 
+// the HomeNodeRequestRequest. Until the initialization of the profile is made, the identity 
+// is not considered as being fully initialized and can not be queried or called by other 
+// identities.
 // 
 // Roles: clCustomer
 //
@@ -589,6 +774,172 @@ message ApplicationServiceRemoveResponse {
 }
 
 
+
+
+
+//
+// Application Service Call - Identity A calls Identity B over application service AS1
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// Prior to the service call, we assume the B (the callee) to be a customer of the node with a fully 
+// initialized profile and that it knows the ports on which the node operates. In this example, 
+// we further assume that A (the caller) is not a customer of the node. If A was a customer, 
+// it would use the Check-in Process and communication over clCustomer port instead of communicating 
+// over clNonCustomer port and doing the Identity Verification Process. We also assume that A already 
+// knows which node is B's home node. Finally, we assume that B has enabled AS1 in its session 
+// using ApplicationServiceAddRequest.
+//
+// Then A can call B over AS1:
+//
+// 1) A performs Port Discovery Process to find node's clNonCustomer and clAppService ports.
+// 2) A connects to clNonCustomer port and obtains information about B. A is interested 
+//    to know whether B is online and whether AS1 is supported.
+// 3) A initiates the call via CallIdentityApplicationServiceRequest.
+// 4) The node checks that B is online and that AS1 is available and then it issues a callee's token 
+//    and sends it to B with an information about the incoming call.
+// 5) B decides to accept the call from A.
+// 6) The node issues a caller's token and sends it to A together with the information that B accepted the call.
+// 7,8) A and B connects to clAppService port and sends the initialization message with the caller's/callee's token
+//    to allow the node to recognize the connections. The node does not reply to these messages until B/A is also 
+//    connected.
+// 9) A and B can send messages to each other.
+// 
+//
+//
+//
+// Sequence diagram 2) to 6):
+//
+//    [ A ]                                           [ Node:clNonCustomer ]                                  [ B ]
+//      |                                                   |                                                   |  
+//      |                                                   |                                                   |  
+//      |                                                   |                                                   |  
+//      |  GetIdentityInformationRequest                    |                                                   |
+//      *-------------------------------------------------> *                                                   |
+//      |  <includeApplicationServices = true>              |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                   GetIdentityInformationResponse  |                                                   |
+//      * <-------------------------------------------------*                                                   |
+//      |                           <list of supported AS>  |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |  CallIdentityApplicationServiceRequest            |                                                   |
+//      *-------------------------------------------------> *                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |  IncomingCallNotificationRequest                  |
+//      |                                                   *-------------------------------------------------> *
+//      |                                                   |  <callee's token>                                 |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                  IncomingCallNotificationResponse |
+//      |                                                   * <-------------------------------------------------*
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |           CallIdentityApplicationServiceResponse  |                                                   |
+//      * <-------------------------------------------------*                                                   |
+//      |                                 <caller's token>  |                                                   |  
+//      |                                                   |                                                   |  
+//                                                                                                                   
+//
+// Now the both clients are expected to connect to clAppService and send an initialization message to the node 
+// using their token.
+//
+//
+// Sequence diagram 7) to 9), assuming that B is the first one to send the initialization message 
+// on the clAppService port:
+//
+//    [ A ]                                           [ Node:clAppServicePort ]                               [ B ]
+//      |                                                   |                                                   |  
+//      |                                                   |                                                   |  
+//      |                                                   |                                                   |  
+//      |                                                   |             ApplicationServiceSendMessageRequest  |
+//      |                                                   * <-------------------------------------------------*
+//      |                                                   |                       <callee's token, init msg>  |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |  ApplicationServiceSendMessageRequest             |                                                   |
+//      *-------------------------------------------------> *                                                   |
+//      |  <caller's token, init msg>                       |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |            ApplicationServiceSendMessageResponse  |                                                   |
+//      * <-------------------------------------------------*                                                   |
+//      |                                 <B is connected>  |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |  ApplicationServiceSendMessageResponse            |
+//      |                                                   *-------------------------------------------------> *
+//      |                                                   |  <A is connected>                                 |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |  ApplicationServiceSendMessageRequest             |                                                   |
+//      *-------------------------------------------------> *                                                   |
+//      |  <caller's token, message #A1>                    |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |  
+//      |                                                   |  App..ReceiveMessageNotificationRequest           |
+//      |                                                   *-------------------------------------------------> *
+//      |                                                   |  <message #A1>                                    |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |          App..ReceiveMessageNotificationResponse  |
+//      |                                                   * <-------------------------------------------------*
+//      |                                                   |                                         <got it>  |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |            ApplicationServiceSendMessageResponse  |                                                   |
+//      * <-------------------------------------------------*                                                   |
+//      |                                      <B got #A1>  |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |             ApplicationServiceSendMessageRequest  |
+//      |                                                   * <-------------------------------------------------*
+//      |                                                   |                    <callee's token, message #B1>  |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |  ApplicationServiceSendMessageRequest             |                                                   |
+//      *-------------------------------------------------> *                                                   |
+//      |  <caller's token, message #A2>                    |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |           App..ReceiveMessageNotificationRequest  |                                                   |
+//      * <-------------------------------------------------*                                                   |
+//      |                                    <message #B1>  |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |  
+//      |                                                   |  App..ReceiveMessageNotificationRequest           |
+//      |                                                   *-------------------------------------------------> *
+//      |                                                   |  <message #A2>                                    |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |  App..ReceiveMessageNotificationResponse          |                                                   |
+//      *-------------------------------------------------> *                                                   |
+//      |  <got it>                                         |                                                   |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |  
+//      |                                                   |          App..ReceiveMessageNotificationResponse  |
+//      |                                                   * <-------------------------------------------------*
+//      |                                                   |                                         <got it>  |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |  
+//      |                                                   |  ApplicationServiceSendMessageResponse            |
+//      |                                                   *-------------------------------------------------> *
+//      |                                                   |  <A got #B1>                                      |
+//      |                                                   |                                                   |
+//      |                                                   |                                                   |
+//      |            ApplicationServiceSendMessageResponse  |                                                   |
+//      * <-------------------------------------------------*                                                   |
+//      |                                      <B got #A2>  |                                                   |
+//      |                                                   |                                                   |
+
+
+
 // 
 // Obtains a basic information about an identity hosted on the node.
 // If the identity is online, the information includes a list of application services 
@@ -610,6 +961,7 @@ message GetIdentityInformationRequest {
 //
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the node.
+//   * ERROR_UNINITIALIZED - The target identity's profile has not been initialized yet.
 //
 message GetIdentityInformationResponse {
   bool isHosted = 1;                               // True if the requested identity is a customer of the node.
@@ -654,6 +1006,7 @@ message CallIdentityApplicationServiceRequest {
 // Specific Error Responses:
 //   * ERROR_NOT_AVAILABLE - The callee is not online.
 //   * ERROR_REJECTED - The callee rejected the call.
+//   * ERROR_UNINITIALIZED - The callee's profile has not been initialized yet.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "identityNetworkId" - 'CallIdentityApplicationServiceRequest.identityNetworkId' does not identify an identity hosted by the node.
 //     * Response.details == "serviceName" - 'CallIdentityApplicationServiceRequest.serviceName' is not an application service supported by the callee in the current session.
@@ -692,6 +1045,13 @@ message IncomingCallNotificationResponse {
 // 
 // This request is sent by a client to the node in order to deliver a message to the other client over the opened 
 // application service call session.
+//
+// After the client connects to clAppService port, it sends an initialization message using this request 
+// to inform the node about its identity. This initialization message is not delivered to the other party
+// and the node responses to this initialization message only after the other party is also connected.
+// In the initialization message, the 'message' field is ignored. If the other party fails to join the channel 
+// within 30 seconds, the node closes the existing connection to the connected client.
+// 
 //
 // Roles: clAppService
 //
