@@ -248,6 +248,12 @@ message ConversationResponse {
 //
 // An administrative message to test whether the peer is there and responds to requests.
 //
+// Each identity client is required to send a message not more than 60 seconds after the connection 
+// was established, or after the last message has been send over the connection. For node clients,
+// this limit is 300 seconds. Clients should use PingRequest if they have nothing else to send
+// and want to keep the connection open.
+//
+//
 // Roles: any
 //
 message PingRequest {
