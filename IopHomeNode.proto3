@@ -852,7 +852,7 @@ message ApplicationServiceRemoveResponse {
 // Sequence diagram 7) to 9), assuming that B is the first one to send the initialization message 
 // on the clAppService port:
 //
-//    [ A ]                                           [ Node:clAppServicePort ]                               [ B ]
+//    [ A ]                                           [ Node:clAppService ]                                   [ B ]
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
