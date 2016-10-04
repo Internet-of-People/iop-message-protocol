@@ -8,6 +8,12 @@ The tests in this section are intended for testing of IoP HomeNet Node software.
 
 ### HN00001 - Primary Port Ping Test
 
+#### Prerequisites/Inputs
+
+Inputs:
+  * Node's IP address
+  * Node's primary port
+
 #### Description 
 
 The test connects to the primary port of the node and sends *PingRequest*:
