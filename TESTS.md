@@ -143,7 +143,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00004 - Disconnection of Inactive TCP Client from Non-Customer Port 2
+#### HN00007 - Disconnection of Inactive TCP Client from Non-Customer Port 2
 
 ##### Prerequisites/Inputs
 
@@ -167,7 +167,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00005 - Disconnection of Inactive TCP Client from Non-Customer Port 3
+#### HN00008 - Disconnection of Inactive TCP Client from Non-Customer Port 3
 
 ##### Prerequisites/Inputs
 
