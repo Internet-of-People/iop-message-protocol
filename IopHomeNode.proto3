@@ -36,7 +36,8 @@
 // define some of the types we reuse a lot here.
 //
 //  * VersionType - Protocol or structure version specification encoded in 3 bytes - see http://semver.org/. 
-//                  First byte is MAJOR, second byte is MINOR, third byte is PATCH.
+//                  First byte is MAJOR, second byte is MINOR, third byte is PATCH. Note that version 0.0.0 
+//                  is always considered invalid.
 //
 //  * TimestampType - 64-bit signed timestamp that is similar to Unix timestamp, except that it counts 
 //                    milliseconds since the epoch start instead of seconds and is 64-bit instead of 32-bit.
@@ -123,6 +124,17 @@ enum Status {
 
 
 // This is complete message as it goes over the wire. It includes the 32-bit header with message length.
+//
+// There is a 1 byte prefix because of Google Protobuf protocol, so the actual binary data for a message
+// with body size 4660 bytes would be:
+//
+//
+//   0D 34 12 00 00
+//
+// where 0x0D means type 'fixed32' (which value is 5) + index of 'header', which is 1 << 3,
+// this is follwed be the 4 byte sequence 34 12 00 00, which is little endian of 0x00001234, which is 4660 decimal.
+// Thus the total number of bytes sent over the wire for this message would be 4665 bytes.
+//
 message MessageWithHeader {
   fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
   Message body = 2;                                // Message itself.
