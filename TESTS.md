@@ -2,6 +2,7 @@
 
 In order to create a software that is compatible with IoP Message Protocol specification, we define the set of tests that the software must pass. If a software passes the given set of tests, it might be compatible with the protocol. If it does not pass all the tests, it is not compatible.
 
+
 ## HomeNet Node Tests
 
 The tests in this section are intended for testing of IoP HomeNet Node software. 
@@ -119,6 +120,70 @@ then it waits 500 seconds. This should be detected as an inactive connection by 
 ##### Acceptance Criteria
 
 Node disconnects the test before the wait finishes. 
+
+
+
+#### HN00006 - Disconnection of Inactive TCP Client from Non-Customer Port 1
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test creates a TLS connection to the clNonCustomer port of the node and waits 180 seconds. This should be detected as an inactive connection by the node.
+
+
+##### Acceptance Criteria
+
+Node disconnects the test before the wait finishes.
+
+
+
+#### HN00004 - Disconnection of Inactive TCP Client from Non-Customer Port 2
+
+##### Prerequisites/Inputs
+
+Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test creates a TLS connection to the clNonCustomer port of the node and sends binary data:
+
+`0D 04 00 00` 
+
+then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message header.
+
+
+##### Acceptance Criteria
+
+Node disconnects the test before the wait finishes. 
+
+
+
+
+#### HN00005 - Disconnection of Inactive TCP Client from Non-Customer Port 3
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test creates a TLS connection to the clNonCustomer port of the node and sends binary data:
+
+`0D 04 00 00 00 FF` 
+
+then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+
+
 
 
 
