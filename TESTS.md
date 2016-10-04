@@ -56,7 +56,7 @@ Node replies with *Response*:
 
 
   
-#### HN00003 - Disconnection of Inactive TCP Client from Primary Port 1
+#### HN00003 - Disconnection of Inactive TCP Client from Primary Port - No Message
 
 ##### Prerequisites/Inputs
 
@@ -76,7 +76,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00004 - Disconnection of Inactive TCP Client from Primary Port 2
+#### HN00004 - Disconnection of Inactive TCP Client from Primary Port - Incomplete Header
 
 ##### Prerequisites/Inputs
 
@@ -100,7 +100,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00005 - Disconnection of Inactive TCP Client from Primary Port 3
+#### HN00005 - Disconnection of Inactive TCP Client from Primary Port - Incomplete Message
 
 ##### Prerequisites/Inputs
 
@@ -123,7 +123,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00006 - Disconnection of Inactive TCP Client from Non-Customer Port 1
+#### HN00006 - Disconnection of Inactive TCP Client from Non-Customer Port - No Message
 
 ##### Prerequisites/Inputs
 
@@ -143,7 +143,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00007 - Disconnection of Inactive TCP Client from Non-Customer Port 2
+#### HN00007 - Disconnection of Inactive TCP Client from Non-Customer Port - Incomplete Header
 
 ##### Prerequisites/Inputs
 
@@ -167,7 +167,7 @@ Node disconnects the test before the wait finishes.
 
 
 
-#### HN00008 - Disconnection of Inactive TCP Client from Non-Customer Port 3
+#### HN00008 - Disconnection of Inactive TCP Client from Non-Customer Port - Incomplete Message
 
 ##### Prerequisites/Inputs
 
