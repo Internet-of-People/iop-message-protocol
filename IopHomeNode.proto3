@@ -757,11 +757,13 @@ message ApplicationServiceAddRequest {
   repeated string serviceNames = 1;                // List of application service names to add to the list. If a service name is already 
                                                    // in the list, it will remain in the list and no error is reported.
                                                    // Each service name has to be a non-empty string, max 32 bytes long.
+                                                   // Each customer client can have up to 50 application services enabled.
 }
 
 //
 // A response to ApplicationServiceAddRequest.
 //
+//   * ERROR_QUOTA_EXCEEDED - The given set of application services can not be added because the client would have more than the maximum number of enabled services.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is the zero-based index.
 //
@@ -995,7 +997,7 @@ message GetIdentityInformationResponse {
   bytes thumbnailImage = 9;                        // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
   repeated string applicationServices = 10;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
-                                                   // the list of application services that the requested identity supports in the currently active session.
+                                                   // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
 
