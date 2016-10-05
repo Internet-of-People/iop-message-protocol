@@ -294,7 +294,7 @@ Node replies with *Response*:
 
 
 
-#### HN01004 - Primary Port List Roles
+#### HN01004 - List Roles
 
 ##### Prerequisites/Inputs
 
@@ -322,5 +322,56 @@ Node replies with *ListRolesResponse*:
     * *CL_NON_CUSTOMER* - `isTcp == true`, `isTls == true`
     * *CL_CUSTOMER* - `isTcp == true`, `isTls == true`
     * *CL_APP_SERVICE* - `isTcp == true`, `isTls == true`
-  * Intersection of set of port numbers of *primary*, *ndNeighbor*, and *ndColleague* roles and set of port numbers of *clNonCustomer*, *clCustomer*, and *clAppService* roles must be empty (i.e. no client only role is served on the same port as a node role; this also means that no port is used for both TLS and non-TLS service).
+  * Intersection of the set of port numbers of *primary*, *ndNeighbor*, and *ndColleague* roles and the set of port numbers of *clNonCustomer*, *clCustomer*, and *clAppService* roles must be empty (i.e. no client only role is served on the same port as a node role; this also means that no port is used for both TLS and non-TLS service).
 
+
+
+### HN02xxx - Node Client Non-Customer Port Functionality Tests
+
+#### HN02001 - Client Non-Customer Port Ping
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := 1,0,0`
+  * `PingRequest.payload := "Hello"`
+
+##### Acceptance Criteria
+
+Node replies with *PingResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `PingResponse.payload == "Hello"`
+  * `PingResponse.clock` does not differ more than 10 minutes from the test's machine clock.
+
+
+#### HN02002 - Client Non-Customer Invalid Role Request - List Roles
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test connects to the primary port of the node and sends *ListRolesRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := 1,0,0`  
+
+##### Acceptance Criteria
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_ROLE`
