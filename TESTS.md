@@ -225,15 +225,15 @@ Node disconnects the test before the wait finishes.
 
 The test connects to the primary port of the node and sends *PingRequest*:
 
-  * `Message.id := 1`
-  * `SingleRequest.version := 1,0,0`
+  * `Message.id := 1234`
+  * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload := "Hello"`
 
 ##### Acceptance Criteria
 
 Node replies with *PingResponse*:
   
-  * `Message.id == 1`
+  * `Message.id == 1234`
   * `Response.status == STATUS_OK`
   * `PingResponse.payload == "Hello"`
   * `PingResponse.clock` does not differ more than 10 minutes from the test's machine clock.
@@ -252,7 +252,7 @@ Node replies with *PingResponse*:
 The test connects to the primary port of the node and sends *PingRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := 1,0`
+  * `SingleRequest.version := [1,0]`
   * `PingRequest.payload := "Hello"`
 
 The version must be 3 bytes long, but the client sends 2 bytes only.
@@ -279,7 +279,7 @@ Node replies with *PingResponse*:
 The test connects to the primary port of the node and sends *PingRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := 0,0,0`
+  * `SingleRequest.version := [0,0,0]`
   * `PingRequest.payload := "Hello"`
 
 Version 0.0.0 is not a valid version.
@@ -307,7 +307,7 @@ Node replies with *Response*:
 The test connects to the primary port of the node and sends *ListRolesRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := 1,0,0`  
+  * `SingleRequest.version := [1,0,0]`  
 
 ##### Acceptance Criteria
 
@@ -341,7 +341,7 @@ Node replies with *ListRolesResponse*:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *PingRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := 1,0,0`
+  * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload := "Hello"`
 
 ##### Acceptance Criteria
@@ -354,7 +354,7 @@ Node replies with *PingResponse*:
   * `PingResponse.clock` does not differ more than 10 minutes from the test's machine clock.
 
 
-#### HN02002 - Client Non-Customer Invalid Role Request - List Roles
+#### HN02002 - Invalid Role Request - List Roles
 
 ##### Prerequisites/Inputs
 
@@ -364,10 +364,12 @@ Node replies with *PingResponse*:
 
 ##### Description 
 
-The test connects to the primary port of the node and sends *ListRolesRequest*:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *ListRolesRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := 1,0,0`  
+  * `SingleRequest.version := [1,0,0]`  
+  
+List Roles request requires primary port to be used.
 
 ##### Acceptance Criteria
 
@@ -375,3 +377,56 @@ Node replies with *Response*:
   
   * `Message.id == 1`
   * `Response.status == ERROR_BAD_ROLE`
+
+
+
+#### HN02003 - Start Conversation 
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  
+##### Acceptance Criteria
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `StartConversationResponse.version == [1,0,0]`
+  * `StartConversationResponse.publicKey.Length == 32`
+  * `StartConversationResponse.challenge == [1,0,0]`
+
+
+
+#### HN02004 - Start Conversation - Unsupported Version
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[255,255,255], [255,255,254]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  
+##### Acceptance Criteria
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_UNSUPPORTED`
