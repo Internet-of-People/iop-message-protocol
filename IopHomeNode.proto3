@@ -290,7 +290,7 @@ message ListRolesRequest {
 
 // A response to ListRolesRequest with a list of all open ports and associated roles.
 message ListRolesResponse {
-  repeated ServerRole role = 1;                    // List of server roles.
+  repeated ServerRole roles = 1;                   // List of server roles.
 }
 
 
