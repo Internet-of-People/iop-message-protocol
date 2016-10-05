@@ -183,6 +183,30 @@ The test creates a TLS connection to the clNonCustomer port of the node and send
 
 then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
 
+##### Acceptance Criteria
+
+Node disconnects the test before the wait finishes. 
+
+
+
+
+
+
+#### HN00009 - Disconnection of Inactive TCP Client from Non-Customer Port - No TLS Handshake
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test creates a TCP connection and to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+
+##### Acceptance Criteria
+
+Node disconnects the test before the wait finishes. 
 
 
 
@@ -201,6 +225,7 @@ then it waits 180 seconds. This should be detected as an inactive connection by 
 
 The test connects to the primary port of the node and sends *PingRequest*:
 
+  * `Message.id := 1`
   * `SingleRequest.version := 1,0,0`
   * `PingRequest.payload := "Hello"`
 
@@ -208,6 +233,94 @@ The test connects to the primary port of the node and sends *PingRequest*:
 
 Node replies with *PingResponse*:
   
+  * `Message.id == 1`
   * `Response.status == STATUS_OK`
   * `PingResponse.payload == "Hello"`
   * `PingResponse.clock` does not differ more than 10 minutes from the test's machine clock.
+
+
+#### HN01002 - Primary Port Ping - Invalid Version Format
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test connects to the primary port of the node and sends *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := 1,0`
+  * `PingRequest.payload := "Hello"`
+
+The version must be 3 bytes long, but the client sends 2 bytes only.
+
+##### Acceptance Criteria
+
+Node replies with *PingResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_PROTOCOL_VIOLATION`
+
+
+
+#### HN01003 - Primary Port Ping - Invalid Version Value
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test connects to the primary port of the node and sends *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := 0,0,0`
+  * `PingRequest.payload := "Hello"`
+
+Version 0.0.0 is not a valid version.
+
+
+##### Acceptance Criteria
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_PROTOCOL_VIOLATION`
+
+
+
+#### HN01004 - Primary Port List Roles
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test connects to the primary port of the node and sends *ListRolesRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := 1,0,0`  
+
+##### Acceptance Criteria
+
+Node replies with *ListRolesResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * *ListRolesResponse.roles* contains 6 items, one for each role with following properties:
+    * *PRIMARY* - `isTcp == true`, `isTls == false`
+    * *ND_NEIGHBOR* - `isTcp == true`, `isTls == false`
+    * *ND_COLLEAGUE* - `isTcp == true`, `isTls == false`
+    * *CL_NON_CUSTOMER* - `isTcp == true`, `isTls == true`
+    * *CL_CUSTOMER* - `isTcp == true`, `isTls == true`
+    * *CL_APP_SERVICE* - `isTcp == true`, `isTls == true`
+  * Intersection of set of port numbers of *primary*, *ndNeighbor*, and *ndColleague* roles and set of port numbers of *clNonCustomer*, *clCustomer*, and *clAppService* roles must be empty (i.e. no client only role is served on the same port as a node role; this also means that no port is used for both TLS and non-TLS service).
+
