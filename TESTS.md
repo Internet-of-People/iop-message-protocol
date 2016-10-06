@@ -206,10 +206,7 @@ The test creates a TCP connection to the clNonCustomer port and does not initiat
 
 ##### Acceptance Criteria
 
-Node replies with *Response*:
-  
-  * `Message.id == 1`
-  * `Response.status == ERROR_PROTOCOL_VIOLATION`
+Node disconnects the test before the wait finishes. 
 
 
 
@@ -235,7 +232,10 @@ Size of this message is greater than the protocol's maximal message size limit o
 
 ##### Acceptance Criteria
 
-Node disconnects the test before the wait finishes. 
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
 
 
