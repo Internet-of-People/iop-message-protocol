@@ -234,7 +234,6 @@ Size of this message is greater than the protocol's maximal message size limit o
 
 Node replies with *Response*:
   
-  * `Message.id == 1`
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
 
