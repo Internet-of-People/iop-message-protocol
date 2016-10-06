@@ -67,10 +67,13 @@
 //                           has been done.
 //
 //   * Verified - There is an established conversation with the non-customer client and the verification process 
-//                has already been completed. 
+//                has already been completed. Note that, unlike Authenticated status, there can be multiple 
+//                parallel connections in this status for a single identity.
 //
 //   * Authenticated - There is an established conversation with the customer client and the authentication process 
-//                     has already been completed.
+//                     has already been completed. Note that only one connection per identity can be in this
+//                     status. If the identity establishes a second connection and performs a check-in process 
+//                     the first connection has to be disconnected.
 //
 //
 // For each conversation messages we define in which state must the conversation be. If the conversation 
@@ -620,6 +623,10 @@ message HomeNodePlanContract {
 // 
 // A customer client announces it is online and it "logs in".
 // The client has to provide a signature in 'ConversationRequest.signature'.
+//
+// Note that if a customer client that is authenticated already creates a second connection
+// and performs the check-in process in it, the first connection has to be disconnected
+// as there can not be multiple parallel connections in Authenticated state for a single identity.
 //
 // Roles: clCustomer
 //
