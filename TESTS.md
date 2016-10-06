@@ -24,6 +24,7 @@ The test connects to the primary port of the node ands sends binary data:
 
 `46 84 21 46 87`
 
+This message does not represent a valid Protobuf message for IoP protocol.
 
 ##### Acceptance Criteria
 
@@ -31,6 +32,9 @@ Node replies with *Response*:
 
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
   
+and then the node closes the connection.
+
+
   
 #### HN00002 - Invalid Message Body
 
@@ -47,6 +51,8 @@ The test connects to the primary port of the node and sends binary data:
 
 `0D 04 00 00 00 FF FF FF FF`
 
+This message does not represent a valid Protobuf message for IoP protocol.
+
 
 ##### Acceptance Criteria
 
@@ -54,6 +60,7 @@ Node replies with *Response*:
 
   * `Response.status == ERROR_PROTOCOL_VIOLATION`  
 
+and then the node closes the connection.
 
   
 #### HN00003 - Disconnection of Inactive TCP Client from Primary Port - No Message
@@ -236,6 +243,9 @@ Node replies with *Response*:
   
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
+and then the node closes the connection.
+
+
 
 
 ### HN01xxx - Node Primary Port Functionality Tests
@@ -291,6 +301,8 @@ Node replies with *Response*:
   * `Message.id == 1`
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
+and then the node closes the connection.
+
 
 
 #### HN01003 - Primary Port Ping - Invalid Version Value
@@ -319,6 +331,7 @@ Node replies with *Response*:
   * `Message.id == 1`
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
+and then the node closes the connection.
 
 
 #### HN01004 - List Roles
