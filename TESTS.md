@@ -295,6 +295,9 @@ and then the node closes the connection.
 
 
 
+
+
+
 ### HN01xxx - Node Primary Port Functionality Tests
 
 #### HN01001 - Primary Port Ping
@@ -435,6 +438,165 @@ Node replies with *ListRolesResponse*:
 
 
 
+
+
+#### HN01005 - Home Node Request - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test sends home node request to the primary port, but *HomeNodeRequestRequest* requires clNonCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+ 
+and reads the response. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+  
+  * `Message.id == 2`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+#### HN01006 - Check-In - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test sends check-in request to the primary port, but *CheckInRequest* requires clCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+ 
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+  
+  * `Message.id == 2`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+#### HN01007 - Verify Identity - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test sends verify identity request to the primary port, but *VerifyIdentityRequest* requires clNonCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+ 
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+  
+  * `Message.id == 2`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### HN02xxx - Node Client Non-Customer Port Functionality Tests
 
 #### HN02001 - Client Non-Customer Port Ping
@@ -570,37 +732,9 @@ Node replies with *Response*:
 
 
 
-#### HN02005 - Bad Conversation Status - Home Node Request
-
-##### Prerequisites/Inputs
-
-###### Inputs:
-  * Node's IP address
-  * Node's clNonCustomer port
-
-##### Description 
-
-The test sends *HomeNodeRequestRequest* to the node without starting the conversation first.
-
-###### Step 1:
-The test establishes a TLS connection to the clNonCustomer port of the node and sends *HomeNodeRequestRequest*:
-
-  * `Message.id := 1`
-  * `HomeNodeRequestRequest.contract` is uninitialized
-  
-and reads the response.
-  
-##### Acceptance Criteria
-
-###### Step 1:
-Node replies with *Response*:
-  
-  * `Message.id == 1`
-  * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
 
 
-
-#### HN02006 - Home Node Request
+#### HN02005 - Home Node Request
 
 ##### Prerequisites/Inputs
 
@@ -642,6 +776,41 @@ Node replies with *HomeNodeRequestResponse*:
 
   * `Message.id == 2`
   * `Response.status == STATUS_OK`
+
+
+
+
+
+
+#### HN02006 - Home Node Request - Bad Conversation Status
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test sends *HomeNodeRequestRequest* to the node without starting the conversation first.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 1`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
+  
+##### Acceptance Criteria
+
+###### Step 1:
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
+
+
 
 
 
@@ -713,7 +882,7 @@ Node replies with *StartConversationResponse*:
   * `Response.status == STATUS_OK`
   * `StartConversationResponse.publicKey == $NodeKey`
 
-Node replies with *HomeNodeRequestResponse*:
+Node replies with *Response*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_QUOTA_EXCEEDED`
@@ -785,7 +954,7 @@ Node replies with *StartConversationResponse*:
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
 
-Node replies with *HomeNodeRequestResponse*:
+Node replies with *Response*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_ALREADY_EXISTS`
@@ -794,7 +963,392 @@ Node replies with *HomeNodeRequestResponse*:
 
 
 
-#### HN02009 - Check-In - Different Customer and Non-Customer Ports
+
+
+
+#### HN02009 - Verify Identity
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer
+
+##### Description 
+
+The test establishes a conversation with the node and verifies its public key by signing a challenge.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *VerifyIdentityResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+
+
+
+
+#### HN02010 - Verify Identity - Invalid Signature
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer
+
+##### Description 
+
+The test establishes a conversation with the node and tries to verify its public key by signing a challenge, but it provides invalid signature.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+  
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key, but the first byte of the signature is XORed with 0x12 to make the signature invalid.
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_SIGNATURE`
+
+
+
+
+#### HN02011 - Verify Identity - Invalid Challenge
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer
+
+##### Description 
+
+The test establishes a conversation with the node and tries to verify its public key by signing a challenge, but it provides invalid challenge.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+  
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`, but the first byte of the challenge is XORed with 0x12 to make the challenge invalid
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "challenge"`
+
+
+
+
+#### HN01006 - Check-In - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test sends check-in request to the clNonCustomer port, but *CheckInRequest* requires clCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+ 
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+  
+  * `Message.id == 2`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### HN03xxx - Node Client Customer Port Functionality Tests
+
+#### HN03001 - Check-In - Not Hosted Identity
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test tries to perform a check-in process with an identity that has no home node agreement with the node.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_NOT_FOUND`
+
+
+
+
+
+
+#### HN03002 - Home Node Request - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test sends home node request to the clCustomer port, but *HomeNodeRequestRequest* requires clNonCustomer port to be used.
+
+###### Step 1:
+
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+ 
+and reads the response. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+  
+  * `Message.id == 2`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+#### HN03003 - Verify Identity - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test sends verify identity request to the clCustomer port, but *VerifyIdentityRequest* requires clNonCustomer port to be used.
+
+###### Step 1:
+
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+ 
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+  
+  * `Message.id == 2`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+### HN04xxx - Node Combined Client Customer and Non-Customer Port Functionality Tests
+
+#### HN04001 - Check-In - Different Customer and Non-Customer Ports
 
 ##### Prerequisites/Inputs
 
@@ -875,7 +1429,7 @@ Node replies with *CheckInResponse*:
 
 
 
-#### HN02010 - Check-In - Same Customer and Non-Customer Ports
+#### HN04002 - Check-In - Same Customer and Non-Customer Ports
 
 ##### Prerequisites/Inputs
 
@@ -942,7 +1496,7 @@ Node replies with *CheckInResponse*:
 
 
 
-#### HN02011 - Check-In - Invalid Signature
+#### HN04003 - Check-In - Invalid Signature
 
 ##### Prerequisites/Inputs
 
@@ -1013,7 +1567,7 @@ Node replies with *StartConversationResponse*:
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
 
-Node replies with *CheckInResponse*:
+Node replies with *Response*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_INVALID_SIGNATURE`
@@ -1021,7 +1575,7 @@ Node replies with *CheckInResponse*:
 
 
 
-#### HN02012 - Check-In - Invalid Challenge
+#### HN04004 - Check-In - Invalid Challenge
 
 ##### Prerequisites/Inputs
 
@@ -1092,7 +1646,7 @@ Node replies with *StartConversationResponse*:
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
 
-Node replies with *CheckInResponse*:
+Node replies with *Response*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_INVALID_VALUE`
@@ -1103,221 +1657,12 @@ Node replies with *CheckInResponse*:
 
 
 
-#### HN02013 - Check-In - Not Hosted Identity
 
-##### Prerequisites/Inputs
 
-###### Prerequisites
-  * Node's database is empty.
 
-###### Inputs:
-  * Node's IP address
-  * Node's clCustomer port
 
-##### Description 
 
-The test tries to perform a check-in process with an identity that has no home node agreement with the node.
 
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response.
-
-  
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CheckInResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == ERROR_NOT_FOUND`
-
-
-
-
-
-
-
-
-
-
-#### HN02014 - Verify Identity
-
-##### Prerequisites/Inputs
-
-###### Prerequisites
-  * Node's database is empty.
-  
-###### Inputs:
-  * Node's IP address
-  * Node's clNonCustomer
-
-##### Description 
-
-The test establishes a conversation with the node and verifies its public key by signing a challenge.
-
-###### Step 1:
-The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-  
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *VerifyIdentityRequest*:
-
-  * `Message.id := 2`
-  * `VerifyIdentityRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
-  
-and reads the response.
-
-  
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *VerifyIdentityResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-
-
-
-
-
-#### HN02015 - Verify Identity - Invalid Signature
-
-##### Prerequisites/Inputs
-
-###### Prerequisites
-  * Node's database is empty.
-  
-###### Inputs:
-  * Node's IP address
-  * Node's clNonCustomer
-
-##### Description 
-
-The test establishes a conversation with the node and tries to verify its public key by signing a challenge, but it provides invalid signature.
-
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-  
-and reads the response from the node in form of *StartConversationResponse*:
-  
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *VerifyIdentityRequest*:
-
-  * `Message.id := 2`
-  * `VerifyIdentityRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key, but the first byte of the signature is XORed with 0x12 to make the signature invalid.
-  
-and reads the response.
-
-  
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-
-Node replies with *VerifyIdentityResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == ERROR_INVALID_SIGNATURE`
-
-
-
-
-#### HN02016 - Verify Identity - Invalid Challenge
-
-##### Prerequisites/Inputs
-
-###### Prerequisites
-  * Node's database is empty.
-  
-###### Inputs:
-  * Node's IP address
-  * Node's clNonCustomer
-
-##### Description 
-
-The test establishes a conversation with the node and tries to verify its public key by signing a challenge, but it provides invalid challenge.
-
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-  
-and reads the response from the node in form of *StartConversationResponse*:
-  
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *VerifyIdentityRequest*:
-
-  * `Message.id := 2`
-  * `VerifyIdentityRequest.challenge := $Challenge`, but the first byte of the challenge is XORed with 0x12 to make the challenge invalid
-  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
-  
-and reads the response.
-
-  
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-
-Node replies with *VerifyIdentityResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == ERROR_INVALID_VALUE`
-  * `Response.details == "challenge"`
 
 
 
