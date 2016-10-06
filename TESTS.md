@@ -1184,7 +1184,108 @@ Node replies with *Response*:
 
 
 
-#### HN02013 - Check-In - Bad Role
+
+#### HN02013 - Parallel Verify Identity Requests
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Test's identity is hosted by the node
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test verifies its identity and then it verifies its identity again in a second parallel connection. Then it verifies that the first connection is still active by sending a ping.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+###### Step 2:
+With the first connection left open, the test establishes a new TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+###### Step 3:
+
+Using the first connection the test attempts to send *PingRequest*:
+
+  * `Message.id := 3`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
+  
+and reads the response.
+
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *VerifyIdentityResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *VerifyIdentityResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+###### Step 3:
+
+Node replies with *PingResponse*:
+  
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+  * `PingResponse.payload == "test"`
+
+
+
+
+#### HN02014 - Check-In - Bad Role
 
 ##### Prerequisites/Inputs
 
@@ -1516,11 +1617,71 @@ Node replies with *GetIdentityInformationResponse*:
 
 
 
+#### HN03006 - Cancel Home Node Agreement - Invalid New Home Node Id
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Test's identity is hosted by the node
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test cancels home node agreement for its hosted identity and sets up a redirect to a new home node, but provides invalid new home node network identifier.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
+
+  * `Message.id := 3`
+  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId := "test"`
+
+and reads the response.
+
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CancelHomeNodeAgreementResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == newHomeNodeNetworkId`
 
 
 
 
-#### HN03006 - Parallel Check-Ins
+
+#### HN03007 - Parallel Check-Ins
 
 ##### Prerequisites/Inputs
 ###### Prerequisites:
@@ -1574,7 +1735,11 @@ and reads the response.
 
 ###### Step 3:
 
-Using the first connection the test attempts to send *PingRequest*.
+Using the first connection the test attempts to send *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
 
 
 
