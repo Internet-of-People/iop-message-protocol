@@ -553,7 +553,8 @@ Node replies with *HomeNodeRequestResponse*:
 
 The test identity #1 establishes a home node agreement with a node. Then the test tries to establish a home node agreement for its identity #2, which should fail due to the node's quota.
 
-**Stage 1**: The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
@@ -564,7 +565,8 @@ and reads the response from the node in form of *StartConversationResponse*. The
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
   
-**Stage 2**: The test then closes the connection and creates a new TLS connection to the clNonCustomer port and sends *StartConversationRequest*:
+###### Step 2:
+The test then closes the connection and creates a new TLS connection to the clNonCustomer port and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
@@ -579,8 +581,7 @@ and reads the response from the node in form of *StartConversationResponse*. The
 ##### Acceptance Criteria
 
 
-**Stage 1**:
-
+###### Step 1:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
@@ -593,13 +594,78 @@ Node replies with *HomeNodeRequestResponse*:
   * `Response.status == STATUS_OK`
 
 
-**Stage 2**:
-
+###### Step 2:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
   * `StartConversationResponse.publicKey == NodeKey`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_QUOTA_EXCEEDED`
+
+
+
+
+#### HN02008 - Home Node Request - Already Exists
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with a node. Then it tries to establish a new agreement with the same identity, which should fail.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+###### Step 2:
+The test then closes the connection and creates a new TLS connection to the clNonCustomer port and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
 
 Node replies with *HomeNodeRequestResponse*:
 
