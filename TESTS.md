@@ -87,13 +87,18 @@ and then the node closes the connection.
 The test connects to the node and does not send any message. This should be detected as an inactive connection by the node after a while.
  
 ###### Step 1:
-The test connects to the primary port of the node and waits 500 seconds.
+The test connects to the primary port of the node and waits 500 seconds. The test then attempts to send *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
-Node disconnects the test before the wait finishes.
+
+Node disconnects the test and the attempt to send *PingRequest* fails.
 
 
 
@@ -107,20 +112,24 @@ Inputs:
 
 ##### Description 
 
-The test sends incomplete message header to the node and waits. This should be detected as an inactive connection by the node after a while.
+The test sends incomplete message header to the node and waits. This should be detected as an inactive connection by the node after a while. 
 
 ###### Step 1:
-The test connects to the primary port and sends binary data:
 
-`0D 04 00 00` 
+The test connects to the primary port of the node and creates the following *PingRequest*:
 
-then it waits 500 seconds. 
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
+
+but it only sends first 4 bytes of this message to the node and then it waits 500 seconds. Then it attempts to send the rest of the message.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
-Node disconnects the test before the wait finishes. 
+
+Node disconnects the test and this prevents the test to send the second part of the message.
 
 
 
@@ -138,17 +147,21 @@ Node disconnects the test before the wait finishes.
 The test sends an incomplete message body to the node and waits. This should be detected as an inactive connection by the node after a while.
 
 ###### Step 1:
-The test connects to the primary port and sends binary data:
 
-`0D 04 00 00 00 FF` 
+The test connects to the primary port of the node and creates the following *PingRequest*:
 
-then it waits 500 seconds. 
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
+
+but it only sends first 6 bytes of this message to the node and then it waits 500 seconds. Then it attempts to send the rest of the message.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
-Node disconnects the test before the wait finishes. 
+
+Node disconnects the test and this prevents the test to send the second part of the message.
 
 
 
@@ -166,13 +179,19 @@ Node disconnects the test before the wait finishes.
 The tests connects to the node and sends no message. This should be detected as an inactive connection by the node after a while.
 
 ###### Step 1:
-The test creates a TLS connection to the clNonCustomer port of the node and waits 180 seconds. 
+The test creates a TLS connection to the clNonCustomer port of the node and waits 180 seconds. Then it sends *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
+
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
-Node disconnects the test before the wait finishes.
+
+Node disconnects the test before it sends the message and the test will thus not be able to send the message.
 
 
 
@@ -189,17 +208,20 @@ Inputs:
 The test sends incomplete message header to the node and waits. This should be detected as an inactive connection by the node after a while.
 
 ###### Step 1:
-The test creates a TLS connection to the clNonCustomer port of the node and sends binary data:
+The test creates a TLS connection to the clNonCustomer port of the node and creates the following *PingRequest*:
 
-`0D 04 00 00` 
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
 
-then it waits 180 seconds. 
+but it only sends first 4 bytes of this message to the node and then it waits 180 seconds. Then it attempts to send the rest of the message.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
-Node disconnects the test before the wait finishes. 
+
+Node disconnects the test and this prevents the test to send the second part of the message.
 
 
 
@@ -217,17 +239,20 @@ Node disconnects the test before the wait finishes.
 The test sends an incomplete message body to the node and waits. This should be detected as an inactive connection by the node after a while.
 
 ###### Step 1:
-The test creates a TLS connection to the clNonCustomer port of the node and sends binary data:
 
-`0D 04 00 00 00 FF` 
+The test creates a TLS connection to the clNonCustomer port of the node and creates the following *PingRequest*:
 
-then it waits 180 seconds.
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
 
+but it only sends first 6 bytes of this message to the node and then it waits 180 seconds. Then it attempts to send the rest of the message.
 
 ##### Acceptance Criteria
 
 ###### Step 1:
-Node disconnects the test before the wait finishes. 
+
+Node disconnects the test and this prevents the test to send the second part of the message.
 
 
 
@@ -248,13 +273,13 @@ The test connects to TLS encrypted port of the node and does not initiate TLS ha
 
 ###### Step 1:
 
-The test creates a TCP connection to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. 
+The test creates a TCP connection to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. Then it attempts to initiate the TLS handshake.
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test before the wait finishes. 
+Node disconnects the test before it attempts to initiate the TLS handshake and the test will then be unable to complete it.
 
 
 
@@ -1485,6 +1510,112 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.isHosted == false`
   * `GetIdentityInformationResponse.isTargetHomeNodeKnown == true`
   * `GetIdentityInformationResponse.targetHomeNodeNetworkId == SHA1("test")`
+
+
+
+
+
+
+
+
+
+
+#### HN03006 - Parallel Check-Ins
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Test's identity is hosted by the node
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test checks-in its identity and then it checks it in again in a second parallel connection. This should disconnect the first connection.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+###### Step 2:
+With the first connection left open, the test establishes a new TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+###### Step 3:
+
+Using the first connection the test attempts to send *PingRequest*.
+
+
+
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+###### Step 3:
+
+The first connection should be disconnected and it should not be possible to send the request.
+
+
+
+
+
+
+
+
 
 
 ### HN04xxx - Node Combined Client Customer and Non-Customer Port Functionality Tests
