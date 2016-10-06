@@ -619,7 +619,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to test's 32 byte long public key
   
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -669,7 +669,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity #1 32 byte long public key
   
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -683,7 +683,7 @@ The test then closes the connection and creates a new TLS connection to the clNo
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity #2 32 byte long public key
 
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -743,7 +743,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
   
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -757,7 +757,7 @@ The test then closes the connection and creates a new TLS connection to the clNo
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
 
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -818,7 +818,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
   
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -965,7 +965,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
   
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -1021,7 +1021,7 @@ Node replies with *CheckInResponse*:
 
 
 
-#### HN02011 - Check-In - Invalid Challenge
+#### HN02012 - Check-In - Invalid Challenge
 
 ##### Prerequisites/Inputs
 
@@ -1044,7 +1044,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
   
-and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+and reads the response. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
@@ -1103,7 +1103,7 @@ Node replies with *CheckInResponse*:
 
 
 
-#### HN02011 - Check-In - Not Hosted Identity
+#### HN02013 - Check-In - Not Hosted Identity
 
 ##### Prerequisites/Inputs
 
@@ -1151,3 +1151,173 @@ Node replies with *CheckInResponse*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_NOT_FOUND`
+
+
+
+
+
+
+
+
+
+
+#### HN02014 - Verify Identity
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer
+
+##### Description 
+
+The test establishes a conversation with the node and verifies its public key by signing a challenge.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *VerifyIdentityResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+
+
+
+
+#### HN02015 - Verify Identity - Invalid Signature
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer
+
+##### Description 
+
+The test establishes a conversation with the node and tries to verify its public key by signing a challenge, but it provides invalid signature.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+  
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key, but the first byte of the signature is XORed with 0x12 to make the signature invalid.
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+Node replies with *VerifyIdentityResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_SIGNATURE`
+
+
+
+
+#### HN02016 - Verify Identity - Invalid Challenge
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer
+
+##### Description 
+
+The test establishes a conversation with the node and tries to verify its public key by signing a challenge, but it provides invalid challenge.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+  
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 2`
+  * `VerifyIdentityRequest.challenge := $Challenge`, but the first byte of the challenge is XORed with 0x12 to make the challenge invalid
+  * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+Node replies with *VerifyIdentityResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "challenge"`
+
+
+
