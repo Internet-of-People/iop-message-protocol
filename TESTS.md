@@ -20,14 +20,19 @@ The tests in this section are intended for testing of IoP HomeNet Node software.
 
 ##### Description 
 
+The test sends a message to the node that does not represent a valid Protobuf message for IoP protocol.
+
+###### Step 1:
 The test connects to the primary port of the node ands sends binary data:
 
 `46 84 21 46 87`
 
-This message does not represent a valid Protobuf message for IoP protocol.
+and reads the response.
+
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
 
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
@@ -47,15 +52,20 @@ and then the node closes the connection.
 
 ##### Description 
 
+The test sends a message to the node that does not represent a valid Protobuf message for IoP protocol.
+
+###### Step 1:
 The test connects to the primary port of the node and sends binary data:
 
 `0D 04 00 00 00 FF FF FF FF`
 
-This message does not represent a valid Protobuf message for IoP protocol.
+and reads the response.
+
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
 
   * `Response.status == ERROR_PROTOCOL_VIOLATION`  
@@ -74,11 +84,15 @@ and then the node closes the connection.
 
 ##### Description 
 
-The test connects to the primary port of the node and waits 500 seconds. This should be detected as an inactive connection by the node.
+The test connects to the node and does not send any message. This should be detected as an inactive connection by the node after a while.
+ 
+###### Step 1:
+The test connects to the primary port of the node and waits 500 seconds.
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node disconnects the test before the wait finishes.
 
 
@@ -93,15 +107,19 @@ Inputs:
 
 ##### Description 
 
+The test sends incomplete message header to the node and waits. This should be detected as an inactive connection by the node after a while.
+
+###### Step 1:
 The test connects to the primary port and sends binary data:
 
 `0D 04 00 00` 
 
-then it waits 500 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message header.
+then it waits 500 seconds. 
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node disconnects the test before the wait finishes. 
 
 
@@ -117,15 +135,19 @@ Node disconnects the test before the wait finishes.
 
 ##### Description 
 
+The test sends an incomplete message body to the node and waits. This should be detected as an inactive connection by the node after a while.
+
+###### Step 1:
 The test connects to the primary port and sends binary data:
 
 `0D 04 00 00 00 FF` 
 
-then it waits 500 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+then it waits 500 seconds. 
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node disconnects the test before the wait finishes. 
 
 
@@ -141,11 +163,15 @@ Node disconnects the test before the wait finishes.
 
 ##### Description 
 
-The test creates a TLS connection to the clNonCustomer port of the node and waits 180 seconds. This should be detected as an inactive connection by the node.
+The tests connects to the node and sends no message. This should be detected as an inactive connection by the node after a while.
+
+###### Step 1:
+The test creates a TLS connection to the clNonCustomer port of the node and waits 180 seconds. 
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node disconnects the test before the wait finishes.
 
 
@@ -160,15 +186,19 @@ Inputs:
 
 ##### Description 
 
+The test sends incomplete message header to the node and waits. This should be detected as an inactive connection by the node after a while.
+
+###### Step 1:
 The test creates a TLS connection to the clNonCustomer port of the node and sends binary data:
 
 `0D 04 00 00` 
 
-then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message header.
+then it waits 180 seconds. 
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node disconnects the test before the wait finishes. 
 
 
@@ -184,14 +214,19 @@ Node disconnects the test before the wait finishes.
 
 ##### Description 
 
+The test sends an incomplete message body to the node and waits. This should be detected as an inactive connection by the node after a while.
+
+###### Step 1:
 The test creates a TLS connection to the clNonCustomer port of the node and sends binary data:
 
 `0D 04 00 00 00 FF` 
 
-then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+then it waits 180 seconds.
+
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node disconnects the test before the wait finishes. 
 
 
@@ -209,9 +244,15 @@ Node disconnects the test before the wait finishes.
 
 ##### Description 
 
-The test creates a TCP connection to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+The test connects to TLS encrypted port of the node and does not initiate TLS handshake and waits. This should be detected as an inactive connection by the node after a while.
+
+###### Step 1:
+
+The test creates a TCP connection to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. 
 
 ##### Acceptance Criteria
+
+###### Step 1:
 
 Node disconnects the test before the wait finishes. 
 
@@ -229,15 +270,21 @@ Node disconnects the test before the wait finishes.
 
 ##### Description 
 
+The test sends a message larger than the protocol's maximal message size limit of 1 MB.
+
+###### Step 1:
 The test connects to the primary port and sends *PingRequest*:
 
   * `Message.id := 1234`
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload` is set to a sequence of 1,048,576 times 'a'
 
-Size of this message is greater than the protocol's maximal message size limit of 1 MB.
+and reads the response.
+
 
 ##### Acceptance Criteria
+
+###### Step 1:
 
 Node replies with *Response*:
   
@@ -260,20 +307,28 @@ and then the node closes the connection.
 
 ##### Description 
 
+The test sends a ping request to the node and expects to receive a ping response.
+
+###### Step 1:
 The test connects to the primary port of the node and sends *PingRequest*:
 
   * `Message.id := 1234`
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload := "Hello"`
 
+and reads the response.
+
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *PingResponse*:
   
   * `Message.id == 1234`
   * `Response.status == STATUS_OK`
   * `PingResponse.payload == "Hello"`
   * `PingResponse.clock` does not differ more than 10 minutes from the test's machine clock.
+
+
 
 
 #### HN01002 - Primary Port Ping - Invalid Version Format
@@ -286,16 +341,20 @@ Node replies with *PingResponse*:
 
 ##### Description 
 
+The test sends a ping request with invalid protocol version. The version must be 3 bytes long, but the client sends 2 bytes only.
+
+###### Step 1:
 The test connects to the primary port of the node and sends *PingRequest*:
 
   * `Message.id := 1`
   * `SingleRequest.version := [1,0]`
   * `PingRequest.payload := "Hello"`
 
-The version must be 3 bytes long, but the client sends 2 bytes only.
+and reads the response.
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
   
   * `Message.id == 1`
@@ -315,17 +374,21 @@ and then the node closes the connection.
 
 ##### Description 
 
+The test sends a ping request with invalid protocol version 0.0.0.
+
+###### Step 1:
 The test connects to the primary port of the node and sends *PingRequest*:
 
   * `Message.id := 1`
   * `SingleRequest.version := [0,0,0]`
   * `PingRequest.payload := "Hello"`
 
-Version 0.0.0 is not a valid version.
+and reads the response.
 
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
   
   * `Message.id == 1`
@@ -344,13 +407,19 @@ and then the node closes the connection.
 
 ##### Description 
 
+The test requests list of node's roles.
+
+###### Step 1:
 The test connects to the primary port of the node and sends *ListRolesRequest*:
 
   * `Message.id := 1`
   * `SingleRequest.version := [1,0,0]`  
 
+and reads the response.
+
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *ListRolesResponse*:
   
   * `Message.id == 1`
@@ -377,6 +446,9 @@ Node replies with *ListRolesResponse*:
   * Node's clNonCustomer port
 
 ##### Description 
+The test sends a ping request to the node and expects to receive a ping response.
+
+###### Step 1:
 
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *PingRequest*:
 
@@ -384,7 +456,11 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload := "Hello"`
 
+and reads the response.
+
 ##### Acceptance Criteria
+
+###### Step 1:
 
 Node replies with *PingResponse*:
   
@@ -392,6 +468,8 @@ Node replies with *PingResponse*:
   * `Response.status == STATUS_OK`
   * `PingResponse.payload == "Hello"`
   * `PingResponse.clock` does not differ more than 10 minutes from the test's machine clock.
+
+
 
 
 #### HN02002 - Invalid Role Request - List Roles
@@ -404,15 +482,21 @@ Node replies with *PingResponse*:
 
 ##### Description 
 
+The test requests a list of node's roles on its clNonCustomer port, but *ListRolesRequest* request requires the primary port to be used.
+
+###### Step 1:
+
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *ListRolesRequest*:
 
   * `Message.id := 1`
   * `SingleRequest.version := [1,0,0]`  
   
-List Roles request requires primary port to be used.
+and reads the response.
+
 
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
   
   * `Message.id == 1`
@@ -430,14 +514,20 @@ Node replies with *Response*:
 
 ##### Description 
 
+The test starts conversation with the node.
+
+###### Step 1:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+
+and reads the response
   
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
@@ -458,14 +548,21 @@ Node replies with *StartConversationResponse*:
 
 ##### Description 
 
+The test starts the conversation with the node but no version of the protocol is supported by both sides.
+
+###### Step 1:
+
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[255,255,255], [255,255,254]]`
   * `StartConversationRequest.publicKey` set to test's 32 byte long public key
   
+and reads the response.
+  
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
   
   * `Message.id == 1`
@@ -483,13 +580,19 @@ Node replies with *Response*:
 
 ##### Description 
 
+The test sends *HomeNodeRequestRequest* to the node without starting the conversation first.
+
+###### Step 1:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *HomeNodeRequestRequest*:
 
   * `Message.id := 1`
   * `HomeNodeRequestRequest.contract` is uninitialized
   
+and reads the response.
+  
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *Response*:
   
   * `Message.id == 1`
@@ -507,8 +610,9 @@ Node replies with *Response*:
 
 ##### Description 
 
-The test identity establishes a home node agreement with a node. Note that the home node contract is empty at this stage.
+The test identity establishes a home node agreement with the node. Note that the home node contract is empty at this stage.
 
+###### Step 1:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
@@ -519,11 +623,13 @@ and reads the response from the node in form of *StartConversationResponse*. The
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
-  
+
+and reads the response.
 
   
 ##### Acceptance Criteria
 
+###### Step 1:
 Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
@@ -538,12 +644,15 @@ Node replies with *HomeNodeRequestResponse*:
   * `Response.status == STATUS_OK`
 
 
+
+
 #### HN02007 - Home Node Request - Quota Exceeded
 
 ##### Prerequisites/Inputs
 
 ###### Prerequisites
   * Node is configured to host 1 identity at maximum.
+  * Node's database is empty.
 
 ###### Inputs:
   * Node's IP address
@@ -551,32 +660,35 @@ Node replies with *HomeNodeRequestResponse*:
 
 ##### Description 
 
-The test identity #1 establishes a home node agreement with a node. Then the test tries to establish a home node agreement for its identity #2, which should fail due to the node's quota.
+The test identity #1 establishes a home node agreement with the node. Then the test tries to establish a home node agreement for its identity #2, which should fail due to the node's quota.
 
 ###### Step 1:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's identity #1 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test's identity #1 32 byte long public key
   
 and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
   
 ###### Step 2:
 The test then closes the connection and creates a new TLS connection to the clNonCustomer port and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's identity #2 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test's identity #2 32 byte long public key
 
 and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
 
+and reads the response.
   
 ##### Acceptance Criteria
 
@@ -586,7 +698,7 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
-  * `NodeKey := StartConversationResponse.publicKey`
+  * `$NodeKey := StartConversationResponse.publicKey`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -599,7 +711,7 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
-  * `StartConversationResponse.publicKey == NodeKey`
+  * `StartConversationResponse.publicKey == $NodeKey`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -613,39 +725,45 @@ Node replies with *HomeNodeRequestResponse*:
 
 ##### Prerequisites/Inputs
 
+###### Prerequisites
+  * Node's database is empty.
+
 ###### Inputs:
   * Node's IP address
   * Node's clNonCustomer port
 
 ##### Description 
 
-The test establishes a home node agreement with a node. Then it tries to establish a new agreement with the same identity, which should fail.
+The test establishes a home node agreement with the node. Then it tries to establish a new agreement with the same identity, which should fail.
 
 ###### Step 1:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's identity 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
   
 and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
-  
+
+and reads the response.
+ 
 ###### Step 2:
 The test then closes the connection and creates a new TLS connection to the clNonCustomer port and sends *StartConversationRequest*:
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's identity 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
 
 and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
   * `HomeNodeRequestRequest.contract` is uninitialized
 
-  
+and reads the response.
+
 ##### Acceptance Criteria
 
 
@@ -671,3 +789,377 @@ Node replies with *HomeNodeRequestResponse*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_ALREADY_EXISTS`
+
+
+
+
+
+#### HN02009 - Check-In - Different Customer and Non-Customer Ports
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  * Node's clNonCustomer port != Node's clCustomer port
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with the node. Then it performs the check-in process.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
+  
+###### Step 2:
+The test then closes the connection and establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+
+
+
+#### HN02010 - Check-In - Same Customer and Non-Customer Ports
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+  * Node's clNonCustomer port == Node's clCustomer port
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer/clCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with the node and continues with the check-in process on the same port.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response. The test it sends *CheckInRequest*:
+
+  * `Message.id := 3`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+
+
+
+
+
+
+
+
+#### HN02011 - Check-In - Invalid Signature
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with the node. Then it performs the check-in process but it uses invalid signature.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
+  
+###### Step 2:
+The test then closes the connection and establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key, but the first byte of the signature is XORed with 0x12 to make the signature invalid.
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_SIGNATURE`
+
+
+
+
+#### HN02011 - Check-In - Invalid Challenge
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with the node. Then it performs the check-in process but it uses invalid challenge.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  
+and reads the response from the node in form of *StartConversationResponse*. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
+  
+###### Step 2:
+The test then closes the connection and establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`, but the first byte of the challenge is XORed with 0x12 to make the challenge invalid
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "challenge"`
+
+
+
+
+
+
+#### HN02011 - Check-In - Not Hosted Identity
+
+##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test tries to perform a check-in process with an identity that has no home node agreement with the node.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_NOT_FOUND`
