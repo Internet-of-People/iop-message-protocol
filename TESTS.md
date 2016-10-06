@@ -1411,7 +1411,9 @@ Node replies with *Response*:
 
 
 
-#### HN03005 - Cancel Home Node Agreement
+
+
+#### HN03005 - Cancel Home Node Agreement - Redirection
 
 ##### Prerequisites/Inputs
 ###### Prerequisites:
@@ -1423,7 +1425,7 @@ Node replies with *Response*:
 
 ##### Description 
 
-The test cancels home node agreement for its hosted identity. It then attempts to check-in the identity, which should fail because it is no longer hosted on the node.
+The test cancels home node agreement for its hosted identity and sets up a redirect to a new home node. It then verifies that this redirect has been installed.
 
 ###### Step 1:
 The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
@@ -1445,32 +1447,18 @@ Then it sends *CheckInRequest*:
 and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
 
   * `Message.id := 3`
-  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := false`
-  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId` is uninitialized
+  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId` is set to SHA1("test")
 
-and reads the response.
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 4`
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.includeProfileImage = false`
+  * `GetIdentityInformationRequest.includeThumbnailImage = false`
+  * `GetIdentityInformationRequest.includeApplicationServices = false`
 
 
-###### Step 2:
-The test closes the connection and establishes a new TLS connection to the clCustomer port and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response. 
-
-  
 ##### Acceptance Criteria
 
 
@@ -1480,7 +1468,7 @@ Node replies with *StartConversationResponse*:
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
 
-Node replies with *CheckInRequest*:
+Node replies with *CheckInResponse*:
 
   * `Message.id == 2`
   * `Response.status == STATUS_OK`
@@ -1490,22 +1478,13 @@ Node replies with *CancelHomeNodeAgreementResponse*:
   * `Message.id == 3`
   * `Response.status == STATUS_OK`
   
-  
-###### Step 2:
-Node replies with *StartConversationResponse*:
+Node replies with *GetIdentityInformationResponse*:
 
-  * `Message.id == 1`
+  * `Message.id == 4`
   * `Response.status == STATUS_OK`
-
-Node replies with *CheckInRequest*:
-
-  * `Message.id == 2`
-  * `Response.status == ERROR_NOT_FOUND`
-
-  
-  
-  
-
+  * `GetIdentityInformationResponse.isHosted == false`
+  * `GetIdentityInformationResponse.isTargetHomeNodeKnown == true`
+  * `GetIdentityInformationResponse.targetHomeNodeNetworkId == SHA1("test")`
 
 
 ### HN04xxx - Node Combined Client Customer and Non-Customer Port Functionality Tests
@@ -1817,7 +1796,155 @@ Node replies with *Response*:
 
 
 
+#### HN04005 - Cancel Home Node Agreement, Register Again and Checks-In
 
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Test's identity is hosted by the node
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test cancels home node agreement for its hosted identity. It then attempts to check-in the identity, which should fail because it is no longer hosted on the node. It then establishes a new home node agreement and then it checks-in.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
+
+  * `Message.id := 3`
+  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := false`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId` is uninitialized
+
+and reads the response.
+
+
+###### Step 2:
+The test closes the connection and establishes a new TLS connection to the clCustomer port and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+###### Step 3:
+
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  
+and reads the response. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+
+and reads the response.
+
+
+
+###### Step 4:
+The test closes the connection and establishes a new TLS connection to the clCustomer port and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CancelHomeNodeAgreementResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+  
+  
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_NOT_FOUND`
+
+###### Step 3:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+  
+###### Step 4:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInRequest*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
 
 
 
