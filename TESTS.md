@@ -1127,7 +1127,39 @@ Node replies with *Response*:
 
 
 
-#### HN01006 - Check-In - Bad Role
+
+#### HN02012 - Verify Identity - Bad Conversation Status
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test sends verify identity request to the node without starting the conversation first.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *VerifyIdentityRequest*:
+
+  * `Message.id := 1`
+  * `VerifyIdentityRequest.challenge` is uninitialized
+  
+and reads the response.
+  
+##### Acceptance Criteria
+
+###### Step 1:
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
+
+
+
+
+#### HN02013 - Check-In - Bad Role
 
 ##### Prerequisites/Inputs
 
@@ -1340,6 +1372,41 @@ Node replies with *Response*:
   
   * `Message.id == 2`
   * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+
+
+#### HN03004 - Check-In - Bad Conversation Status
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test sends check-in request to the node without starting the conversation first.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *CheckInRequest*:
+
+  * `Message.id := 1`
+  * `CheckInRequest.challenge` is uninitialized
+  
+and reads the response.
+  
+##### Acceptance Criteria
+
+###### Step 1:
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
 
 
 
