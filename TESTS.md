@@ -202,12 +202,40 @@ Node disconnects the test before the wait finishes.
 
 ##### Description 
 
-The test creates a TCP connection and to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+The test creates a TCP connection to the clNonCustomer port and does not initiate TLS handshake. Then it waits 180 seconds. This should be detected as an inactive connection by the node as the client did not sent a whole message body.
+
+##### Acceptance Criteria
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_PROTOCOL_VIOLATION`
+
+
+
+
+
+#### HN00010 - Message Too Large
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test connects to the primary port and sends *PingRequest*:
+
+  * `Message.id := 1234`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload` is set to a sequence of 1,048,576 times 'a'
+
+Size of this message is greater than the protocol's maximal message size limit of 1 MB.
 
 ##### Acceptance Criteria
 
 Node disconnects the test before the wait finishes. 
-
 
 
 
@@ -259,7 +287,7 @@ The version must be 3 bytes long, but the client sends 2 bytes only.
 
 ##### Acceptance Criteria
 
-Node replies with *PingResponse*:
+Node replies with *Response*:
   
   * `Message.id == 1`
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
