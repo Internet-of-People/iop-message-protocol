@@ -1147,18 +1147,6 @@ Node replies with *StartConversationResponse*:
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
 
-Node replies with *HomeNodeRequestResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-
-###### Step 2:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
 Node replies with *CheckInResponse*:
 
   * `Message.id == 2`
