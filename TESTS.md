@@ -1411,6 +1411,101 @@ Node replies with *Response*:
 
 
 
+#### HN03005 - Cancel Home Node Agreement
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Test's identity is hosted by the node
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test cancels home node agreement for its hosted identity. It then attempts to check-in the identity, which should fail because it is no longer hosted on the node.
+
+###### Step 1:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
+
+  * `Message.id := 3`
+  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := false`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId` is uninitialized
+
+and reads the response.
+
+
+###### Step 2:
+The test closes the connection and establishes a new TLS connection to the clCustomer port and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInRequest*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CancelHomeNodeAgreementResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+  
+  
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInRequest*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_NOT_FOUND`
+
+  
+  
+  
+
 
 
 ### HN04xxx - Node Combined Client Customer and Non-Customer Port Functionality Tests
