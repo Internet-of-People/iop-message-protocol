@@ -3,6 +3,10 @@
 // We strictly use only features that are binary compatible in ProtoBuf v2 and v3.
 // We use no v2 or v3 specific features.
 //
+// An integral part of the protocol are the protocol tests:
+// https://github.com/Internet-of-People/message-protocol/blob/master/TESTS.md
+// The tests must comply with this protocol file, but may add some additional requirements
+// or constraints on the behavior of a compatible software.
 //
 //
 //
