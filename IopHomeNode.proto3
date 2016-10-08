@@ -777,7 +777,7 @@ message ApplicationServiceAddRequest {
 //
 //   * ERROR_QUOTA_EXCEEDED - The given set of application services can not be added because the client would have more than the maximum number of enabled services.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is the zero-based index.
+//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is a zero-based index.
 //
 message ApplicationServiceAddResponse {
 }
