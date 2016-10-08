@@ -4,8 +4,8 @@ In order to create a software that is compatible with IoP Message Protocol speci
 
 ## Notation
 
-  * `[X,Y,Z]` is an ordered array of three elements X, Y, and Z. Thus `[X,Y,Z] != [Y,Z,X]`
-  * `(X,Y,Z)` is a set of of three elements X, Y, and Z. Thus `(X,Y,Z) == (Y,Z,X)`
+  * `[X,Y,Z]` is an ordered array of three elements X, Y, and Z. Thus `[X,Y,Z] != [Y,Z,X]`.
+  * `(X,Y,Z)` is a set of of three elements X, Y, and Z. Thus `(X,Y,Z) == (Y,Z,X)`.
 
 
 ## HomeNet Node Tests
