@@ -45,6 +45,8 @@ Node replies with *Response*:
 and then the node closes the connection.
 
 
+
+
   
 #### HN00002 - Invalid Message Body
 
@@ -78,6 +80,10 @@ Node replies with *Response*:
 and then the node closes the connection.
 
   
+
+
+
+
 #### HN00003 - Disconnection of Inactive TCP Client from Primary Port - No Message
 
 ##### Prerequisites/Inputs
@@ -98,12 +104,18 @@ The test connects to the primary port of the node and waits 500 seconds. The tes
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
+and reads the response.
+
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test and the attempt to send *PingRequest* fails.
+Node disconnects the test and the attempt to send *PingRequest* or read the response fails.
+
+
+
+
 
 
 
@@ -111,7 +123,7 @@ Node disconnects the test and the attempt to send *PingRequest* fails.
 
 ##### Prerequisites/Inputs
 
-Inputs:
+###### Inputs:
   * Node's IP address
   * Node's primary port
 
@@ -127,14 +139,18 @@ The test connects to the primary port of the node and creates the following *Pin
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
-but it only sends first 4 bytes of this message to the node and then it waits 500 seconds. Then it attempts to send the rest of the message.
+but it only sends first 4 bytes of this message to the node and then it waits 500 seconds. Then it attempts to send the rest of the message and reads the response.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test and this prevents the test to send the second part of the message.
+Node disconnects the test and this prevents the test to send the second part of the message or read a response.
+
+
+
+
 
 
 
@@ -159,14 +175,19 @@ The test connects to the primary port of the node and creates the following *Pin
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
-but it only sends first 6 bytes of this message to the node and then it waits 500 seconds. Then it attempts to send the rest of the message.
+but it only sends first 6 bytes of this message to the node and then it waits 500 seconds. Then it attempts to send the rest of the message and reads the response.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test and this prevents the test to send the second part of the message.
+Node disconnects the test and this prevents the test to send the second part of the message or read a response.
+
+
+
+
+
 
 
 
@@ -175,7 +196,6 @@ Node disconnects the test and this prevents the test to send the second part of 
 ##### Prerequisites/Inputs
 
 ###### Inputs:
-
   * Node's IP address
   * Node's clNonCustomer port
 
@@ -190,13 +210,20 @@ The test creates a TLS connection to the clNonCustomer port of the node and wait
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
+and reads the response.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test before it sends the message and the test will thus not be able to send the message.
+Node disconnects the test and the attempt to send *PingRequest* or read the response fails.
+
+
+
+
+
+
 
 
 
@@ -204,7 +231,7 @@ Node disconnects the test before it sends the message and the test will thus not
 
 ##### Prerequisites/Inputs
 
-Inputs:
+###### Inputs:
   * Node's IP address
   * Node's clNonCustomer port
 
@@ -219,14 +246,20 @@ The test creates a TLS connection to the clNonCustomer port of the node and crea
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
-but it only sends first 4 bytes of this message to the node and then it waits 180 seconds. Then it attempts to send the rest of the message.
+but it only sends first 4 bytes of this message to the node and then it waits 180 seconds. Then it attempts to send the rest of the message and reads the response.
 
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test and this prevents the test to send the second part of the message.
+Node disconnects the test and this prevents the test to send the second part of the message or read a response.
+
+
+
+
+
+
 
 
 
@@ -251,13 +284,13 @@ The test creates a TLS connection to the clNonCustomer port of the node and crea
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
-but it only sends first 6 bytes of this message to the node and then it waits 180 seconds. Then it attempts to send the rest of the message.
+but it only sends first 6 bytes of this message to the node and then it waits 180 seconds. Then it attempts to send the rest of the message and reads the response.
 
 ##### Acceptance Criteria
 
 ###### Step 1:
 
-Node disconnects the test and this prevents the test to send the second part of the message.
+Node disconnects the test and this prevents the test to send the second part of the message or read a response.
 
 
 
@@ -290,6 +323,8 @@ Node disconnects the test before it attempts to initiate the TLS handshake and t
 
 
 
+
+
 #### HN00010 - Message Too Large
 
 ##### Prerequisites/Inputs
@@ -309,6 +344,12 @@ The test connects to the primary port and sends *PingRequest*:
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload` is set to a sequence of 1,048,576 times 'a'
 
+and reads the response. Then it sends *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload := "Hello"`
+
 and reads the response.
 
 
@@ -320,7 +361,7 @@ Node replies with *Response*:
   
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
-and then the node closes the connection.
+and then the node closes the connection, so that sending the second *PingRequest* or receiving a response to it fails.
 
 
 
@@ -390,7 +431,15 @@ The test connects to the primary port of the node and sends *PingRequest*:
   * `SingleRequest.version := [1,0]`
   * `PingRequest.payload := "Hello"`
 
+and reads the response. Then it sends *PingRequest*:
+
+  * `Message.id := 2`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload := "Hello"`
+
 and reads the response.
+
+
 
 ##### Acceptance Criteria
 
@@ -400,7 +449,7 @@ Node replies with *Response*:
   * `Message.id == 1`
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
-and then the node closes the connection.
+and then the node closes the connection, so that sending the second *PingRequest* or receiving a response to it fails.
 
 
 
@@ -430,7 +479,14 @@ The test connects to the primary port of the node and sends *PingRequest*:
   * `SingleRequest.version := [0,0,0]`
   * `PingRequest.payload := "Hello"`
 
+and reads the response. Then it sends *PingRequest*:
+
+  * `Message.id := 2`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload := "Hello"`
+
 and reads the response.
+
 
 
 ##### Acceptance Criteria
@@ -441,7 +497,13 @@ Node replies with *Response*:
   * `Message.id == 1`
   * `Response.status == ERROR_PROTOCOL_VIOLATION`
 
-and then the node closes the connection.
+and then the node closes the connection, so that sending the second *PingRequest* or receiving a response to it fails.
+
+
+
+
+
+
 
 
 #### HN01004 - List Roles
@@ -460,7 +522,7 @@ The test requests list of node's roles.
 The test connects to the primary port of the node and sends *ListRolesRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := [1,0,0]`  
+  * `SingleRequest.version := [1,0,0]`
 
 and reads the response.
 
@@ -479,6 +541,8 @@ Node replies with *ListRolesResponse*:
     * *CL_CUSTOMER* - `isTcp == true`, `isTls == true`
     * *CL_APP_SERVICE* - `isTcp == true`, `isTls == true`
   * Intersection of the set of port numbers of *primary*, *ndNeighbor*, and *ndColleague* roles and the set of port numbers of *clNonCustomer*, *clCustomer*, and *clAppService* roles must be empty (i.e. no client only role is served on the same port as a node role; this also means that no port is used for both TLS and non-TLS service).
+
+
 
 
 
