@@ -784,6 +784,11 @@ Node replies with *PingResponse*:
 
 
 
+
+
+
+
+
 #### HN02002 - Invalid Role Request - List Roles
 
 ##### Prerequisites/Inputs
@@ -801,7 +806,7 @@ The test requests a list of node's roles on its clNonCustomer port, but *ListRol
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *ListRolesRequest*:
 
   * `Message.id := 1`
-  * `SingleRequest.version := [1,0,0]`  
+  * `SingleRequest.version := [1,0,0]`
   
 and reads the response.
 
@@ -816,7 +821,11 @@ Node replies with *Response*:
 
 
 
-#### HN02003 - Start Conversation 
+
+
+
+
+#### HN02003 - Start Conversation
 
 ##### Prerequisites/Inputs
 
@@ -846,7 +855,16 @@ Node replies with *StartConversationResponse*:
   * `Response.status == STATUS_OK`
   * `StartConversationResponse.version == [1,0,0]`
   * `StartConversationResponse.publicKey.Length == 32`
-  * `StartConversationResponse.challenge == [1,0,0]`
+  * `StartConversationResponse.challenge.Length == 32`
+
+
+
+
+
+
+
+
+
 
 
 
@@ -884,9 +902,14 @@ Node replies with *Response*:
 
 
 
+
+
 #### HN02005 - Home Node Request
 
 ##### Prerequisites/Inputs
+
+###### Prerequisites
+  * Node's database is empty.
 
 ###### Inputs:
   * Node's IP address
@@ -919,13 +942,15 @@ Node replies with *StartConversationResponse*:
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
   * `StartConversationResponse.version == [1,0,0]`
-  * `StartConversationResponse.publicKey` is 32 byte long
-  * `StartConversationResponse.challenge` is 32 byte long
+  * `StartConversationResponse.publicKey.Length == 32`
+  * `StartConversationResponse.challenge.Length == 32`
 
 Node replies with *HomeNodeRequestResponse*:
 
   * `Message.id == 2`
   * `Response.status == STATUS_OK`
+
+
 
 
 
@@ -959,6 +984,7 @@ Node replies with *Response*:
   
   * `Message.id == 1`
   * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
+
 
 
 
