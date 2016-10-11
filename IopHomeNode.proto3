@@ -524,15 +524,16 @@ message ListHomeNodePlansResponse {
 
 // Description of a home node hosting plan.
 message HomeNodePlan {
-  bytes planId = 1;                                // GUID of the plan. If a node wants to change the plan, it has to change the GUID as well,
-                                                   // thus effectively creating a new plan.
-  string identityType = 2;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
+  bytes planId = 1;                                // Identifier of the plan is an SHA1 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
+                                                   // with planId initialized to a byte array of 20 zero bytes.
+  bytes nodeNetworkId = 2;                         // Identifier of the node that offers the plan.
+  string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
                                                    // at the end of the type to support multiple types to be served with a single plan. 
                                                    // For example, the value "*" would mean that any identity type is supported,
                                                    // and the value "Taxi *" would mean that any identity type that starts with "Taxi *"
                                                    // would match this plan.
-  uint64 fee = 3;                                  // TokenAmountType. Price of the plan per billing period.
-  uint32 billingPeriodSeconds = 4;                 // Length of the billing period in seconds.
+  uint64 fee = 4;                                  // TokenAmountType. Price of the plan per billing period.
+  uint32 billingPeriodSeconds = 5;                 // Length of the billing period in seconds.
   repeated NameStringValuePair planParameters = 9; // List of additional service parameters that define the plan.
 }
 
@@ -599,12 +600,11 @@ message HomeNodeRequestRequest {
 //
 // Specific Error Responses:
 //   * ERROR_QUOTA_EXCEEDED - A node uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
-//   * ERROR_NOT_FOUND - 'HomeNodePlanContract.contract.plan.planId' does not correspond to a node's plan, or the plan values are different from what the node offers.
+//   * ERROR_NOT_FOUND - 'HomeNodePlanContract.contract.planId' does not correspond to a node's plan, or the plan values are different from what the node offers.
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
 //   * ERROR_ALREADY_EXISTS - The identity is hosted by the node already.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "contract.startTime" - 'HomeNodeRequestRequest.contract.startTime' is more than 1 hour in the past. 
-//     * Response.details == "contract.nodePublicKey" - 'HomeNodeRequestRequest.contract.nodePublicKey' does not match node's public key. 
 //     * Response.details == "contract.identityPublicKey" - 'HomeNodeRequestRequest.contract.identityPublicKey' does not match identity's public key.
 //
 message HomeNodeRequestResponse {
@@ -616,10 +616,9 @@ message HomeNodeRequestResponse {
 
 // A description of the contract between a client and a home node.
 message HomeNodePlanContract {
-  HomeNodePlan plan = 1;                           // Description of the home node hosting plan.
-  bytes nodePublicKey = 2;                         // Public key of the node.
-  bytes identityPublicKey = 3;                     // Public key of the identity.
-  sint64 startTime = 4;                            // TimestampType. Specifies the start time of the contract.
+  bytes planId = 1;                                // Identifier of the home node hosting plan.
+  bytes identityPublicKey = 2;                     // Public key of the client's identity.
+  sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract.
 }
 
 
