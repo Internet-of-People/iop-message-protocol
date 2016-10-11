@@ -908,7 +908,7 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -995,7 +995,7 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node is configured to host 1 identity at maximum.
   * Node's database is empty.
 
@@ -1078,7 +1078,7 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -1154,9 +1154,6 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
-  * Node's database is empty.
-  
 ###### Inputs:
   * Node's IP address
   * Node's clNonCustomer
@@ -1204,13 +1201,12 @@ Node replies with *VerifyIdentityResponse*:
 
 
 
+
+
 #### HN02010 - Verify Identity - Invalid Signature
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
-  * Node's database is empty.
-  
 ###### Inputs:
   * Node's IP address
   * Node's clNonCustomer
@@ -1257,11 +1253,14 @@ Node replies with *Response*:
 
 
 
+
+
+
 #### HN02011 - Verify Identity - Invalid Challenge
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
   
 ###### Inputs:
@@ -1312,6 +1311,9 @@ Node replies with *Response*:
 
 
 
+
+
+
 #### HN02012 - Verify Identity - Bad Conversation Status
 
 ##### Prerequisites/Inputs
@@ -1344,12 +1346,12 @@ Node replies with *Response*:
 
 
 
+
+
+
 #### HN02013 - Parallel Verify Identity Requests
 
 ##### Prerequisites/Inputs
-###### Prerequisites:
-  * Test's identity is hosted by the node
-
 ###### Inputs:
   * Node's IP address
   * Node's clNonCustomer port
@@ -1511,7 +1513,7 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -1575,11 +1577,12 @@ Node replies with *Response*:
 
 
 
+
 #### HN02016 - Get Identity Information - Unknown Identity
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -1624,7 +1627,6 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 ###### Prerequisites:
-  * Test's identity is hosted by the node
   * Node's clNonCustomer port != clCustomer port
 
 ###### Inputs:
@@ -1637,6 +1639,7 @@ The test verifies its identity on clNonCustomer port. Then it attempts to update
 
 
 ###### Step 1:
+
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
@@ -1647,15 +1650,21 @@ and reads the response from the node in form of *StartConversationResponse*:
 
   * `$Challenge := StartConversationResponse.challenge`
 
-Then it sends *VerifyIdentityRequest*:
+
+Then it sends *HomeNodeRequestRequest*:
 
   * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response. Then it sends *VerifyIdentityRequest*:
+
+  * `Message.id := 3`
   * `VerifyIdentityRequest.challenge := $Challenge`
   * `ConversationRequest.signature` is set to a signature of `VerifyIdentityRequest` part of the message using the test's identity private key
 
 and reads the response. Then it sends *UpdateProfileRequest*:
 
-  * `Message.id := 3`
+  * `Message.id := 4`
   * `UpdateProfileRequest.setVersion := true`
   * `UpdateProfileRequest.setName := true`
   * `UpdateProfileRequest.setImage := false`
@@ -1674,19 +1683,28 @@ and reads the response.
 
 
 ###### Step 1:
+Test successfully establishes the home node agreement.
+
+
+###### Step 2:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
 
-Node replies with *VerifyIdentityResponse*:
+Node replies with *HomeNodeRequestResponse*:
 
   * `Message.id == 2`
   * `Response.status == STATUS_OK`
 
-Node replies with *Response*:
+Node replies with *VerifyIdentityResponse*:
 
   * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+
+  * `Message.id == 4`
   * `Response.status == ERROR_BAD_ROLE`
 
 
@@ -1712,7 +1730,7 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -1756,6 +1774,8 @@ Node replies with *Response*:
 
   * `Message.id == 2`
   * `Response.status == ERROR_NOT_FOUND`
+
+
 
 
 
@@ -1885,7 +1905,7 @@ The test sends check-in request to the node without starting the conversation fi
 The test establishes a TLS connection to the clCustomer port of the node and sends *CheckInRequest*:
 
   * `Message.id := 1`
-  * `CheckInRequest.challenge` is uninitialized
+  * `CheckInRequest.challenge := SHA1("test")`
   
 and reads the response.
   
@@ -1899,585 +1919,6 @@ Node replies with *Response*:
 
 
 
-
-
-
-#### HN03005 - Cancel Home Node Agreement - Redirection
-
-##### Prerequisites/Inputs
-###### Prerequisites:
-  * Test's identity is hosted by the node
-
-###### Inputs:
-  * Node's IP address
-  * Node's clCustomer port
-
-##### Description 
-
-The test cancels home node agreement for its hosted identity and sets up a redirect to a new home node. It then verifies that this redirect has been installed.
-
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
-
-  * `Message.id := 3`
-  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
-  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId` is set to SHA1("test")
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 4`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
-  * `GetIdentityInformationRequest.includeProfileImage = false`
-  * `GetIdentityInformationRequest.includeThumbnailImage = false`
-  * `GetIdentityInformationRequest.includeApplicationServices = false`
-
-
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CheckInResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CancelHomeNodeAgreementResponse*:
-
-  * `Message.id == 3`
-  * `Response.status == STATUS_OK`
-  
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 4`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == false`
-  * `GetIdentityInformationResponse.isTargetHomeNodeKnown == true`
-  * `GetIdentityInformationResponse.targetHomeNodeNetworkId == SHA1("test")`
-
-
-
-
-
-
-#### HN03006 - Cancel Home Node Agreement - Invalid New Home Node Id
-
-##### Prerequisites/Inputs
-###### Prerequisites:
-  * Test's identity is hosted by the node
-
-###### Inputs:
-  * Node's IP address
-  * Node's clCustomer port
-
-##### Description 
-
-The test cancels home node agreement for its hosted identity and sets up a redirect to a new home node, but provides invalid new home node network identifier.
-
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
-
-  * `Message.id := 3`
-  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
-  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId := "test"`
-
-and reads the response.
-
-
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CheckInResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-Node replies with *Response*:
-
-  * `Message.id == 3`
-  * `Response.status == ERROR_INVALID_VALUE`
-  * `Response.details == newHomeNodeNetworkId`
-
-
-
-
-
-
-
-
-#### HN03007 - Parallel Check-Ins
-
-##### Prerequisites/Inputs
-###### Prerequisites:
-  * Test's identity is hosted by the node
-
-###### Inputs:
-  * Node's IP address
-  * Node's clCustomer port
-
-##### Description 
-
-The test checks-in its identity and then it checks it in again in a second parallel connection. This should disconnect the first connection.
-
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response. 
-
-###### Step 2:
-With the first connection left open, the test establishes a new TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response. 
-
-###### Step 3:
-
-Using the first connection the test attempts to send *PingRequest*:
-
-  * `Message.id := 1`
-  * `SingleRequest.version := [1,0,0]`
-  * `PingRequest.payload = "test"`
-
-
-
-
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CheckInResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-
-###### Step 2:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CheckInResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-###### Step 3:
-
-The first connection should be disconnected and it should not be possible to send the request.
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### HN03008 - Update Profile - Unauthorized
-
-##### Prerequisites/Inputs
-
-###### Prerequisites
-  * Test's identity is hosted by the node
-
-###### Inputs:
-  * Node's IP address
-  * Node's clCustomer port
-
-##### Description 
-
-The test asks to update its profile without performing a check-in process first. 
-
-###### Step 1:
-The test then closes the connection and establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey := $PublicKey`
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *UpdateProfileRequest*:
-
-  * `Message.id := 2`
-  * `UpdateProfileRequest.setVersion := true`
-  * `UpdateProfileRequest.setName := true`
-  * `UpdateProfileRequest.setImage := false`
-  * `UpdateProfileRequest.setLocation := true`
-  * `UpdateProfileRequest.setExtraData := false`
-  * `UpdateProfileRequest.version := [1,0,0]`
-  * `UpdateProfileRequest.name := "Test Identity"`
-  * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
-  * `UpdateProfileRequest.extraData` is unintialized
-
-and reads the response. 
-
-  
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *Response*:
-
-  * `Message.id == 2`
-  * `Response.status == ERROR_UNAUTHORIZED`
-
-
-
-
-
-
-
-
-
-
-
-
-#### HN03009 - Application Service Add
-
-##### Prerequisites/Inputs
-###### Prerequisites:
-  * Test's identity is hosted by the node
-
-###### Inputs:
-  * Node's IP address
-  * Node's clCustomer port
-
-##### Description 
-
-The test checks-in its identity and then it adds/deletes/queries its application services. Some of the requests are valid and some are invalid.
-
-
-###### Step 1:
-The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
-
-  * `Message.id := 1`
-  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key; `$PublicKey := StartConversationRequest.publicKey`
-
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
-
-Then it sends *CheckInRequest*:
-
-  * `Message.id := 2`
-  * `CheckInRequest.challenge := $Challenge`
-  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
-  
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 3`
-  * `ApplicationServiceAddRequest.serviceNames := ["a","b","c","d","a"]`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 4`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 5`
-  * `ApplicationServiceAddRequest.serviceNames := ["c","d","a","e"]`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 6`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceRemoveRequest*:
-
-  * `Message.id := 7`
-  * `ApplicationServiceRemoveRequest.serviceName := "a"`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 8`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceRemoveRequest*:
-
-  * `Message.id := 9`
-  * `ApplicationServiceRemoveRequest.serviceName := "a"`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 10`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 11`
-  * `ApplicationServiceAddRequest.serviceNames := ["d","1234567890-1234567890-1234567890-1234567890","a","e"]`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 12`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 13`
-  * `ApplicationServiceAddRequest.serviceNames := ["a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10"]`
-
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 14`
-  * `ApplicationServiceAddRequest.serviceNames := ["b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10"]`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 15`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 16`
-  * `ApplicationServiceAddRequest.serviceNames := ["c1","c2","c3","c4,"c5","c6","c7","c8","c9","c10","d1","d2","d3","d4,"d5","d6","d7","d8","d9","d10","e1","e2","e3","e4,"e5","e6","e7","e8","e9","e10"]`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
-
-  * `Message.id := 17`
-  * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
-  * `GetIdentityInformationRequest.includeProfileImage := false`
-  * `GetIdentityInformationRequest.includeThumbnailImage := false`
-  * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response.
-
-
-                                      
-
-##### Acceptance Criteria
-
-
-###### Step 1:
-Node replies with *StartConversationResponse*:
-
-  * `Message.id == 1`
-  * `Response.status == STATUS_OK`
-
-Node replies with *CheckInResponse*:
-
-  * `Message.id == 2`
-  * `Response.status == STATUS_OK`
-
-Node replies with *ApplicationServiceAddResponse*:
-
-  * `Message.id == 3`
-  * `Response.status == STATUS_OK`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 4`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("a","b","c","d")`
-
-Node replies with *ApplicationServiceAddResponse*:
-
-  * `Message.id == 5`
-  * `Response.status == STATUS_OK`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 6`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("a","b","c","d","e")`
-
-Node replies with *ApplicationServiceRemoveResponse*:
-
-  * `Message.id == 7`
-  * `Response.status == STATUS_OK`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 8`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
-
-Node replies with *Response*:
-
-  * `Message.id == 9`
-  * `Response.status == ERROR_NOT_FOUND`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 10`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
-
-Node replies with *Response*:
-
-  * `Message.id == 11`
-  * `Response.status == ERROR_INVALID_VALUE`
-  * `Response.details == "serviceNames[1]"`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 12`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
-
-Node replies with *ApplicationServiceAddResponse*:
-
-  * `Message.id == 13`
-  * `Response.status == STATUS_OK`
-
-Node replies with *ApplicationServiceAddResponse*:
-
-  * `Message.id == 14`
-  * `Response.status == STATUS_OK`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 15`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10","b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10")`
-
-Node replies with *Response*:
-
-  * `Message.id == 16`
-  * `Response.status == ERROR_QUOTA_EXCEEDED`
-
-Node replies with *GetIdentityInformationResponse*:
-
-  * `Message.id == 17`
-  * `Response.status == STATUS_OK`
-  * `GetIdentityInformationResponse.isHosted == true`
-  * `GetIdentityInformationResponse.isOnline == true`
-  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10","b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10")`
 
 
 
@@ -2500,9 +1941,9 @@ Node replies with *GetIdentityInformationResponse*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
-  * Node's clNonCustomer port != Node's clCustomer port
+  * Node's clNonCustomer port != clCustomer port
 
 ###### Inputs:
   * Node's IP address
@@ -2577,13 +2018,15 @@ Node replies with *CheckInResponse*:
 
 
 
+
+
 #### HN04002 - Check-In - Same Customer and Non-Customer Ports
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
-  * Node's clNonCustomer port == Node's clCustomer port
+  * Node's clNonCustomer port == clCustomer port
 
 ###### Inputs:
   * Node's IP address
@@ -2648,7 +2091,7 @@ Node replies with *CheckInResponse*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -2723,11 +2166,15 @@ Node replies with *Response*:
 
 
 
+
+
+
+
 #### HN04004 - Check-In - Invalid Challenge
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -2811,11 +2258,11 @@ Node replies with *Response*:
 
 
 
-#### HN04005 - Cancel Home Node Agreement, Register Again and Checks-In
+#### HN04005 - Cancel Home Node Agreement, Register Again and Check-In
 
 ##### Prerequisites/Inputs
 ###### Prerequisites:
-  * Test's identity is hosted by the node
+  * Node's database is empty.
 
 ###### Inputs:
   * Node's IP address
@@ -2827,6 +2274,9 @@ Node replies with *Response*:
 The test cancels home node agreement for its hosted identity. It then attempts to check-in the identity, which should fail because it is no longer hosted on the node. It then establishes a new home node agreement and then it checks-in.
 
 ###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
 The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
@@ -2852,7 +2302,7 @@ and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
 and reads the response.
 
 
-###### Step 2:
+###### Step 3:
 The test closes the connection and establishes a new TLS connection to the clCustomer port and sends *StartConversationRequest*:
 
   * `Message.id := 1`
@@ -2871,7 +2321,7 @@ Then it sends *CheckInRequest*:
   
 and reads the response. 
 
-###### Step 3:
+###### Step 4:
 
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
@@ -2888,7 +2338,7 @@ and reads the response.
 
 
 
-###### Step 4:
+###### Step 5:
 The test closes the connection and establishes a new TLS connection to the clCustomer port and sends *StartConversationRequest*:
 
   * `Message.id := 1`
@@ -2912,6 +2362,9 @@ and reads the response.
 
 
 ###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
@@ -2928,7 +2381,7 @@ Node replies with *CancelHomeNodeAgreementResponse*:
   * `Response.status == STATUS_OK`
   
   
-###### Step 2:
+###### Step 3:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
@@ -2939,7 +2392,7 @@ Node replies with *Response*:
   * `Message.id == 2`
   * `Response.status == ERROR_NOT_FOUND`
 
-###### Step 3:
+###### Step 4:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
@@ -2950,7 +2403,7 @@ Node replies with *HomeNodeRequestResponse*:
   * `Message.id == 2`
   * `Response.status == STATUS_OK`
   
-###### Step 4:
+###### Step 5:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
@@ -2973,7 +2426,7 @@ Node replies with *CheckInRequest*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -3142,7 +2595,7 @@ Node replies with *GetIdentityInformationResponse*:
 
 ##### Prerequisites/Inputs
 
-###### Prerequisites
+###### Prerequisites:
   * Node's database is empty.
 
 ###### Inputs:
@@ -3505,7 +2958,7 @@ Node replies with *Response*:
 
 ##### Prerequisites/Inputs
 ###### Prerequisites:
-  * Test's identity is hosted by the node
+  * Node's database is empty.
   * Node's clNonCustomer port == clCustomer port
 
 ###### Inputs:
@@ -3518,6 +2971,9 @@ The test verifies its identity on clNonCustomer/clCustomer port. Then it attempt
 
 
 ###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
 
   * `Message.id := 1`
@@ -3555,6 +3011,9 @@ and reads the response.
 
 
 ###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
@@ -3569,6 +3028,624 @@ Node replies with *Response*:
 
   * `Message.id == 3`
   * `Response.status == ERROR_UNAUTHORIZED`
+
+
+
+
+
+
+
+
+
+#### HN04009 - Cancel Home Node Agreement - Redirection
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test cancels home node agreement for its hosted identity and sets up a redirect to a new home node. It then verifies that this redirect has been installed.
+
+###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
+
+  * `Message.id := 3`
+  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId := SHA1("test")`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 4`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.includeProfileImage = false`
+  * `GetIdentityInformationRequest.includeThumbnailImage = false`
+  * `GetIdentityInformationRequest.includeApplicationServices = false`
+
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CancelHomeNodeAgreementResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+  
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 4`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == false`
+  * `GetIdentityInformationResponse.isTargetHomeNodeKnown == true`
+  * `GetIdentityInformationResponse.targetHomeNodeNetworkId == SHA1("test")`
+
+
+
+
+
+
+#### HN04010 - Cancel Home Node Agreement - Invalid New Home Node Id
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test cancels home node agreement for its hosted identity and sets up a redirect to a new home node, but provides invalid new home node network identifier.
+
+###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
+
+  * `Message.id := 3`
+  * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId := "test"`
+
+and reads the response.
+
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+
+  * `Message.id == 3`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == newHomeNodeNetworkId`
+
+
+
+
+
+
+
+
+#### HN04011 - Parallel Check-Ins
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test checks-in its identity and then it checks it in again in a second parallel connection. This should disconnect the first connection.
+
+###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+###### Step 3:
+With the first connection left open, the test establishes a new TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. 
+
+###### Step 4:
+
+Using the first connection the test attempts to send *PingRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `PingRequest.payload = "test"`
+
+
+
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 3:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+###### Step 4:
+
+The first connection should be disconnected and it should not be possible to send the request.
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### HN04012 - Update Profile - Unauthorized
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test asks to update its profile without performing a check-in process first. 
+
+###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey := $PublicKey`
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *UpdateProfileRequest*:
+
+  * `Message.id := 2`
+  * `UpdateProfileRequest.setVersion := true`
+  * `UpdateProfileRequest.setName := true`
+  * `UpdateProfileRequest.setImage := false`
+  * `UpdateProfileRequest.setLocation := true`
+  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.version := [1,0,0]`
+  * `UpdateProfileRequest.name := "Test Identity"`
+  * `UpdateProfileRequest.image` is unintialized
+  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.extraData` is unintialized
+
+and reads the response. 
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_UNAUTHORIZED`
+
+
+
+
+
+
+
+
+
+
+
+
+#### HN04013 - Application Service Add
+
+##### Prerequisites/Inputs
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clCustomer port
+
+##### Description 
+
+The test checks-in its identity and then it adds/deletes/queries its application services. Some of the requests are valid and some are invalid.
+
+
+###### Step 1:
+The test establishes a home node agreement using clNonCustomer port and then it closes the connection.
+
+###### Step 2:
+The test establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key; `$PublicKey := StartConversationRequest.publicKey`
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 3`
+  * `ApplicationServiceAddRequest.serviceNames := ["a","b","c","d","a"]`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 4`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 5`
+  * `ApplicationServiceAddRequest.serviceNames := ["c","d","a","e"]`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 6`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response. Then it sends *ApplicationServiceRemoveRequest*:
+
+  * `Message.id := 7`
+  * `ApplicationServiceRemoveRequest.serviceName := "a"`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 8`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response. Then it sends *ApplicationServiceRemoveRequest*:
+
+  * `Message.id := 9`
+  * `ApplicationServiceRemoveRequest.serviceName := "a"`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 10`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 11`
+  * `ApplicationServiceAddRequest.serviceNames := ["d","1234567890-1234567890-1234567890-1234567890","a","e"]`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 12`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 13`
+  * `ApplicationServiceAddRequest.serviceNames := ["a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10"]`
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 14`
+  * `ApplicationServiceAddRequest.serviceNames := ["b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10"]`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 15`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 16`
+  * `ApplicationServiceAddRequest.serviceNames := ["c1","c2","c3","c4,"c5","c6","c7","c8","c9","c10","d1","d2","d3","d4,"d5","d6","d7","d8","d9","d10","e1","e2","e3","e4,"e5","e6","e7","e8","e9","e10"]`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 17`
+  * `SingleRequest.version := [1,0,0]`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.includeProfileImage := false`
+  * `GetIdentityInformationRequest.includeThumbnailImage := false`
+  * `GetIdentityInformationRequest.includeApplicationServices := true`
+
+and reads the response.
+
+
+                                      
+
+##### Acceptance Criteria
+
+
+###### Step 1:
+The test successfully establishes a home node agreement for its identity.
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+Node replies with *CheckInResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+Node replies with *ApplicationServiceAddResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 4`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("a","b","c","d")`
+
+Node replies with *ApplicationServiceAddResponse*:
+
+  * `Message.id == 5`
+  * `Response.status == STATUS_OK`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 6`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("a","b","c","d","e")`
+
+Node replies with *ApplicationServiceRemoveResponse*:
+
+  * `Message.id == 7`
+  * `Response.status == STATUS_OK`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 8`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
+
+Node replies with *Response*:
+
+  * `Message.id == 9`
+  * `Response.status == ERROR_NOT_FOUND`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 10`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
+
+Node replies with *Response*:
+
+  * `Message.id == 11`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "serviceNames[1]"`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 12`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
+
+Node replies with *ApplicationServiceAddResponse*:
+
+  * `Message.id == 13`
+  * `Response.status == STATUS_OK`
+
+Node replies with *ApplicationServiceAddResponse*:
+
+  * `Message.id == 14`
+  * `Response.status == STATUS_OK`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 15`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10","b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10")`
+
+Node replies with *Response*:
+
+  * `Message.id == 16`
+  * `Response.status == ERROR_QUOTA_EXCEEDED`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 17`
+  * `Response.status == STATUS_OK`
+  * `GetIdentityInformationResponse.isHosted == true`
+  * `GetIdentityInformationResponse.isOnline == true`
+  * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10","b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10")`
+
 
 
 
