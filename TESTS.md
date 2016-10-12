@@ -2319,7 +2319,7 @@ Then it sends *CheckInRequest*:
   * `CheckInRequest.challenge := $Challenge`
   * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
   
-and reads the response. 
+and reads the response and closes the connection. 
 
 ###### Step 4:
 
@@ -2428,6 +2428,7 @@ Node replies with *CheckInRequest*:
 
 ###### Prerequisites:
   * Node's database is empty.
+  * "images/HN04006.jpg" file exists and contains JPEG image with size less than 20 kb
 
 ###### Inputs:
   * Node's IP address
@@ -2503,7 +2504,7 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.setExtraData := true`
   * `UpdateProfileRequest.version` is unintialized
   * `UpdateProfileRequest.name := "Test Identity Renamed"`
-  * `UpdateProfileRequest.image` is initialized with data loaded from HN04006.jpg file. `$ImageData := UpdateProfileRequest.image`
+  * `UpdateProfileRequest.image` is initialized with data loaded from "images/HN04006.jpg" file. `$ImageData := UpdateProfileRequest.image`
   * `UpdateProfileRequest.location` is unintialized
   * `UpdateProfileRequest.extraData := "a=b"` 
 
@@ -2597,6 +2598,8 @@ Node replies with *GetIdentityInformationResponse*:
 
 ###### Prerequisites:
   * Node's database is empty.
+  * "images/HN04007-too-big.jpg" file exists and contains JPEG image with size greater than 20 kb
+  * "images/HN04007-not-image.jpg" file exists and contains a single byte 0x41
 
 ###### Inputs:
   * Node's IP address
@@ -2760,7 +2763,7 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.setExtraData := false`
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
-  * `UpdateProfileRequest.image` is initialized with image data loaded from HN04007-too-big.jpg file
+  * `UpdateProfileRequest.image` is initialized with image data loaded from "images/HN04007-too-big.jpg" file
   * `UpdateProfileRequest.location := 0x12345678`
   * `UpdateProfileRequest.extraData` is unintialized
 
@@ -2774,7 +2777,7 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.setExtraData := false`
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
-  * `UpdateProfileRequest.image` is initialized with image data loaded from HN04007-not-image.jpg file
+  * `UpdateProfileRequest.image` is initialized with image data loaded from "images/HN04007-not-image.jpg" file
   * `UpdateProfileRequest.location := 0x12345678`
   * `UpdateProfileRequest.extraData` is unintialized
 
@@ -3205,6 +3208,7 @@ Node replies with *Response*:
 
 ###### Inputs:
   * Node's IP address
+  * Node's clNonCustomer port
   * Node's clCustomer port
 
 ##### Description 
@@ -3317,6 +3321,7 @@ The first connection should be disconnected and it should not be possible to sen
 
 ###### Inputs:
   * Node's IP address
+  * Node's clNonCustomer port
   * Node's clCustomer port
 
 ##### Description 
@@ -3382,7 +3387,7 @@ Node replies with *Response*:
 
 
 
-#### HN04013 - Application Service Add
+#### HN04013 - Application Service Add, Remove, Query
 
 ##### Prerequisites/Inputs
 ###### Prerequisites:
@@ -3390,6 +3395,7 @@ Node replies with *Response*:
 
 ###### Inputs:
   * Node's IP address
+  * Node's clNonCustomer port
   * Node's clCustomer port
 
 ##### Description 
