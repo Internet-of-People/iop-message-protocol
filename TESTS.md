@@ -3191,7 +3191,7 @@ Node replies with *Response*:
 
   * `Message.id == 3`
   * `Response.status == ERROR_INVALID_VALUE`
-  * `Response.details == newHomeNodeNetworkId`
+  * `Response.details == "newHomeNodeNetworkId"`
 
 
 
@@ -3264,6 +3264,7 @@ Using the first connection the test attempts to send *PingRequest*:
   * `SingleRequest.version := [1,0,0]`
   * `PingRequest.payload = "test"`
 
+and reads the response. 
 
 
 
@@ -3338,9 +3339,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey := $PublicKey`
 
-and reads the response from the node in form of *StartConversationResponse*:
-
-  * `$Challenge := StartConversationResponse.challenge`
+and reads the response.
 
 Then it sends *UpdateProfileRequest*:
 
@@ -3423,14 +3422,28 @@ Then it sends *CheckInRequest*:
   * `CheckInRequest.challenge := $Challenge`
   * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
   
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
+and reads the response. Then it sends *UpdateProfileRequest*:
 
   * `Message.id := 3`
+  * `UpdateProfileRequest.setVersion := true`
+  * `UpdateProfileRequest.setName := true`
+  * `UpdateProfileRequest.setImage := false`
+  * `UpdateProfileRequest.setLocation := true`
+  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.version := [1,0,0]`
+  * `UpdateProfileRequest.name := "Test Identity"`
+  * `UpdateProfileRequest.image` is unintialized
+  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.extraData` is unintialized
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 4`
   * `ApplicationServiceAddRequest.serviceNames := ["a","b","c","d","a"]`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
-  * `Message.id := 4`
+  * `Message.id := 5`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
@@ -3439,12 +3452,12 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
 and reads the response. Then it sends *ApplicationServiceAddRequest*:
 
-  * `Message.id := 5`
+  * `Message.id := 6`
   * `ApplicationServiceAddRequest.serviceNames := ["c","d","a","e"]`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
-  * `Message.id := 6`
+  * `Message.id := 7`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
@@ -3452,13 +3465,13 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
   * `GetIdentityInformationRequest.includeApplicationServices := true`
 
 and reads the response. Then it sends *ApplicationServiceRemoveRequest*:
-
-  * `Message.id := 7`
-  * `ApplicationServiceRemoveRequest.serviceName := "a"`
-
-and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 8`
+  * `ApplicationServiceRemoveRequest.serviceName := "a"`
+
+and reads the response. Then it sends *GetIdentityInformationRequest*:
+
+  * `Message.id := 9`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
@@ -3467,12 +3480,12 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
 and reads the response. Then it sends *ApplicationServiceRemoveRequest*:
 
-  * `Message.id := 9`
+  * `Message.id := 10`
   * `ApplicationServiceRemoveRequest.serviceName := "a"`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
-  * `Message.id := 10`
+  * `Message.id := 11`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
@@ -3481,31 +3494,31 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
 and reads the response. Then it sends *ApplicationServiceAddRequest*:
 
-  * `Message.id := 11`
+  * `Message.id := 12`
   * `ApplicationServiceAddRequest.serviceNames := ["d","1234567890-1234567890-1234567890-1234567890","a","e"]`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
-  * `Message.id := 12`
+  * `Message.id := 13`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
-
-and reads the response. Then it sends *ApplicationServiceAddRequest*:
-
-  * `Message.id := 13`
-  * `ApplicationServiceAddRequest.serviceNames := ["a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10"]`
 
 and reads the response. Then it sends *ApplicationServiceAddRequest*:
 
   * `Message.id := 14`
-  * `ApplicationServiceAddRequest.serviceNames := ["b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10"]`
+  * `ApplicationServiceAddRequest.serviceNames := ["a1","a2","a3","a4","a5","a6","a7","a8","a9","a10"]`
+
+and reads the response. Then it sends *ApplicationServiceAddRequest*:
+
+  * `Message.id := 15`
+  * `ApplicationServiceAddRequest.serviceNames := ["b1","b2","b3","b4","b5","b6","b7","b8","b9","b10"]`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
-  * `Message.id := 15`
+  * `Message.id := 16`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
@@ -3514,12 +3527,12 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
 and reads the response. Then it sends *ApplicationServiceAddRequest*:
 
-  * `Message.id := 16`
-  * `ApplicationServiceAddRequest.serviceNames := ["c1","c2","c3","c4,"c5","c6","c7","c8","c9","c10","d1","d2","d3","d4,"d5","d6","d7","d8","d9","d10","e1","e2","e3","e4,"e5","e6","e7","e8","e9","e10"]`
+  * `Message.id := 17`
+  * `ApplicationServiceAddRequest.serviceNames := ["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","d1","d2","d3","d4","d5","d6","d7","d8","d9","d10","e1","e2","e3","e4","e5","e6","e7","e8","e9","e10"]`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
-  * `Message.id := 17`
+  * `Message.id := 18`
   * `SingleRequest.version := [1,0,0]`
   * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
@@ -3548,14 +3561,19 @@ Node replies with *CheckInResponse*:
   * `Message.id == 2`
   * `Response.status == STATUS_OK`
 
-Node replies with *ApplicationServiceAddResponse*:
+Node replies with *UpdateProfileResponse*:
 
   * `Message.id == 3`
   * `Response.status == STATUS_OK`
 
-Node replies with *GetIdentityInformationResponse*:
+Node replies with *ApplicationServiceAddResponse*:
 
   * `Message.id == 4`
+  * `Response.status == STATUS_OK`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 5`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
@@ -3564,12 +3582,12 @@ Node replies with *GetIdentityInformationResponse*:
 
 Node replies with *ApplicationServiceAddResponse*:
 
-  * `Message.id == 5`
+  * `Message.id == 6`
   * `Response.status == STATUS_OK`
 
 Node replies with *GetIdentityInformationResponse*:
 
-  * `Message.id == 6`
+  * `Message.id == 7`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
@@ -3578,12 +3596,12 @@ Node replies with *GetIdentityInformationResponse*:
 
 Node replies with *ApplicationServiceRemoveResponse*:
 
-  * `Message.id == 7`
+  * `Message.id == 8`
   * `Response.status == STATUS_OK`
 
 Node replies with *GetIdentityInformationResponse*:
 
-  * `Message.id == 8`
+  * `Message.id == 9`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
@@ -3592,12 +3610,12 @@ Node replies with *GetIdentityInformationResponse*:
 
 Node replies with *Response*:
 
-  * `Message.id == 9`
+  * `Message.id == 10`
   * `Response.status == ERROR_NOT_FOUND`
 
 Node replies with *GetIdentityInformationResponse*:
 
-  * `Message.id == 10`
+  * `Message.id == 11`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
@@ -3606,51 +3624,51 @@ Node replies with *GetIdentityInformationResponse*:
 
 Node replies with *Response*:
 
-  * `Message.id == 11`
+  * `Message.id == 12`
   * `Response.status == ERROR_INVALID_VALUE`
   * `Response.details == "serviceNames[1]"`
 
 Node replies with *GetIdentityInformationResponse*:
 
-  * `Message.id == 12`
+  * `Message.id == 13`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e")`
-
-Node replies with *ApplicationServiceAddResponse*:
-
-  * `Message.id == 13`
-  * `Response.status == STATUS_OK`
 
 Node replies with *ApplicationServiceAddResponse*:
 
   * `Message.id == 14`
   * `Response.status == STATUS_OK`
 
-Node replies with *GetIdentityInformationResponse*:
+Node replies with *ApplicationServiceAddResponse*:
 
   * `Message.id == 15`
+  * `Response.status == STATUS_OK`
+
+Node replies with *GetIdentityInformationResponse*:
+
+  * `Message.id == 16`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10","b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10")`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4","a5","a6","a7","a8","a9","a10","b1","b2","b3","b4","b5","b6","b7","b8","b9","b10")`
 
 Node replies with *Response*:
 
-  * `Message.id == 16`
+  * `Message.id == 17`
   * `Response.status == ERROR_QUOTA_EXCEEDED`
 
 Node replies with *GetIdentityInformationResponse*:
 
-  * `Message.id == 17`
+  * `Message.id == 18`
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == true`
   * `GetIdentityInformationResponse.isOnline == true`
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
-  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4,"a5","a6","a7","a8","a9","a10","b1","b2","b3","b4,"b5","b6","b7","b8","b9","b10")`
+  * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4","a5","a6","a7","a8","a9","a10","b1","b2","b3","b4","b5","b6","b7","b8","b9","b10")`
 
 
 
