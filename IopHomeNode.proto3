@@ -619,6 +619,10 @@ message HomeNodePlanContract {
   bytes planId = 1;                                // Identifier of the home node hosting plan.
   bytes identityPublicKey = 2;                     // Public key of the client's identity.
   sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract.
+  string identityType = 4;                         // Type of the client's identity. It has to match the 'HomeNodePlan.identityType' filter in the selected plan.
+                                                   // For example, if 'HomeNodePlan.identityType' is "Taxi *" then 'identityType' can be "Taxi Driver",
+                                                   // but not "Bus Driver". Also 'identityType' can not contain "*" wildcard, so "Taxi *" is not a valid value
+                                                   // for 'identityType' here even if 'HomeNodePlan.identityType' is "Taxi *".
 }
 
 
@@ -820,7 +824,7 @@ message ApplicationServiceRemoveResponse {
 // knows which node is B's home node. Finally, we assume that B has enabled AS1 in its session 
 // using ApplicationServiceAddRequest.
 //
-// Then A can call B over AS1:
+// Then A can call B over AS1 (an application service):
 //
 // 1) A performs Port Discovery Process to find node's clNonCustomer and clAppService ports.
 // 2) A connects to clNonCustomer port and obtains information about B. A is interested 
@@ -856,12 +860,12 @@ message ApplicationServiceRemoveResponse {
 //      |                                                   |                                                   |
 //      |  CallIdentityApplicationServiceRequest            |                                                   |
 //      *-------------------------------------------------> *                                                   |
-//      |                                                   |                                                   |
+//      |  <AS1>                                            |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |  IncomingCallNotificationRequest                  |
 //      |                                                   *-------------------------------------------------> *
-//      |                                                   |  <callee's token>                                 |
+//      |                                                   |  <callee's token, AS1>                            |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
