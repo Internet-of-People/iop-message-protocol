@@ -245,7 +245,7 @@ message ConversationRequest {
 message ConversationResponse {
   bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body.
 
-  oneof RequestType {                              // There are many different requests that can be sent in the conversation.
+  oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
     // Response body.
     StartConversationResponse start = 2;
     HomeNodeRequestResponse homeNodeRequest = 3;
