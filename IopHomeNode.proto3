@@ -606,6 +606,7 @@ message HomeNodeRequestRequest {
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "contract.startTime" - 'HomeNodeRequestRequest.contract.startTime' is more than 1 hour in the past. 
 //     * Response.details == "contract.identityPublicKey" - 'HomeNodeRequestRequest.contract.identityPublicKey' does not match identity's public key.
+//     * Response.details == "contract.identityType" - 'HomeNodeRequestRequest.contract.identityType' does not match the hosting plan.
 //
 message HomeNodeRequestResponse {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node and the node accepted it.
