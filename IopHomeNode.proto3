@@ -245,7 +245,7 @@ message ConversationRequest {
 message ConversationResponse {
   bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body.
 
-  oneof RequestType {                              // There are many different requests that can be sent in the conversation.
+  oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
     // Response body.
     StartConversationResponse start = 2;
     HomeNodeRequestResponse homeNodeRequest = 3;
@@ -524,15 +524,16 @@ message ListHomeNodePlansResponse {
 
 // Description of a home node hosting plan.
 message HomeNodePlan {
-  bytes planId = 1;                                // GUID of the plan. If a node wants to change the plan, it has to change the GUID as well,
-                                                   // thus effectively creating a new plan.
-  string identityType = 2;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
+  bytes planId = 1;                                // Identifier of the plan is an SHA1 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
+                                                   // with planId initialized to a byte array of 20 zero bytes.
+  bytes nodeNetworkId = 2;                         // Identifier of the node that offers the plan.
+  string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
                                                    // at the end of the type to support multiple types to be served with a single plan. 
                                                    // For example, the value "*" would mean that any identity type is supported,
                                                    // and the value "Taxi *" would mean that any identity type that starts with "Taxi *"
                                                    // would match this plan.
-  uint64 fee = 3;                                  // TokenAmountType. Price of the plan per billing period.
-  uint32 billingPeriodSeconds = 4;                 // Length of the billing period in seconds.
+  uint64 fee = 4;                                  // TokenAmountType. Price of the plan per billing period.
+  uint32 billingPeriodSeconds = 5;                 // Length of the billing period in seconds.
   repeated NameStringValuePair planParameters = 9; // List of additional service parameters that define the plan.
 }
 
@@ -599,13 +600,13 @@ message HomeNodeRequestRequest {
 //
 // Specific Error Responses:
 //   * ERROR_QUOTA_EXCEEDED - A node uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
-//   * ERROR_NOT_FOUND - 'HomeNodePlanContract.contract.plan.planId' does not correspond to a node's plan, or the plan values are different from what the node offers.
+//   * ERROR_NOT_FOUND - 'HomeNodePlanContract.contract.planId' does not correspond to a node's plan, or the plan values are different from what the node offers.
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
 //   * ERROR_ALREADY_EXISTS - The identity is hosted by the node already.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "contract.startTime" - 'HomeNodeRequestRequest.contract.startTime' is more than 1 hour in the past. 
-//     * Response.details == "contract.nodePublicKey" - 'HomeNodeRequestRequest.contract.nodePublicKey' does not match node's public key. 
 //     * Response.details == "contract.identityPublicKey" - 'HomeNodeRequestRequest.contract.identityPublicKey' does not match identity's public key.
+//     * Response.details == "contract.identityType" - 'HomeNodeRequestRequest.contract.identityType' does not match the hosting plan.
 //
 message HomeNodeRequestResponse {
   HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node and the node accepted it.
@@ -616,10 +617,13 @@ message HomeNodeRequestResponse {
 
 // A description of the contract between a client and a home node.
 message HomeNodePlanContract {
-  HomeNodePlan plan = 1;                           // Description of the home node hosting plan.
-  bytes nodePublicKey = 2;                         // Public key of the node.
-  bytes identityPublicKey = 3;                     // Public key of the identity.
-  sint64 startTime = 4;                            // TimestampType. Specifies the start time of the contract.
+  bytes planId = 1;                                // Identifier of the home node hosting plan.
+  bytes identityPublicKey = 2;                     // Public key of the client's identity.
+  sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract.
+  string identityType = 4;                         // Type of the client's identity. It has to match the 'HomeNodePlan.identityType' filter in the selected plan.
+                                                   // For example, if 'HomeNodePlan.identityType' is "Taxi *" then 'identityType' can be "Taxi Driver",
+                                                   // but not "Bus Driver". Also 'identityType' can not contain "*" wildcard, so "Taxi *" is not a valid value
+                                                   // for 'identityType' here even if 'HomeNodePlan.identityType' is "Taxi *".
 }
 
 
@@ -777,7 +781,7 @@ message ApplicationServiceAddRequest {
 //
 //   * ERROR_QUOTA_EXCEEDED - The given set of application services can not be added because the client would have more than the maximum number of enabled services.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is the zero-based index.
+//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is a zero-based index.
 //
 message ApplicationServiceAddResponse {
 }
@@ -821,7 +825,7 @@ message ApplicationServiceRemoveResponse {
 // knows which node is B's home node. Finally, we assume that B has enabled AS1 in its session 
 // using ApplicationServiceAddRequest.
 //
-// Then A can call B over AS1:
+// Then A can call B over AS1 (an application service):
 //
 // 1) A performs Port Discovery Process to find node's clNonCustomer and clAppService ports.
 // 2) A connects to clNonCustomer port and obtains information about B. A is interested 
@@ -857,12 +861,12 @@ message ApplicationServiceRemoveResponse {
 //      |                                                   |                                                   |
 //      |  CallIdentityApplicationServiceRequest            |                                                   |
 //      *-------------------------------------------------> *                                                   |
-//      |                                                   |                                                   |
+//      |  <AS1>                                            |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |  IncomingCallNotificationRequest                  |
 //      |                                                   *-------------------------------------------------> *
-//      |                                                   |  <callee's token>                                 |
+//      |                                                   |  <callee's token, AS1>                            |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
@@ -1003,12 +1007,13 @@ message GetIdentityInformationResponse {
   // Following fields are valid only if 'isHosted' is true.
   bool isOnline = 4;                               // True if the requested identity is currently online.
   bytes identityPublicKey = 5;                     // The requested identity's public key.
-  string name = 6;                                 // The requested identity's name.
-  string extraData = 7;                            // The requested identity's extra data.
-  bytes profileImage = 8;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 9;                        // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  string type = 6;                                 // The requested identity's type.
+  string name = 7;                                 // The requested identity's name.
+  string extraData = 8;                            // The requested identity's extra data.
+  bytes profileImage = 9;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 10;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 10;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 11;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
@@ -1036,7 +1041,7 @@ message CallIdentityApplicationServiceRequest {
 // A response to CallIdentityApplicationServiceRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_AVAILABLE - The callee is not online.
+//   * ERROR_NOT_AVAILABLE - The callee is not online, or it failed to reply to the notification within the required time frame.
 //   * ERROR_REJECTED - The callee rejected the call.
 //   * ERROR_UNINITIALIZED - The callee's profile has not been initialized yet.
 //   * ERROR_INVALID_VALUE
@@ -1051,6 +1056,8 @@ message CallIdentityApplicationServiceResponse {
 // 
 // This request is sent by node to its customer client (the callee) when another client (the caller) wants 
 // to establish a call over the customer client's application service.
+//
+// The callee is required to send its response to this request within 10 seconds, otherwise the call channel will not be established.
 //
 // Roles: clCustomer
 //
@@ -1080,9 +1087,15 @@ message IncomingCallNotificationResponse {
 //
 // After the client connects to clAppService port, it sends an initialization message using this request 
 // to inform the node about its identity. This initialization message is not delivered to the other party
-// and the node responses to this initialization message only after the other party is also connected.
+// and the node responds to this initialization message only after the other party is also connected.
 // In the initialization message, the 'message' field is ignored. If the other party fails to join the channel 
 // within 30 seconds, the node closes the existing connection to the connected client.
+//
+// Until the client receives a reply from the node to its initialization message, it is not allowed to send 
+// other ApplicationServiceSendMessageRequest as it would be a protocol violation error.
+//
+// If neither of clients connects to clAppService port or sends an inititial message within 30 seconds 
+// after the call was initiated, the node destroys the channel.
 // 
 //
 // Roles: clAppService
@@ -1095,9 +1108,15 @@ message ApplicationServiceSendMessageRequest {
 
 //
 // A response to ApplicationServiceSendMessageRequest. This is sent by the node to the client to confirm that it sent 
-// the message to the other client.
+// the message to the other client and the other client confirmed its arrival.
 // 
 // If the connection to one of the clients is terminated, the node closes the connection to the other client.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'ApplicationServiceSendMessageRequest.token' is not a valid token. This can have many causes.
+//                       The token itself can have invalid format, or no such token was ever issued by the node. 
+//                       However, it can also be the case that the token was valid in the past but the call channel 
+//                       was closed by the node for any reason and thus the token is no longer valid. 
 //
 message ApplicationServiceSendMessageResponse {
 }
