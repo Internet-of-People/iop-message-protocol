@@ -1087,9 +1087,15 @@ message IncomingCallNotificationResponse {
 //
 // After the client connects to clAppService port, it sends an initialization message using this request 
 // to inform the node about its identity. This initialization message is not delivered to the other party
-// and the node responses to this initialization message only after the other party is also connected.
+// and the node responds to this initialization message only after the other party is also connected.
 // In the initialization message, the 'message' field is ignored. If the other party fails to join the channel 
 // within 30 seconds, the node closes the existing connection to the connected client.
+//
+// Until the client receives a reply from the node to its initialization message, it is not allowed to send 
+// other ApplicationServiceSendMessageRequest as it would be a protocol violation error.
+//
+// If neither of clients connects to clAppService port or sends an inititial message within 30 seconds 
+// after the call was initiated, the node destroys the channel.
 // 
 //
 // Roles: clAppService
@@ -1102,9 +1108,15 @@ message ApplicationServiceSendMessageRequest {
 
 //
 // A response to ApplicationServiceSendMessageRequest. This is sent by the node to the client to confirm that it sent 
-// the message to the other client.
+// the message to the other client and the other client confirmed its arrival.
 // 
 // If the connection to one of the clients is terminated, the node closes the connection to the other client.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'ApplicationServiceSendMessageRequest.token' is not a valid token. This can have many causes.
+//                       The token itself can have invalid format, or no such token was ever issued by the node. 
+//                       However, it can also be the case that the token was valid in the past but the call channel 
+//                       was closed by the node for any reason and thus the token is no longer valid. 
 //
 message ApplicationServiceSendMessageResponse {
 }
