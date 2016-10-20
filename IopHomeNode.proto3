@@ -1097,6 +1097,11 @@ message IncomingCallNotificationResponse {
 // If neither of clients connects to clAppService port or sends an inititial message within 30 seconds 
 // after the call was initiated, the node destroys the channel.
 // 
+// Note that until the clients receive their initialization messages on clAppService port, they has to keep their 
+// connections to clNonCustomer/clCustomer open, otherwise the call will not be established. Only after the client 
+// receives a reply to initialization message, it can close its clNonCustomer/clCustomer connection without terminating 
+// the application service bridge.
+//
 //
 // Roles: clAppService
 //
