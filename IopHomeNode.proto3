@@ -1083,7 +1083,7 @@ message IncomingCallNotificationResponse {
 
 // 
 // This request is sent by a client to the node in order to deliver a message to the other client over the opened 
-// application service call session.
+// application service call channel.
 //
 // After the client connects to clAppService port, it sends an initialization message using this request 
 // to inform the node about its identity. This initialization message is not delivered to the other party
@@ -1092,15 +1092,17 @@ message IncomingCallNotificationResponse {
 // within 30 seconds, the node closes the existing connection to the connected client.
 //
 // Until the client receives a reply from the node to its initialization message, it is not allowed to send 
-// other ApplicationServiceSendMessageRequest as it would be a protocol violation error.
+// other ApplicationServiceSendMessageRequest. This would be an error and the node would destroy the channel.
 //
 // If neither of clients connects to clAppService port or sends an inititial message within 30 seconds 
 // after the call was initiated, the node destroys the channel.
 // 
-// Note that until the clients receive their initialization messages on clAppService port, they has to keep their 
-// connections to clNonCustomer/clCustomer open, otherwise the call will not be established. Only after the client 
-// receives a reply to initialization message, it can close its clNonCustomer/clCustomer connection without terminating 
-// the application service bridge.
+// Note that the clients are allowed to disconnect from clNonCustomer/clCustomer port once the caller receives 
+// CallIdentityApplicationServiceResponse and the callee sends IncomingCallNotificationResponse.
+//
+// Each client is only allowed to have 20 ApplicationServiceSendMessageRequest messages pending, 
+// which means that there was no ApplicationServiceSendMessageResponse sent to the client. If a client attempts 
+// to send another message while having 20 pending messages, the node destroys the call channel.
 //
 //
 // Roles: clAppService
