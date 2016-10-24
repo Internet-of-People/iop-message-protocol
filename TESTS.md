@@ -7657,7 +7657,7 @@ On clAppService port, the first identity reads *ApplicationServiceReceiveMessage
 
 Then it sends *ApplicationServiceReceiveMessageNotificationResponse*. 
 
-And then after 3 second wait, it sends  *ApplicationServiceSendMessageRequest*:
+And then after 3 second wait, it sends *ApplicationServiceSendMessageRequest*:
 
   * `Message.id := 2`
   * `SingleRequest.version := [1,0,0]`
@@ -7724,6 +7724,289 @@ Node replies with *ApplicationServiceSendMessageResponse*:
 
 
 ###### Step 5:
+
+Node replies with *ApplicationServiceSendMessageResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 6:
+
+Nothing to check.
+
+
+###### Step 7:
+
+Node sends *ApplicationServiceReceiveMessageNotificationRequest*:
+
+  * `ApplicationServiceReceiveMessageNotificationRequest.message == "Message #1 to callee."`
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_NOT_FOUND`
+
+
+###### Step 8:
+
+Either the node replies with *ApplicationServiceSendMessageResponse*:
+
+  * `Message.id == 1`
+  * `SingleResponse.version == [1,0,0]`
+  * `Response.status == ERROR_NOT_FOUND`
+
+or the third client will be disconnected and will fail to read the response.
+
+
+###### Step 9:
+
+Node replies with *ApplicationServiceSendMessageResponse*:
+
+  * `Message.id == 2`
+  * `SingleResponse.version == [1,0,0]`
+  * `Response.status == STATUS_OK`
+
+
+
+
+
+
+
+
+
+#### HN05025 - Application Service Callee Uses Same Connection Twice 2
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+
+##### Description 
+
+The test simulates a callee accepting calls from two different callers but only using 
+one TCP connection to clAppService port, which is forbidden. The difference over HN05024 
+is that in this test, both calls are initialized properly and the callee mixes 
+the connections after the initialization, not during the initialization.
+
+
+###### Step 1:
+
+The test creates three identities:
+
+  * `$PubKeyCallee` set to public key of the first identity
+  * `$PubKeyCaller1` set to public key of the second identity
+  * `$PubKeyCaller2` set to public key of the third identity
+  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller1 := SHA1($PubKeyCaller1)` is the network ID of the second identity
+  * `$IdentityIdCaller2 := SHA1($PubKeyCaller2)` is the network ID of the third identity
+
+Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
+and closes the connection. Then it uses the first identity and establishes a home node agreement over 
+clNonCustomer port and then it closes the connection. Then it checks-in the first identity over clCustomer 
+port. The test then initializes its profile using *UpdateProfileRequest*. Finally, it checks-in 
+application service called "Test Service" using *ApplicationServiceAddRequest* and leaves the connection 
+open. 
+
+
+###### Step 2:
+
+Using its second identity, the test establishes a new TLS connection to the node's clNonCustomer port 
+and verifies its identity using *VerifyIdentityRequest* and sends *CallIdentityApplicationServiceRequest*:
+
+  * `Message.id := 3`
+  * `CallIdentityApplicationServiceRequest.identityNetworkId := $IdentityIdCallee`
+  * `CallIdentityApplicationServiceRequest.serviceName := "Test Service"`
+
+Using its third identity, the test establishes a new TLS connection to the node's clNonCustomer port 
+and verifies its identity using *VerifyIdentityRequest* and sends *CallIdentityApplicationServiceRequest*:
+
+  * `Message.id := 3`
+  * `CallIdentityApplicationServiceRequest.identityNetworkId := $IdentityIdCallee`
+  * `CallIdentityApplicationServiceRequest.serviceName := "Test Service"`
+
+
+###### Step 3:
+
+The first identity reads the incoming request *IncomingCallNotificationRequest*:
+
+  * `$calleeToken1 := IncomingCallNotificationRequest.calleeToken`
+
+to which it replies with *IncomingCallNotificationResponse*.
+
+Then it reads the second incoming request *IncomingCallNotificationRequest*:
+
+  * `$calleeToken2 := IncomingCallNotificationRequest.calleeToken`
+
+to which it replies with *IncomingCallNotificationResponse*.
+
+
+Then it establishes a new TLS connection (FIRST connection) to the clAppService port and sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $calleeToken1`
+  * `ApplicationServiceSendMessageRequest.message` is uninitialized
+
+
+Then it establishes a new TLS connection (SECOND connection) to the clAppService port and sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $calleeToken2`
+  * `ApplicationServiceSendMessageRequest.message` is uninitialized
+
+
+###### Step 4:
+
+The second identity reads the response in form of *CallIdentityApplicationServiceResponse*:
+
+  * `$callerToken1 := CallIdentityApplicationServiceResponse.callerToken`
+
+Then it establishes a new TLS connection to the clAppService port and sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $callerToken1`
+  * `ApplicationServiceSendMessageRequest.message` is uninitialized
+
+and reads the response. 
+
+
+
+The third identity reads the response in form of *CallIdentityApplicationServiceResponse*:
+
+  * `$callerToken2 := CallIdentityApplicationServiceResponse.callerToken`
+
+Then it establishes a new TLS connection to the clAppService port and sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $callerToken2`
+  * `ApplicationServiceSendMessageRequest.message` is uninitialized
+
+and reads the response. 
+
+
+
+###### Step 5:
+
+On clAppService port, the first identity reads *ApplicationServiceSendMessageResponse*.
+Then it reads *ApplicationServiceSendMessageResponse* again.
+
+
+###### Step 6:
+
+The second identity sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 2`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $callerToken1`
+  * `ApplicationServiceSendMessageRequest.message := "Message #1 to callee from caller1."`
+
+
+
+###### Step 7:
+
+From the FIRST connection, the first identity reads *ApplicationServiceReceiveMessageNotificationRequest* (#1 to callee).
+
+Then it sends *ApplicationServiceReceiveMessageNotificationResponse*. 
+
+And then after 3 second wait, it sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 2`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $calleeToken2`
+  * `ApplicationServiceSendMessageRequest.message := "Invalid Message"`
+
+and reads the response.
+
+
+###### Step 8:
+
+After 3 second wait, the second identity sends *ApplicationServiceSendMessageRequest*:
+
+  * `Message.id := 2`
+  * `SingleRequest.version := [1,0,0]`
+  * `ApplicationServiceSendMessageRequest.token := $callerToken1`
+  * `ApplicationServiceSendMessageRequest.message := "Message #1 to callee from caller2."`
+
+and reads the response.
+
+
+###### Step 9:
+
+The second identity reads *ApplicationServiceSendMessageResponse* (#1 to callee received).
+
+
+
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+
+The test successfully obtains list of ports on which the node provides its services. 
+Then the test successfully establishes a home node agreement for its first identity.
+Then the test successfully checks-in this identity and initializes its profile. 
+Finally, the test successfully checks-in the application service.
+
+
+###### Step 2:
+
+The test successfully verifies its second identity.
+The test successfully verifies its third identity.
+
+
+###### Step 3:
+
+Node sends *IncomingCallNotificationRequest*:
+
+  * `IncomingCallNotificationRequest.callerPublicKey == $PubKeyCaller1`
+  * `IncomingCallNotificationRequest.serviceName == "Test Service"`
+
+Node sends *IncomingCallNotificationRequest*:
+
+  * `IncomingCallNotificationRequest.callerPublicKey == $PubKeyCaller2`
+  * `IncomingCallNotificationRequest.serviceName == "Test Service"`
+
+
+###### Step 4:
+
+Node replies with *CallIdentityApplicationServiceResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+
+Node replies with *ApplicationServiceSendMessageResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+Node replies with *CallIdentityApplicationServiceResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+
+Node replies with *ApplicationServiceSendMessageResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 5:
+
+Node replies with *ApplicationServiceSendMessageResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
 
 Node replies with *ApplicationServiceSendMessageResponse*:
 
