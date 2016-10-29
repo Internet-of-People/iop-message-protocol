@@ -223,7 +223,7 @@ message SingleResponse {
 // Conversation requests live in a session with a context that is important for the interpretation of the requests.
 // Unlike single requests, the order of messages is very important as each message may change the session context.
 message ConversationRequest {
-  bytes signature = 1;                             // Optional (request specific) signature that signs the Protobuf binary form of the included request body.
+  bytes signature = 1;                             // Optional (request specific) signature that signs the Protobuf binary form of the included request body or its part.
 
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
     // Request body.
@@ -243,7 +243,7 @@ message ConversationRequest {
 
 // Conversation response is a reaction to a conversation request.
 message ConversationResponse {
-  bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body.
+  bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body or its part.
 
   oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
     // Response body.
@@ -403,13 +403,13 @@ message ServerRole {
 //      |                                                                     |
 //      |  StartConversationRequest                                           |
 //      *-------------------------------------------------------------------> *
-//      |                                                                     |
+//      |  <clientChallenge>                                                  |
 //      |                                                                     | status := ConversationStarted
 //      |                                                                     |
 //      |                                                                     |
 //      |                                          StartConversationResponse  |
 //      *<--------------------------------------------------------------------*
-//      |                                                        <challenge>  |
+//      |                                <challenge, signed clientChallenge>  |
 //      |                                                                     |
 //      |                                                                     |
 //      |  CheckInRequest                                                     |
@@ -433,12 +433,12 @@ message ServerRole {
 //      |                                                                     |
 //      |  StartConversationRequest                                           |
 //      *-------------------------------------------------------------------> *
-//      |                                                                     |
+//      |  <clientChallenge>                                                  |
 //      |                                                                     | status := ConversationStarted
 //      |                                                                     |
 //      |                                          StartConversationResponse  |
 //      * <-------------------------------------------------------------------*
-//      |                                                        <challenge>  |
+//      |                                <challenge, signed clientChallenge>  |
 //      |                                                                     |
 //      |                                                                     |
 //      |  HomeNodeRequestRequest                                             |
@@ -480,13 +480,13 @@ message ServerRole {
 //      |                                                                     |
 //      |  StartConversationRequest                                           |
 //      *-------------------------------------------------------------------> *
-//      |                                                                     |
+//      |  <clientChallenge>                                                  |
 //      |                                                                     | status := ConversationStarted
 //      |                                                                     |
 //      |                                                                     |
 //      |                                          StartConversationResponse  |
 //      * <-------------------------------------------------------------------*
-//      |                                                        <challenge>  |
+//      |                                <challenge, signed clientChallenge>  |
 //      |                                                                     |
 //      |                                                                     |
 //      |  VerifyIdentityRequest                                              |
@@ -556,6 +556,8 @@ message NameStringValuePair {
 message StartConversationRequest {
   repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
   bytes publicKey = 2;                             // Public key of the requestor.
+
+  bytes clientChallenge = 3;                       // 32 byte challenge data (random bytes generated by the requestor) that is used for authentication purposes.
 }
 
 
@@ -563,18 +565,23 @@ message StartConversationRequest {
 // A response to StartConversationRequest in case the requestee found at least one protocol version that 
 // both peers are willing to use. 
 // 
+// The 'clientChallenge' field is signed with a signature in 'ConversationResponse.signature'.
+// 
 //
 // After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
 //
 // Specific Error Responses:
 //   * ERROR_UNSUPPORTED - If the requestee does not support any of the requestor's versions, it replies with this error code.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "clientChallenge" - 'StartConversationRequest.clientChallenge' is not 32 byte long. 
 //
 message StartConversationResponse {
   bytes version = 1;                               // VersionType. The version that the requestee selected from the offered set.
   bytes publicKey = 2;                             // Public key of the requestee.
 
   bytes challenge = 3;                             // 32 byte challenge data (random bytes generated by the requestee) that is used for later authentication purposes.
-                                                   // This field is required only for clCustomer server role.
+  bytes clientChallenge = 4;                       // Copy of 'StartConversationRequest.clientChallenge' that is signed by the requestee. 
+                                                   // The requestor can then verify the signature in order to check the requestee's claimed identity.
 }
 
 
@@ -596,7 +603,7 @@ message HomeNodeRequestRequest {
 
 //
 // A response to HomeNodeRequestRequest in case the node wants to accept the request.
-// The contract is signed with a signature in ConversationResponse.signature.
+// The response body is signed with a signature in 'ConversationResponse.signature'.
 //
 // Specific Error Responses:
 //   * ERROR_QUOTA_EXCEEDED - A node uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
