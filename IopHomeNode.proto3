@@ -52,6 +52,43 @@
 //                      a numberical value of 100,000,000 within a TokenAmountType field represents 1 full 
 //                      IoP token.
 //
+//  * WildcardType - UTF-8 string with optional '*' wildcard character prefix or suffix, which represents any substring.
+//                   Matching is case sensitive. The format of this string is thus one of the following formats:
+//
+//                    * "data*" - starts with "data"
+//                    * "*data" - ends with "data"
+//                    * "*data*" - contains "data"
+//                    * "data" - is exactly "data"
+//
+//                   Any additional '*' characters are interpreted as parts of the value.
+//
+//  * RegexType - Case-sensitive UTF-8 regular expression string supporting following rules:
+//
+//                 * "\xnn" - Matches a single byte character by using hexadecimal representation (nn consists 
+//                            of exactly two digits).
+//                 * "\unnnn" - Matches a Unicode character by using hexadecimal representation (exactly four digits, 
+//                              as represented by nnnn).
+//                 * "\.", "\*", "\[", "\]", "\\", "\?", "\^", "\|", "\(", "\)", "\{", "\}" - Escapes special characters.
+//                 * "[characterGroup]" - Matches any single character in characterGroup.
+//                 * "[^characterGroup]" - Matches any single character that is not in characterGroup.
+//                 * "[first-last]" - Matches any single character in the range from first to last. 
+//                 * "." - Matches any single character.
+//                 * "\w" - Matches any word character.
+//                 * "\W" - Matches any non-word character.
+//                 * "\s" - Matches any white-space character.
+//                 * "\S" - Matches any non-white-space character.
+//                 * "\d" - Matches any decimal digit.
+//                 * "\D" - Matches any character other than a decimal digit.
+//                 * "^" - The match must start at the beginning of the string. 
+//                 * "$" - The match must occur at the end of the string.
+//                 * "*" - Matches the previous element zero or more times.
+//                 * "+" - Matches the previous element one or more times.
+//                 * "?" - Matches the previous element zero or one time.
+//                 * "{n}" - Matches the previous element exactly n times.
+//                 * "{n,}" - Matches the previous element at least n times.
+//                 * "{n,m}" - Matches the previous element at least n times, but no more than m times. 
+//                 * "|" - Matches any one element separated by the vertical bar '|' character.
+//                 * "(subexpression)" - Captures the matched subexpression.
 //
 //
 //
@@ -197,6 +234,7 @@ message SingleRequest {
     GetIdentityInformationRequest getIdentityInformation = 5;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
+    ProfileStatsRequest profileStats = 8;
   }
 }
 
@@ -215,6 +253,7 @@ message SingleResponse {
     GetIdentityInformationResponse getIdentityInformation = 5;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
+    ProfileStatsResponse profileStats = 8;
   }
 }
 
@@ -237,6 +276,8 @@ message ConversationRequest {
     ApplicationServiceRemoveRequest applicationServiceRemove = 9;
     CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
     IncomingCallNotificationRequest incomingCallNotification = 11;
+    ProfileSearchRequest profileSearch = 12;
+    ProfileSearchPageRequest profileSearchPage = 13;
   }
 }
 
@@ -257,6 +298,8 @@ message ConversationResponse {
     ApplicationServiceRemoveResponse applicationServiceRemove = 9;
     CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
     IncomingCallNotificationResponse incomingCallNotification = 11;
+    ProfileSearchResponse profileSearch = 12;
+    ProfileSearchPageResponse profileSearchPage = 13;
   }
 }
 
@@ -1016,11 +1059,12 @@ message GetIdentityInformationResponse {
   bytes identityPublicKey = 5;                     // The requested identity's public key.
   string type = 6;                                 // The requested identity's type.
   string name = 7;                                 // The requested identity's name.
-  string extraData = 8;                            // The requested identity's extra data.
-  bytes profileImage = 9;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 10;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  fixed32 location = 8;                            // The requested identity's encoded GPS location information.
+  string extraData = 9;                            // The requested identity's extra data.
+  bytes profileImage = 10;                         // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 11;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 11;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 12;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
@@ -1154,3 +1198,153 @@ message ApplicationServiceReceiveMessageNotificationRequest {
 message ApplicationServiceReceiveMessageNotificationResponse {
 }
 
+
+//
+// Obtains identity profiles statistics from a node.
+//
+// Roles: clNonCustomer, clCustomer
+//
+message ProfileStatsRequest {
+}
+
+
+//
+// A response to ProfileStatsRequest.
+// 
+message ProfileStatsResponse {
+  repeated ProfileStatsItem stats = 1;             // List of profile statistics grouped by identity type.
+}
+
+
+//
+// Statistical information on identities of a specific type.
+//
+message ProfileStatsItem {
+  string identityType = 1;                         // Type of identity. 
+  uint32 count = 2;                                // Number of profiles hosted on the node of the specific type of identity.
+}
+
+
+//
+// Asks a node for a list of all identities that match the search criteria. This search never returns 
+// profiles of old customer identities who cancelled their home node agreement, even if the node still 
+// holds some information about those identities.
+//
+// Each search request only produces a limited number of results, which is specified by 'pageSize' field.
+// The response to this message contains "the first page" of the results. The search results are saved 
+// to the conversation context, which enables the client to obtain other result pages using subsequent 
+// ProfileSearchPageRequest messages.
+//
+// The node will not save more than 10 result pages from a search request. The node will delete the cached search 
+// results after 5 minutes from receiving ProfileSearchRequest. The node will not save the results of the search 
+// if the total number of results is lower than 'pageSize', which means ProfileSearchResponse message will 
+// contain all the results.
+//
+// Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
+//
+// Roles: clNonCustomer, clCustomer
+//
+// Conversation status: ConversationStarted, Verified, Authenticated
+//
+message ProfileSearchRequest {
+  bool includeHostedOnly = 1;                      // If set to true, the node only returns profiles of its own clients. 
+                                                   // If set to false, profiles from the node's neighborhood can be included in the result.
+  bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
+  uint32 pageSize = 4;                             // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
+                                                   // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
+                                                   // this has to be an integer between 1 and 1000.
+
+  // Search filters.
+  string type = 5;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
+                                                   // of identity types that match the wildcard string. If empty, all identity types are allowed.
+                                                   // Max 64 bytes long.
+  string name = 6;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
+                                                   // with names that match the wildcard string. If empty, all profile names are allowed.
+                                                   // Max 64 bytes long.
+  fixed32 location = 7;                            // Encoded target GPS location or 0. If not 0, it is, in combination with 'radius' 
+                                                   // a specification of target location, where the identity has to be located (according to 
+                                                   // its profile information) in order to be included in the search results. If 0, 'radius' 
+                                                   // is ignored and all locations are allowed.
+  uint32 radius = 8;                               // If 'location' is not 0, this is target location radius in meters.
+  string extraData = 9;                            // RegexType or empty string. If not empty, specifies the regular expression that identity
+                                                   // profile's extra data information must match in order to be included in the results. 
+                                                   // If empty, no filtering based on extra data information is made.
+                                                   // Max 256 bytes long.
+}
+
+
+//
+// A response to ProfileSearchRequest.
+//
+// If 'pageSize' is lower than 'totalResultCount', the client is allowed to send ProfileSearchPageRequest messages to obtain more results.
+//
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "pageSize" - 'ProfileSearchRequest.pageSize' is not within the required range.
+//     * Response.details == "type" - 'ProfileSearchRequest.type' is too long.
+//     * Response.details == "name" - 'ProfileSearchRequest.name' is too long.
+//     * Response.details == "extraData" - 'ProfileSearchRequest.extraData' is too long or it is not a valid value of RegexType.
+//
+message ProfileSearchResponse {
+  uint32 totalResultCount = 1;                     // The total number of profiles that matched the search criteria. Only first 'pageSize' of them are in 'profiles' list.
+  uint32 pageSize = 2;                             // Size of the result page. This is equal to 'ProfileSearchRequest.pageSize'.
+  uint32 maxPageNumber = 3;                        // Maximal page number the client can ask for in subsequent ProfileSearchPageRequest messages.
+
+  // Search results.
+  repeated IdentityNetworkProfileInformation profiles = 4;  // List of results that contains no more than 'pageSize' items.
+}
+
+
+
+//
+// Information about a single profile record from a profile search query.
+//
+message IdentityNetworkProfileInformation {
+  bool isHosted = 1;                               // True if the requested identity is a customer of the node.
+  bytes neighborNodeNetworkId = 2;                 // If 'isHosted' is false, this field contains the network ID of the neighbor node that is a home node of the target profile.
+
+  bool isOnline = 3;                               // If 'isHosted' is true, this is true if the requested identity is currently online.
+
+  bytes identityPublicKey = 5;                     // The identity's public key.
+  string type = 6;                                 // The identity's type.
+  string name = 7;                                 // The identity's name.
+  fixed32 location = 8;                            // The identity's encoded GPS location information.
+  string extraData = 9;                            // The identity's extra data.
+
+  bytes thumbnailImage = 10;                       // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image.
+}
+
+
+
+//
+// Request to get another page from the search query.
+//
+// This request only makes sense only if the client previously sent ProfileSearchRequest to the node and the search result contained
+// more records than the node provided in the ProfileSearchResponse, and the search results have not expired yet.
+//
+//
+// Roles: clNonCustomer, clCustomer
+//
+// Conversation status: ConversationStarted, Verified, Authenticated
+//
+message ProfileSearchPageRequest {
+  uint32 pageNumber = 1;                           // Number of the result page to obtain. The first page number is 1, last page number is specified by 'ProfileSearchResponse.maxPageNumber'.
+}
+
+
+//
+// A response to ProfileSearchPageRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
+//                           in this session, or its results have expired already.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "pageNumber" - 'ProfileSearchRequest.pageNumber' is not within the available range.
+//
+message ProfileSearchPageResponse {
+  uint32 pageNumber = 1;                           // Result page number. Copy of 'ProfileSearchPageRequest.pageNumber' value.
+
+  // Search results.
+  repeated IdentityNetworkProfileInformation profiles = 2;  // List of results that contains no more than 'ProfileSearchRequest.pageSize' items.
+}
