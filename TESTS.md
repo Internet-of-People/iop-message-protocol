@@ -3165,6 +3165,7 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.name == "Test Identity"`
   * `GetIdentityInformationResponse.extraData == ""`
+  * `GetIdentityInformationResponse.location == 0x12345678`
 
 Node replies with *UpdateProfileResponse*:
 
@@ -3180,6 +3181,7 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.name == "Test Identity Renamed"`
   * `GetIdentityInformationResponse.extraData == "a=b"`
+  * `GetIdentityInformationResponse.location == 0x12345678`
   * `GetIdentityInformationResponse.profileImage == $ImageData`
   * `GetIdentityInformationResponse.thumbnailImage` is non empty
 
