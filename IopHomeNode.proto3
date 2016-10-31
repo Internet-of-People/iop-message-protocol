@@ -1366,6 +1366,9 @@ message ProfileSearchPageResponse {
 // then can be used to prove that the issuer issued the card for the recipient. The customer's public key has to be equal 
 // to the card's recipient public key.
 //
+// Each node is allowed to define its own limit of number of relations that a single identity can have.
+// However, this limit should not exceed the maximal limit of 2000 relations, which is given by the maximal protocol message size.
+//
 //
 // Roles: clCustomer
 //
