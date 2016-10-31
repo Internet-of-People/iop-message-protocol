@@ -235,6 +235,7 @@ message SingleRequest {
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
     ProfileStatsRequest profileStats = 8;
+    GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 9;
   }
 }
 
@@ -254,6 +255,7 @@ message SingleResponse {
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
     ProfileStatsResponse profileStats = 8;
+    GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 9;
   }
 }
 
@@ -278,6 +280,8 @@ message ConversationRequest {
     IncomingCallNotificationRequest incomingCallNotification = 11;
     ProfileSearchRequest profileSearch = 12;
     ProfileSearchPageRequest profileSearchPage = 13;
+    AddRelatedIdentityRequest addRelatedIdentity = 14;
+    RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
   }
 }
 
@@ -300,6 +304,8 @@ message ConversationResponse {
     IncomingCallNotificationResponse incomingCallNotification = 11;
     ProfileSearchResponse profileSearch = 12;
     ProfileSearchPageResponse profileSearchPage = 13;
+    AddRelatedIdentityResponse addRelatedIdentity = 14;
+    RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
   }
 }
 
@@ -1451,9 +1457,55 @@ message SignedRelationshipCard {
 message RelationshipCard {
   bytes cardId = 1;                                 // Identifier of a relationship card is an SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
                                                     // with cardId initialized to a byte array of 32 zero bytes.
-  string type = 2;                                  // Type of the relationship card. This is an application defined value.
+  string type = 2;                                  // Type of the relationship card. This is an application defined value. Max 64 bytes long.
   sint64 validFrom = 3;                             // TimestampType. Time from which the card is valid.
   sint64 validTo = 4;                               // TimestampType. Time after which the card is not valid.
   bytes issuerPublicKey = 5;                        // Public key of the issuer of the card.
   bytes recipientPublicKey = 6;                     // Public key of the recipient of the card.
 }
+
+
+
+
+// 
+// Obtains list of identity's relationships that match the given criteria.
+//
+// Roles: clNonCustomer, clCustomer
+//
+message GetIdentityRelationshipsInformationRequest {
+  bytes identityNetworkId = 1;                     // Identity's network identifier.
+  bool includeInvalid = 2;                         // If set to true, the response will include relationships which cards are no longer valid or not yet valid.
+  
+  string type = 3;                                 // WildcardType or empty string. If not empty, the node will only return relationships which card types 
+                                                   // match the wildcard string. If empty, all card types are allowed.
+                                                   // Max 64 bytes long.
+
+  bool specificIssuer = 4;                         // If set to true, the response will only include relationships which cards were issued by issuer with 'issuerPublicKey' public key.
+  bytes issuerPublicKey = 5;                       // If 'specificIssuer' is true, this is the public key of the card issuer whose relationships with the target identity are being queried.
+}
+
+
+
+//
+// A response to GetIdentityRelationshipsInformationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the node.
+//   * ERROR_UNINITIALIZED - The target identity's profile has not been initialized yet.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "type" - 'GetIdentityRelationshipsInformationRequest.type' is too long.
+//
+message GetIdentityRelationshipsInformationResponse {
+  repeated IdentityRelationships relationships = 1; // List of all matching identity relationships together with their relationship cards.
+}
+
+
+//
+// Description of a relationship between two identities together with signature proofs.
+//
+message IdentityRelationships {
+  CardApplicationInformation cardApplication = 1;  // Relationship card application.
+  bytes cardApplicationSignature = 2;              // Relationship card recipient's signature of 'cardApplication' structure.
+  SignedRelationshipCard card = 3;                 // Relationship card signed by its issuer.
+}
+
