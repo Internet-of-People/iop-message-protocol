@@ -567,8 +567,8 @@ message ListHomeNodePlansResponse {
 
 // Description of a home node hosting plan.
 message HomeNodePlan {
-  bytes planId = 1;                                // Identifier of the plan is an SHA1 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
-                                                   // with planId initialized to a byte array of 20 zero bytes.
+  bytes planId = 1;                                // Identifier of the plan is an SHA256 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
+                                                   // with planId initialized to a byte array of 32 zero bytes.
   bytes nodeNetworkId = 2;                         // Identifier of the node that offers the plan.
   string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
                                                    // at the end of the type to support multiple types to be served with a single plan. 
@@ -1349,4 +1349,111 @@ message ProfileSearchPageResponse {
 
   // Search results.
   repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains 'ProfileSearchPageRequest.recordCount' items.
+}
+
+
+//
+// A customer client announces a relation between its identity and another identity using a relationship card.
+//
+// The 'cardApplication' field is signed with a signature in 'ConversationRequest.signature'. This signature can be used
+// to prove that the card recipient wanted to use the card for the given purpose. The signature on the card of the card's issuer 
+// then can be used to prove that the issuer issued the card for the recipient. The customer's public key has to be equal 
+// to the card's recipient public key.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message AddRelatedIdentityRequest {
+  CardApplicationInformation cardApplication = 1;   // Description of the relationship, which must correspond to the given 'card' - i.e. 'cardApplication.cardId' 
+                                                    // has to match 'signedCard.card.cardId'.
+  SignedRelationshipCard signedCard = 2;            // Signed relationship card. 'signedCard.card.recipientPublicKey' has to be the public key of the customer
+                                                    // that sends AddRelatedIdentityRequest to the node.
+}
+
+
+
+//
+// A response to AddRelatedIdentityRequest.
+//
+//
+// Specific Error Responses:
+//   * ERROR_QUOTA_EXCEEDED - The caller has reached its limit for a number of related identities on its profile.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'AddRelatedIdentityRequest.cardApplication' in 'ConversationRequest.signature' is not valid.
+//   * ERROR_ALREADY_EXISTS - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationIdentifier' already exists.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "cardApplication.cardId" - 'AddRelatedIdentityRequest.cardApplication.cardId' does not match 'signedCard.card.cardId'.
+//     * Response.details == "cardApplication.applicationIdentifier" - 'AddRelatedIdentityRequest.cardApplication.applicationIdentifier' is not a valid application identifier.
+//     * Response.details == "signedCard.issuerSignature" - 'AddRelatedIdentityRequest.signedCard.issuerSignature' is not a valid signature of 'AddRelatedIdentityRequest.signedCard.card' structure
+//                                                          using private key of the issuer whose public key is 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey'.
+//     * Response.details == "signedCard.card.cardId" - 'AddRelatedIdentityRequest.signedCard.card.cardId' is not a valid SHA256 hash of 'AddRelatedIdentityRequest.signedCard.card' structure.
+//     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.recipientPublicKey' is not the public key of the caller.
+//
+message AddRelatedIdentityResponse {
+}
+
+
+
+//
+// A customer client removes the announcement of a relationship between its identity and another identity.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message RemoveRelatedIdentityRequest {
+  bytes applicationIdentifier = 1;                  // Identifier of the card application to remove. 
+}
+
+
+
+//
+// A response to RemoveRelatedIdentityRequest.
+//
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationIdentifier' was not found.
+//
+message RemoveRelatedIdentityResponse {
+}
+
+
+
+//
+// Description of a relationship card application. It consists of a card identifier, which is a hash of the card data
+// and the applicationIdentifier, which binds the use of the card with some other object, transaction, or action, which is specific 
+// for the given use of the card.
+//
+message CardApplicationInformation {
+  bytes cardId = 1;                                 // Identifier of a relationship card. See 'RelationshipCard.cardId'.
+  bytes applicationIdentifier = 2;                  // Unique identifier of the action that represents using the card. This is used to bind the application of the card 
+                                                    // with a specific transaction or action. If no transaction or action identifier exists, the recipient should 
+                                                    // generate a new GUID. If the given card is guaranteed to be used only once, this can be equal to 'cardId'.
+                                                    // Max 32 bytes long.
+}
+
+
+// 
+// Description of a relationship card signed by its issuer. Only the identifier of the card is signed, but since this is a SHA256 
+// hash of all the card's fields (except for the ID itself), the signature of the identifier effectively signs the whole card information.
+//
+message SignedRelationshipCard {
+  RelationshipCard card = 1;                        // Description of the relationship card.
+  bytes issuerSignature = 2;                        // Signature of 'card.cardId' using private key of the issuer of the card.
+}
+
+
+//
+// Description of a relationship card.
+//
+message RelationshipCard {
+  bytes cardId = 1;                                 // Identifier of a relationship card is an SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
+                                                    // with cardId initialized to a byte array of 32 zero bytes.
+  string type = 2;                                  // Type of the relationship card. This is an application defined value.
+  sint64 validFrom = 3;                             // TimestampType. Time from which the card is valid.
+  sint64 validTo = 4;                               // TimestampType. Time after which the card is not valid.
+  bytes issuerPublicKey = 5;                        // Public key of the issuer of the card.
+  bytes recipientPublicKey = 6;                     // Public key of the recipient of the card.
 }
