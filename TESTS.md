@@ -730,7 +730,7 @@ The test connects to the primary port of the node and sends *GetIdentityInformat
 
   * `Message.id := 1`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA256 of test's identity public key
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := false`
@@ -771,7 +771,7 @@ The test sends *CallIdentityApplicationServiceRequest* to the primary port, but 
 The test connects to the primary port of the node and sends *CallIdentityApplicationServiceRequest*:
 
   * `Message.id := 1`
-  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA1("test")`
+  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA256("test")`
   * `CallIdentityApplicationServiceRequest.serviceName := "Test Service"`
  
 and reads the response.
@@ -811,7 +811,7 @@ The test connects to the primary port of the node and sends *IncomingCallNotific
   * `Message.id := 1`
   * `IncomingCallNotificationRequest.callerPublicKey` is set to the test's identity public key
   * `IncomingCallNotificationRequest.serviceName := "Test Service"`
-  * `IncomingCallNotificationRequest.calleeToken := SHA1("test")`
+  * `IncomingCallNotificationRequest.calleeToken := SHA256("test")`
 
  
 and reads the response. Then it sends *PingRequest*:
@@ -857,7 +857,7 @@ The test sends *ApplicationServiceSendMessageRequest* to the primary port, but i
 The test connects to the primary port of the node and sends *ApplicationServiceSendMessageRequest*:
 
   * `Message.id := 1`
-  * `ApplicationServiceSendMessageRequest.token := SHA1("test")`
+  * `ApplicationServiceSendMessageRequest.token := SHA256("test")`
   * `ApplicationServiceSendMessageRequest.message := "Test message"`
  
 and reads the response.
@@ -1807,7 +1807,7 @@ and reads the response. The test it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 3`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA256 of test's identity public key
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := false`
@@ -1863,7 +1863,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
 
   * `Message.id := 1`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId := SHA1("test")`
+  * `GetIdentityInformationRequest.identityNetworkId := SHA256("test")`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := false`
@@ -1995,7 +1995,7 @@ The test sends *CallIdentityApplicationServiceRequest* to the node without start
 The test establishes a TLS connection to the clNonCustomer port of the node and sends *CallIdentityApplicationServiceRequest*:
 
   * `Message.id := 1`
-  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA1("test")`
+  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA256("test")`
   * `CallIdentityApplicationServiceRequest.serviceName := "Test Service"`
   
 and reads the response.
@@ -2037,7 +2037,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
 and reads the response. Then it sends *CallIdentityApplicationServiceRequest*:
 
   * `Message.id := 2`
-  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA1("test")`
+  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA256("test")`
   * `CallIdentityApplicationServiceRequest.serviceName := "Test Service"`
   
 and reads the response.
@@ -2098,7 +2098,7 @@ Then it sends *VerifyIdentityRequest*:
 and reads the response. Then it sends *CallIdentityApplicationServiceRequest*:
 
   * `Message.id := 3`
-  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA1("test")`
+  * `CallIdentityApplicationServiceRequest.identityNetworkId := SHA256("test")`
   * `CallIdentityApplicationServiceRequest.serviceName := "Test Service"`
   
 and reads the response.
@@ -2472,7 +2472,7 @@ The test sends check-in request to the node without starting the conversation fi
 The test establishes a TLS connection to the clCustomer port of the node and sends *CheckInRequest*:
 
   * `Message.id := 1`
-  * `CheckInRequest.challenge := SHA1("test")`
+  * `CheckInRequest.challenge := SHA256("test")`
   
 and reads the response.
   
@@ -3090,7 +3090,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 4`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA256 of test's identity public key
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := false`
@@ -3114,7 +3114,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 6`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA256 of test's identity public key
   * `GetIdentityInformationRequest.includeProfileImage := true`
   * `GetIdentityInformationRequest.includeThumbnailImage := true`
   * `GetIdentityInformationRequest.includeApplicationServices := false`
@@ -3697,13 +3697,13 @@ and reads the response. Then it sends *CancelHomeNodeAgreementRequest*:
 
   * `Message.id := 3`
   * `CancelHomeNodeAgreementRequest.redirectToNewHomeNode := true`
-  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId := SHA1("test")`
+  * `CancelHomeNodeAgreementRequest.newHomeNodeNetworkId := SHA256("test")`
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 4`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA1 of test's identity public key
+  * `GetIdentityInformationRequest.identityNetworkId` is set to SHA256 of test's identity public key
   * `GetIdentityInformationRequest.includeProfileImage = false`
   * `GetIdentityInformationRequest.includeThumbnailImage = false`
   * `GetIdentityInformationRequest.includeApplicationServices = false`
@@ -3739,7 +3739,7 @@ Node replies with *GetIdentityInformationResponse*:
   * `Response.status == STATUS_OK`
   * `GetIdentityInformationResponse.isHosted == false`
   * `GetIdentityInformationResponse.isTargetHomeNodeKnown == true`
-  * `GetIdentityInformationResponse.targetHomeNodeNetworkId == SHA1("test")`
+  * `GetIdentityInformationResponse.targetHomeNodeNetworkId == SHA256("test")`
 
 
 
@@ -4078,7 +4078,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 5`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4092,7 +4092,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 7`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4106,7 +4106,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 9`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4120,7 +4120,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 11`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4134,7 +4134,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 13`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4153,7 +4153,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 16`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4167,7 +4167,7 @@ and reads the response. Then it sends *GetIdentityInformationRequest*:
 
   * `Message.id := 18`
   * `SingleRequest.version := [1,0,0]`
-  * `GetIdentityInformationRequest.identityNetworkId:= SHA1($PublicKey)`
+  * `GetIdentityInformationRequest.identityNetworkId:= SHA256($PublicKey)`
   * `GetIdentityInformationRequest.includeProfileImage := false`
   * `GetIdentityInformationRequest.includeThumbnailImage := false`
   * `GetIdentityInformationRequest.includeApplicationServices := true`
@@ -4337,8 +4337,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -4649,8 +4649,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -4718,7 +4718,7 @@ messages with random content of 4 to 10000 bytes and sends them to the other par
 a random delay between 0 ms and 200 ms. 
 
 The recipient of a such a message has to store it and when 1000 messages are received, 
-it calculates an SHA1 hash from all messages concatenated together. Then the hashes 
+it calculates an SHA256 hash from all messages concatenated together. Then the hashes 
 are compared with their expected values counted in the sending loops.
                                   
 
@@ -4862,8 +4862,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5106,8 +5106,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5167,8 +5167,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5240,8 +5240,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5319,8 +5319,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5391,8 +5391,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5494,8 +5494,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5610,8 +5610,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5732,8 +5732,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -5885,8 +5885,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -6079,8 +6079,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -6143,7 +6143,7 @@ The second identity sends *ApplicationServiceSendMessageRequest*:
 
   * `Message.id := 2`
   * `SingleRequest.version := [1,0,0]`
-  * `ApplicationServiceSendMessageRequest.token := SHA1("test")`
+  * `ApplicationServiceSendMessageRequest.token := SHA256("test")`
   * `ApplicationServiceSendMessageRequest.message := "Message #1 to callee."`
 
 and reads the response. Then it sends *ApplicationServiceSendMessageRequest*:
@@ -6261,8 +6261,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -6418,8 +6418,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -6563,8 +6563,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -6775,8 +6775,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -7002,8 +7002,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -7158,8 +7158,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -7319,8 +7319,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -7465,8 +7465,8 @@ The test creates two identities:
 
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller` set to public key of the second identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller := SHA1($PubKeyCaller)` is the network ID of the second identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller := SHA256($PubKeyCaller)` is the network ID of the second identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -7756,9 +7756,9 @@ The test creates three identities:
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller1` set to public key of the second identity
   * `$PubKeyCaller2` set to public key of the third identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller1 := SHA1($PubKeyCaller1)` is the network ID of the second identity
-  * `$IdentityIdCaller2 := SHA1($PubKeyCaller2)` is the network ID of the third identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller1 := SHA256($PubKeyCaller1)` is the network ID of the second identity
+  * `$IdentityIdCaller2 := SHA256($PubKeyCaller2)` is the network ID of the third identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
@@ -7991,9 +7991,9 @@ The test creates three identities:
   * `$PubKeyCallee` set to public key of the first identity
   * `$PubKeyCaller1` set to public key of the second identity
   * `$PubKeyCaller2` set to public key of the third identity
-  * `$IdentityIdCallee := SHA1($PubKeyCallee)` is the network ID of the first identity
-  * `$IdentityIdCaller1 := SHA1($PubKeyCaller1)` is the network ID of the second identity
-  * `$IdentityIdCaller2 := SHA1($PubKeyCaller2)` is the network ID of the third identity
+  * `$IdentityIdCallee := SHA256($PubKeyCallee)` is the network ID of the first identity
+  * `$IdentityIdCaller1 := SHA256($PubKeyCaller1)` is the network ID of the second identity
+  * `$IdentityIdCaller2 := SHA256($PubKeyCaller2)` is the network ID of the third identity
 
 Then it connects to the node's primary port and obtains a list of server roles using *ListRolesRequest* 
 and closes the connection. Then it uses the first identity and establishes a home node agreement over 
