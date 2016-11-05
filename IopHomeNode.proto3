@@ -90,6 +90,13 @@
 //                 * "|" - Matches any one element separated by the vertical bar '|' character.
 //                 * "(subexpression)" - Captures the matched subexpression.
 //
+// * LocationType - Represents GPS location latitude or longitude. It is a signed integer that stores decimal(9,6)
+//                  type, which means that a floating point value of the latitude or longitude is multiplied
+//                  by 1,000,000 and converted to the integer (cutting of any digits right of the decimal point without 
+//                  rounding). To get the floating point value back, simply divide the integer value by 1,000,000.
+//                  For latitudes, valid values are in range [-90,000,000;90,000,000], for longitude the range is 
+//                  [-180,000,000;180,000,000]. A special constant NO_LOCATION = (int)0xFFFFFFFF is reserved for no location.
+//
 //
 //
 // * Conversations *
@@ -758,14 +765,15 @@ message UpdateProfileRequest {
   bool setVersion = 1;                             // Profile version should be updated. 'version' must contain valid data.
   bool setName = 2;                                // Profile name should be updated. 'name' must contain valid data.
   bool setImage = 3;                               // Profile image should be updated. 'image' must contain valid data.
-  bool setLocation = 4;                            // Profile location should be updated. 'location' must contain valid data.
+  bool setLocation = 4;                            // Profile location should be updated. 'latitude' and 'longitude' must contain valid data.
   bool setExtraData = 5;                           // Profile extra data should be updated. 'extraData' must contain valid data.
 
   bytes version = 8;                               // VersionType. Version of the profile structure.
   string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
   bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long.
-  fixed32 location = 11;                           // Encoded GPS location information.
-  string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
+  sfixed32 latitude = 11;                          // LocationType. GPS location latitude information.
+  sfixed32 longitude = 12;                         // LocationType. GPS location longitude information.
+  string extraData = 13;                           // Semicolon separated 'key=value' list, max 200 bytes long.
 }
 
 
@@ -782,7 +790,8 @@ message UpdateProfileRequest {
 //     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
 //     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
 //     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
-//     * Response.details == "location" - 'UpdateProfileRequest.image' does not contain a valid location information.
+//     * Response.details == "latitude" - 'UpdateProfileRequest.latitude' does not contain a valid latitude information.
+//     * Response.details == "longitude" - 'UpdateProfileRequest.longitude' does not contain a valid longitude information.
 //     * Response.details == "extraData" - 'UpdateProfileRequest.extraData' does not contain a valid extra data information.
 //
 message UpdateProfileResponse {
@@ -1065,12 +1074,13 @@ message GetIdentityInformationResponse {
   bytes identityPublicKey = 5;                     // The requested identity's public key.
   string type = 6;                                 // The requested identity's type.
   string name = 7;                                 // The requested identity's name.
-  fixed32 location = 8;                            // The requested identity's encoded GPS location information.
-  string extraData = 9;                            // The requested identity's extra data.
-  bytes profileImage = 10;                         // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 11;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  sfixed32 latitude = 8;                           // LocationType. The requested identity's GPS location latitude information.
+  sfixed32 longitude = 9;                          // LocationType. The requested identity's GPS location longitude information.
+  string extraData = 10;                           // The requested identity's extra data.
+  bytes profileImage = 11;                         // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 12;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 12;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 13;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
@@ -1268,12 +1278,14 @@ message ProfileSearchRequest {
   string name = 6;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
                                                    // with names that match the wildcard string. If empty, all profile names are allowed.
                                                    // Max 64 bytes long.
-  fixed32 location = 7;                            // Encoded target GPS location or 0. If not 0, it is, in combination with 'radius' 
-                                                   // a specification of target location, where the identity has to be located (according to 
-                                                   // its profile information) in order to be included in the search results. If 0, 'radius' 
-                                                   // is ignored and all locations are allowed.
-  uint32 radius = 8;                               // If 'location' is not 0, this is target location radius in meters.
-  string extraData = 9;                            // RegexType or empty string. If not empty, specifies the regular expression that identity
+  sfixed32 latitude = 7;                           // LocationType. Encoded target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
+                                                   // it is, in combination with 'longitude' and 'radius' a specification of target area, 
+                                                   // where the identity has to be located (according to its profile information) in order to be 
+                                                   // included in the search results. If NO_LOCATION, 'longitude' and 'radius' are ignored 
+                                                   // and all locations are allowed.
+  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is encoded target GPS location longitude.
+  uint32 radius = 9;                               // If 'latitude' is not NO_LOCATION, this is target location radius in metres.
+  string extraData = 10;                           // RegexType or empty string. If not empty, specifies the regular expression that identity
                                                    // profile's extra data information must match in order to be included in the results. 
                                                    // If empty, no filtering based on extra data information is made.
                                                    // Max 256 bytes long.
@@ -1292,7 +1304,8 @@ message ProfileSearchRequest {
 //     * Response.details == "maxTotalRecordCount" - 'ProfileSearchRequest.maxTotalRecordCount' is not within the required range.
 //     * Response.details == "type" - 'ProfileSearchRequest.type' is too long.
 //     * Response.details == "name" - 'ProfileSearchRequest.name' is too long.
-//     * Response.details == "location" - 'ProfileSearchRequest.location' is not a valid location.
+//     * Response.details == "latitude" - 'ProfileSearchRequest.latitude' is not a valid location latitude.
+//     * Response.details == "longitude" - 'ProfileSearchRequest.longitude' is not a valid location longitude.
 //     * Response.details == "radius" - 'ProfileSearchRequest.radius' is not a valid radius value.
 //     * Response.details == "extraData" - 'ProfileSearchRequest.extraData' is too long or it is not a valid value of RegexType.
 //
@@ -1318,10 +1331,11 @@ message IdentityNetworkProfileInformation {
   bytes identityPublicKey = 4;                     // The identity's public key.
   string type = 5;                                 // The identity's type.
   string name = 6;                                 // The identity's name.
-  fixed32 location = 7;                            // The identity's encoded GPS location information.
-  string extraData = 8;                            // The identity's extra data.
+  sfixed32 latitude = 7;                           // LocationType. The identity's GPS location latitude information.
+  sfixed32 longitude = 8;                          // LocationType. The identity's GPS location longitude information.
+  string extraData = 9;                            // The identity's extra data.
 
-  bytes thumbnailImage = 9;                        // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image.
+  bytes thumbnailImage = 10;                       // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image.
 }
 
 

@@ -1939,7 +1939,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 0`
+  * `UpdateProfileRequest.longitude := 0`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response.
@@ -3083,7 +3084,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
@@ -3107,7 +3109,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version` is unintialized
   * `UpdateProfileRequest.name := "Test Identity Renamed"`
   * `UpdateProfileRequest.image` is initialized with data loaded from "images/HN04006.jpg" file. `$ImageData := UpdateProfileRequest.image`
-  * `UpdateProfileRequest.location` is unintialized
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData := "a=b"` 
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
@@ -3165,7 +3168,8 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.name == "Test Identity"`
   * `GetIdentityInformationResponse.extraData == ""`
-  * `GetIdentityInformationResponse.location == 0x12345678`
+  * `GetIdentityInformationResponse.latitude == 1`
+  * `GetIdentityInformationResponse.longitude == 2`
 
 Node replies with *UpdateProfileResponse*:
 
@@ -3181,7 +3185,8 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.name == "Test Identity Renamed"`
   * `GetIdentityInformationResponse.extraData == "a=b"`
-  * `GetIdentityInformationResponse.location == 0x12345678`
+  * `GetIdentityInformationResponse.latitude == 1`
+  * `GetIdentityInformationResponse.longitude == 2`
   * `GetIdentityInformationResponse.profileImage == $ImageData`
   * `GetIdentityInformationResponse.thumbnailImage` is non empty
 
@@ -3262,7 +3267,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version` is unintialized
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3276,7 +3282,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name` is unintialized
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3290,7 +3297,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location` is unintialized
+  * `UpdateProfileRequest.latitude` is unintialized
+  * `UpdateProfileRequest.longitude` is unintialized
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3304,7 +3312,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [0,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3318,7 +3327,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [255,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3332,7 +3342,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := ""`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3346,7 +3357,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name` is set to string containing 100x 'a'
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3360,7 +3372,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name` is set to string containing 50x 'ɐ' (UTF8 code 0xc990), which consumes 2 bytes per character
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3374,7 +3387,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is initialized with image data loaded from "images/HN04007-too-big.jpg" file
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3388,7 +3402,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is initialized with image data loaded from "images/HN04007-not-image.jpg" file
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3402,7 +3417,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is uninitialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is set to string containing 300x 'a'
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3416,7 +3432,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is uninitialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is set to string containing 150x 'ɐ' (UTF8 code 0xc990), which consumes 2 bytes per character
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3430,7 +3447,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is uninitialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 1`
+  * `UpdateProfileRequest.longitude := 2`
   * `UpdateProfileRequest.extraData` is uninitialized
 
 and reads the response. Then it sends *UpdateProfileRequest*:
@@ -3444,7 +3462,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version` is uninitialized
   * `UpdateProfileRequest.name` is uninitialized
   * `UpdateProfileRequest.image` is uninitialized
-  * `UpdateProfileRequest.location` is uninitialized
+  * `UpdateProfileRequest.latitude` is unintialized
+  * `UpdateProfileRequest.longitude` is unintialized
   * `UpdateProfileRequest.extraData` is uninitialized
 
 and reads the response.
@@ -3619,7 +3638,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 0`
+  * `UpdateProfileRequest.longitude := 0`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response.
@@ -3982,7 +4002,8 @@ Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 0`
+  * `UpdateProfileRequest.longitude := 0`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. 
@@ -4066,7 +4087,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is unintialized
-  * `UpdateProfileRequest.location := 0x12345678`
+  * `UpdateProfileRequest.latitude := 0`
+  * `UpdateProfileRequest.longitude := 0`
   * `UpdateProfileRequest.extraData` is unintialized
 
 and reads the response. Then it sends *ApplicationServiceAddRequest*:
