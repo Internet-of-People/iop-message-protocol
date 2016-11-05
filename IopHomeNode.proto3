@@ -279,7 +279,7 @@ message ConversationRequest {
     CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
     IncomingCallNotificationRequest incomingCallNotification = 11;
     ProfileSearchRequest profileSearch = 12;
-    ProfileSearchPageRequest profileSearchPage = 13;
+    ProfileSearchPartRequest profileSearchPart = 13;
     AddRelatedIdentityRequest addRelatedIdentity = 14;
     RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
   }
@@ -303,7 +303,7 @@ message ConversationResponse {
     CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
     IncomingCallNotificationResponse incomingCallNotification = 11;
     ProfileSearchResponse profileSearch = 12;
-    ProfileSearchPageResponse profileSearchPage = 13;
+    ProfileSearchPartResponse profileSearchPart = 13;
     AddRelatedIdentityResponse addRelatedIdentity = 14;
     RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
   }
@@ -1237,12 +1237,12 @@ message ProfileStatsItem {
 // holds some information about those identities.
 //
 // Each search request only produces a limited number of results. The maximal size of the first set of results 
-// is provided by 'maxRecordCount' field. The response to this message contains up to 'maxRecordCount' results. 
-// If there are more results available, they are saved to the conversation context, which enables the client 
-// to obtain more results with subsequent ProfileSearchPageRequest messages.
+// is provided by 'maxResponseRecordCount' field. The response to this message contains up to 'maxResponseRecordCount' 
+// results. If there are more results available, they are saved to the conversation context, which enables the client 
+// to obtain more results with subsequent ProfileSearchPartRequest messages.
 //
-// The node will not save more than 10 result pages from a search request. The node will delete the cached search 
-// results after 5 minutes from receiving ProfileSearchRequest. 
+// The node will not save more than 'maxTotalRecordCount' search requests. 
+// The node will delete the cached search results after 5 minutes from receiving ProfileSearchRequest. 
 //
 // Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
 //
@@ -1251,26 +1251,29 @@ message ProfileStatsItem {
 // Conversation status: ConversationStarted, Verified, Authenticated
 //
 message ProfileSearchRequest {
-  bool includeHostedOnly = 1;                      // If set to true, the node only returns profiles of its own clients. 
+  bool includeHostedOnly = 1;                      // If set to true, the node only returns profiles of its own customers.
                                                    // If set to false, profiles from the node's neighborhood can be included in the result.
   bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
-  uint32 maxRecordCount = 3;                       // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
+  uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
                                                    // this has to be an integer between 1 and 1000.
+  uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the node will look for and save. If 'includeThumbnailImages'
+                                                   // is true, this has to be an integer between 1 and 1000. If 'includeThumbnailImages' is false,
+                                                   // this has to be an integer between 1 and 10000.
 
   // Search filters.
-  string type = 4;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
+  string type = 5;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
                                                    // of identity types that match the wildcard string. If empty, all identity types are allowed.
                                                    // Max 64 bytes long.
-  string name = 5;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
+  string name = 6;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
                                                    // with names that match the wildcard string. If empty, all profile names are allowed.
                                                    // Max 64 bytes long.
-  fixed32 location = 6;                            // Encoded target GPS location or 0. If not 0, it is, in combination with 'radius' 
+  fixed32 location = 7;                            // Encoded target GPS location or 0. If not 0, it is, in combination with 'radius' 
                                                    // a specification of target location, where the identity has to be located (according to 
                                                    // its profile information) in order to be included in the search results. If 0, 'radius' 
                                                    // is ignored and all locations are allowed.
-  uint32 radius = 7;                               // If 'location' is not 0, this is target location radius in meters.
-  string extraData = 8;                            // RegexType or empty string. If not empty, specifies the regular expression that identity
+  uint32 radius = 8;                               // If 'location' is not 0, this is target location radius in meters.
+  string extraData = 9;                            // RegexType or empty string. If not empty, specifies the regular expression that identity
                                                    // profile's extra data information must match in order to be included in the results. 
                                                    // If empty, no filtering based on extra data information is made.
                                                    // Max 256 bytes long.
@@ -1280,22 +1283,25 @@ message ProfileSearchRequest {
 //
 // A response to ProfileSearchRequest.
 //
-// If 'maxRecordCount' is lower than 'totalRecordCount', the client is allowed to send ProfileSearchPageRequest messages to obtain more results.
+// If 'maxResponseRecordCount' is lower than 'totalRecordCount', the client is allowed to send ProfileSearchPartRequest messages to obtain more results.
 //
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "maxRecordCount" - 'ProfileSearchRequest.maxRecordCount' is not within the required range.
+//     * Response.details == "maxResponseRecordCount" - 'ProfileSearchRequest.maxResponseRecordCount' is not within the required range.
+//     * Response.details == "maxTotalRecordCount" - 'ProfileSearchRequest.maxTotalRecordCount' is not within the required range.
 //     * Response.details == "type" - 'ProfileSearchRequest.type' is too long.
 //     * Response.details == "name" - 'ProfileSearchRequest.name' is too long.
+//     * Response.details == "location" - 'ProfileSearchRequest.location' is not a valid location.
+//     * Response.details == "radius" - 'ProfileSearchRequest.radius' is not a valid radius value.
 //     * Response.details == "extraData" - 'ProfileSearchRequest.extraData' is too long or it is not a valid value of RegexType.
 //
 message ProfileSearchResponse {
-  uint32 totalRecordCount = 1;                     // The total number of profiles that matched the search criteria. Up to 'maxRecordCount' of them are in 'profiles' list.
-  uint32 maxRecordCount = 2;                       // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxRecordCount'.
+  uint32 totalRecordCount = 1;                     // Total number of profiles that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'profiles' list.
+  uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxResponseRecordCount'.
 
   // Search results.
-  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains no more than 'maxRecordCount' items.
+  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains no more than 'maxResponseRecordCount' items.
 }
 
 
@@ -1321,7 +1327,7 @@ message IdentityNetworkProfileInformation {
 
 
 //
-// Request to get another page from the search query.
+// Request to get another part from the search query.
 //
 // This request only makes sense only if the client previously sent ProfileSearchRequest to the node and the search result contained
 // more records than the node provided in the ProfileSearchResponse, and the search results have not expired yet.
@@ -1331,7 +1337,7 @@ message IdentityNetworkProfileInformation {
 //
 // Conversation status: ConversationStarted, Verified, Authenticated
 //
-message ProfileSearchPageRequest {
+message ProfileSearchPartRequest {
   uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ProfileSearchResponse.totalRecordCount' - 1.
   uint32 recordCount = 2;                           // Number of results to obtain. 'recordIndex' + 'recordCount' must not be greater than 'ProfileSearchResponse.totalRecordCount'.
                                                     // If 'ProfileSearchResponse.includeThumbnailImages' was set, this has to be an integer between 1 and 100,
@@ -1340,7 +1346,7 @@ message ProfileSearchPageRequest {
 
 
 //
-// A response to ProfileSearchPageRequest.
+// A response to ProfileSearchPartRequest.
 //
 // Specific Error Responses:
 //   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
@@ -1349,12 +1355,12 @@ message ProfileSearchPageRequest {
 //     * Response.details == "recordIndex" - 'ProfileSearchRequest.recordIndex' is not a valid index of the result.
 //     * Response.details == "recordCount" - 'ProfileSearchRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchRequest.recordIndex'.
 //
-message ProfileSearchPageResponse {
-  uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPageRequest.recordIndex' value.
-  uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPageRequest.recordCount' value.
+message ProfileSearchPartResponse {
+  uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.recordIndex' value.
+  uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.recordCount' value.
 
   // Search results.
-  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains 'ProfileSearchPageRequest.recordCount' items.
+  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
 }
 
 
