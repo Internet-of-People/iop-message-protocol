@@ -3109,8 +3109,8 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.version` is unintialized
   * `UpdateProfileRequest.name := "Test Identity Renamed"`
   * `UpdateProfileRequest.image` is initialized with data loaded from "images/HN04006.jpg" file. `$ImageData := UpdateProfileRequest.image`
-  * `UpdateProfileRequest.latitude := 1`
-  * `UpdateProfileRequest.longitude := 2`
+  * `UpdateProfileRequest.latitude := -1`
+  * `UpdateProfileRequest.longitude := -2`
   * `UpdateProfileRequest.extraData := "a=b"` 
 
 and reads the response. Then it sends *GetIdentityInformationRequest*:
@@ -3185,8 +3185,8 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.name == "Test Identity Renamed"`
   * `GetIdentityInformationResponse.extraData == "a=b"`
-  * `GetIdentityInformationResponse.latitude == 1`
-  * `GetIdentityInformationResponse.longitude == 2`
+  * `GetIdentityInformationResponse.latitude == -1`
+  * `GetIdentityInformationResponse.longitude == -2`
   * `GetIdentityInformationResponse.profileImage == $ImageData`
   * `GetIdentityInformationResponse.thumbnailImage` is non empty
 
@@ -3413,7 +3413,7 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.setName := true`
   * `UpdateProfileRequest.setImage := false`
   * `UpdateProfileRequest.setLocation := true`
-  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.setExtraData := true`
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is uninitialized
@@ -3428,7 +3428,7 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.setName := true`
   * `UpdateProfileRequest.setImage := false`
   * `UpdateProfileRequest.setLocation := true`
-  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.setExtraData := true`
   * `UpdateProfileRequest.version := [1,0,0]`
   * `UpdateProfileRequest.name := "Test Identity"`
   * `UpdateProfileRequest.image` is uninitialized
@@ -3464,6 +3464,51 @@ and reads the response. Then it sends *UpdateProfileRequest*:
   * `UpdateProfileRequest.image` is uninitialized
   * `UpdateProfileRequest.latitude` is unintialized
   * `UpdateProfileRequest.longitude` is unintialized
+  * `UpdateProfileRequest.extraData` is uninitialized
+
+and reads the response. Then it sends *UpdateProfileRequest*:
+
+  * `Message.id := 17`
+  * `UpdateProfileRequest.setVersion := false`
+  * `UpdateProfileRequest.setName := false`
+  * `UpdateProfileRequest.setImage := false`
+  * `UpdateProfileRequest.setLocation := true`
+  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.version` is uninitialized
+  * `UpdateProfileRequest.name` is uninitialized
+  * `UpdateProfileRequest.image` is uninitialized
+  * `UpdateProfileRequest.latitude := -90,000,001`
+  * `UpdateProfileRequest.longitude := 2`
+  * `UpdateProfileRequest.extraData` is uninitialized
+
+and reads the response. Then it sends *UpdateProfileRequest*:
+
+  * `Message.id := 18`
+  * `UpdateProfileRequest.setVersion := false`
+  * `UpdateProfileRequest.setName := false`
+  * `UpdateProfileRequest.setImage := false`
+  * `UpdateProfileRequest.setLocation := true`
+  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.version` is uninitialized
+  * `UpdateProfileRequest.name` is uninitialized
+  * `UpdateProfileRequest.image` is uninitialized
+  * `UpdateProfileRequest.latitude := 0`
+  * `UpdateProfileRequest.longitude := 180,000,001`
+  * `UpdateProfileRequest.extraData` is uninitialized
+
+and reads the response. Then it sends *UpdateProfileRequest*:
+
+  * `Message.id := 19`
+  * `UpdateProfileRequest.setVersion := false`
+  * `UpdateProfileRequest.setName := false`
+  * `UpdateProfileRequest.setImage := false`
+  * `UpdateProfileRequest.setLocation := true`
+  * `UpdateProfileRequest.setExtraData := false`
+  * `UpdateProfileRequest.version` is uninitialized
+  * `UpdateProfileRequest.name` is uninitialized
+  * `UpdateProfileRequest.image` is uninitialized
+  * `UpdateProfileRequest.latitude := -90,000,001`
+  * `UpdateProfileRequest.longitude := 180,000,001`
   * `UpdateProfileRequest.extraData` is uninitialized
 
 and reads the response.
@@ -3581,6 +3626,24 @@ Node replies with *Response*:
   * `Message.id == 16`
   * `Response.status == ERROR_INVALID_VALUE`
   * `Response.details == "set*"`
+
+Node replies with *Response*:
+
+  * `Message.id == 17`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "latitude"`
+
+Node replies with *Response*:
+
+  * `Message.id == 18`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "longitude"`
+
+Node replies with *Response*:
+
+  * `Message.id == 19`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "latitude"`
 
 
 
