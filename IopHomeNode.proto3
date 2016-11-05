@@ -1483,7 +1483,7 @@ message RelationshipCard {
 //
 message GetIdentityRelationshipsInformationRequest {
   bytes identityNetworkId = 1;                     // Identity's network identifier.
-  bool includeInvalid = 2;                         // If set to true, the response will include relationships which cards are no longer valid or not yet valid.
+  bool includeInvalid = 2;                         // If set to true, the response may include relationships which cards are no longer valid or not yet valid.
   
   string type = 3;                                 // WildcardType or empty string. If not empty, the node will only return relationships which card types 
                                                    // match the wildcard string. If empty, all card types are allowed.
@@ -1505,14 +1505,14 @@ message GetIdentityRelationshipsInformationRequest {
 //     * Response.details == "type" - 'GetIdentityRelationshipsInformationRequest.type' is too long.
 //
 message GetIdentityRelationshipsInformationResponse {
-  repeated IdentityRelationships relationships = 1; // List of all matching identity relationships together with their relationship cards.
+  repeated IdentityRelationship relationships = 1; // List of all matching identity relationships together with their relationship cards.
 }
 
 
 //
 // Description of a relationship between two identities together with signature proofs.
 //
-message IdentityRelationships {
+message IdentityRelationship {
   CardApplicationInformation cardApplication = 1;  // Relationship card application.
   bytes cardApplicationSignature = 2;              // Relationship card recipient's signature of 'cardApplication' structure.
   SignedRelationshipCard card = 3;                 // Relationship card signed by its issuer.
