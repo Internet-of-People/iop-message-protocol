@@ -567,7 +567,8 @@ The test connects to the primary port of the node and sends *StartConversationRe
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
  
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -585,6 +586,8 @@ Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -615,7 +618,8 @@ The test connects to the primary port of the node and sends *StartConversationRe
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
  
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -638,6 +642,8 @@ Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -667,7 +673,8 @@ The test connects to the primary port of the node and sends *StartConversationRe
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
  
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -690,6 +697,8 @@ Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -1058,7 +1067,8 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response
   
@@ -1069,9 +1079,11 @@ Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
   * `StartConversationResponse.version == [1,0,0]`
   * `StartConversationResponse.publicKey.Length == 32`
   * `StartConversationResponse.challenge.Length == 32`
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 
 
@@ -1102,7 +1114,8 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[255,255,255], [255,255,254]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge
   
 and reads the response.
   
@@ -1140,7 +1153,8 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -1157,9 +1171,11 @@ Node replies with *StartConversationResponse*:
   
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
   * `StartConversationResponse.version == [1,0,0]`
   * `StartConversationResponse.publicKey.Length == 32`
   * `StartConversationResponse.challenge.Length == 32`
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -1229,6 +1245,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity #1 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -1243,6 +1260,7 @@ The test then closes the connection and creates a new TLS connection to the clNo
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity #2 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -1255,11 +1273,14 @@ and reads the response.
 
 
 ###### Step 1:
+
 Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
-  * `$NodeKey := StartConversationResponse.publicKey`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
+
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -1272,7 +1293,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
-  * `StartConversationResponse.publicKey == $NodeKey`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *Response*:
 
@@ -1311,6 +1333,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -1325,6 +1348,7 @@ The test then closes the connection and creates a new TLS connection to the clNo
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -1341,6 +1365,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -1353,7 +1379,9 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
-
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
+                                                                  
 Node replies with *Response*:
 
   * `Message.id == 2`
@@ -1384,6 +1412,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -1406,6 +1435,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *VerifyIdentityResponse*:
 
@@ -1437,6 +1468,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
   
@@ -1459,6 +1491,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 
 Node replies with *Response*:
@@ -1493,6 +1527,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
   
@@ -1515,6 +1550,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 
 Node replies with *Response*:
@@ -1582,6 +1619,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -1601,6 +1639,7 @@ With the first connection left open, the test establishes a new TLS connection t
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -1633,6 +1672,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *VerifyIdentityResponse*:
 
@@ -1645,6 +1686,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *VerifyIdentityResponse*:
 
@@ -1689,7 +1732,8 @@ The test connects to the primary port of the node and sends *StartConversationRe
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
  
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -1709,9 +1753,11 @@ and reads the response.
 ###### Step 1:
 
 Node replies with *StartConversationResponse*:
-  
+
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -1746,6 +1792,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -1776,6 +1823,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -1861,6 +1910,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -1903,6 +1953,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -1980,6 +2032,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response. Then it sends *CallIdentityApplicationServiceRequest*:
 
@@ -1996,6 +2049,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -2028,6 +2083,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2056,6 +2112,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *VerifyIdentityResponse*:
 
@@ -2093,6 +2151,7 @@ The test creates a first identity and establishes a TLS connection to the clNonC
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2113,6 +2172,7 @@ The test creates a second identity and using it it establishes a TLS connection 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2140,6 +2200,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2152,6 +2214,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *VerifyIdentityResponse*:
 
@@ -2162,6 +2226,54 @@ Node replies with *Response*:
   
   * `Message.id == 3`
   * `Response.status == ERROR_UNINITIALIZED`
+
+
+
+
+
+
+
+
+
+
+
+#### HN02022 - Start Conversation - Invalid Challenge
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test starts the conversation with the node but it sends invalid client challenge in the requests.
+
+###### Step 1:
+
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 4 byte random challenge
+  
+and reads the response.
+  
+##### Acceptance Criteria
+
+###### Step 1:
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "clientChallenge"`
+
+
+
+
+
+
 
 
 
@@ -2193,6 +2305,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2215,6 +2328,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
 
@@ -2249,7 +2364,8 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
  
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -2264,9 +2380,11 @@ and reads the response.
 ###### Step 1:
 
 Node replies with *StartConversationResponse*:
-  
+
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -2299,7 +2417,8 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
  
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2319,9 +2438,11 @@ and reads the response.
 ###### Step 1:
 
 Node replies with *StartConversationResponse*:
-  
+
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
   
@@ -2406,6 +2527,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -2420,6 +2542,7 @@ The test then closes the connection and establishes a TLS connection to the clCu
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2442,6 +2565,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2454,6 +2579,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *CheckInResponse*:
 
@@ -2488,6 +2615,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
   
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2515,6 +2643,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2555,6 +2685,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -2569,6 +2700,7 @@ The test then closes the connection and establishes a TLS connection to the clCu
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2591,6 +2723,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2603,6 +2737,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *Response*:
 
@@ -2638,6 +2774,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -2652,6 +2789,7 @@ The test then closes the connection and establishes a TLS connection to the clCu
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2674,6 +2812,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2686,6 +2826,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *Response*:
 
@@ -2728,6 +2870,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2754,6 +2897,7 @@ The test closes the connection and establishes a new TLS connection to the clCus
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2773,7 +2917,8 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey` set to test's 32 byte long public key
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge3 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -2790,6 +2935,7 @@ The test closes the connection and establishes a new TLS connection to the clCus
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge4 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2815,6 +2961,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *CheckInResponse*:
 
@@ -2832,6 +2980,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *Response*:
 
@@ -2843,6 +2993,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge3
+  * `StartConversationResponse.clientChallenge == $ClientChallenge3`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2854,6 +3006,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge4
+  * `StartConversationResponse.clientChallenge == $ClientChallenge4`
 
 Node replies with *CheckInRequest*:
 
@@ -2891,6 +3045,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key; `$PublicKey := StartConversationRequest.publicKey`
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -2905,6 +3060,7 @@ The test then closes the connection and establishes a TLS connection to the clCu
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey := $PublicKey`
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -2973,6 +3129,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -2985,6 +3143,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *CheckInResponse*:
 
@@ -3062,6 +3222,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key; `$PublicKey := StartConversationRequest.publicKey`
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
   
 and reads the response. Then it sends *HomeNodeRequestRequest*:
 
@@ -3076,6 +3237,7 @@ The test then closes the connection and establishes a TLS connection to the clCu
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey := $PublicKey`
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -3294,6 +3456,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *HomeNodeRequestResponse*:
 
@@ -3306,6 +3470,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *CheckInResponse*:
 
@@ -3428,6 +3594,7 @@ The test establishes a TLS connection to the clNonCustomer port of the node and 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -3467,6 +3634,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *VerifyIdentityResponse*:
 
@@ -3510,6 +3679,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -3548,6 +3718,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *CheckInResponse*:
 
@@ -3596,6 +3768,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -3627,6 +3800,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *CheckInResponse*:
 
@@ -3670,6 +3845,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -3689,6 +3865,7 @@ With the first connection left open, the test establishes a new TLS connection t
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -3725,6 +3902,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
 
 Node replies with *CheckInResponse*:
 
@@ -3737,6 +3916,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
 
 Node replies with *CheckInResponse*:
 
@@ -3783,7 +3964,8 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
 
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
-  * `StartConversationRequest.publicKey := $PublicKey`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
 
 and reads the response.
 
@@ -3815,6 +3997,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *Response*:
 
@@ -3857,6 +4041,7 @@ The test establishes a TLS connection to the clCustomer port of the node and sen
   * `Message.id := 1`
   * `StartConversationRequest.supportedVersions := [[1,0,0]]`
   * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key; `$PublicKey := StartConversationRequest.publicKey`
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
 
 and reads the response from the node in form of *StartConversationResponse*:
 
@@ -4001,6 +4186,8 @@ Node replies with *StartConversationResponse*:
 
   * `Message.id == 1`
   * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
 
 Node replies with *CheckInResponse*:
 
