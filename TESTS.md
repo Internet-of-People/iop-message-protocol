@@ -970,6 +970,45 @@ The node closes the connection, so that sending the second *PingRequest* or rece
 
 
 
+#### HN01014 - Profile Stats - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test sends *ProfileStatsRequest* to the primary port, but it requires clNonCustomer or clCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *ProfileStatsRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+ 
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+
+
+
+
 
 
 ### HN02xxx - Node Client Non-Customer Port Functionality Tests
@@ -2270,6 +2309,103 @@ Node replies with *Response*:
   * `Response.status == ERROR_INVALID_VALUE`
   * `Response.details == "clientChallenge"`
 
+
+
+
+
+
+
+
+#### HN02023 - Profile Stats
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test creates 10 new identities and establishes home node contracts for all of them. Then it asks the node for profile statistics.
+
+
+###### Step 1:
+
+The test creates 8 identities with following identity types:
+
+  * 2x "Type A"
+  * 3x "Type B"
+  * 1x "Type Alpha"
+  * 1x "Type A B"
+  * 1x "Type Beta"
+
+and then with each identity it connects to clNonCustomer port and establishes a home node contract. 
+
+Then it creates a new connection to clNonCustomer and sends *ProfileStatsRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+
+and reads the response.
+
+
+###### Step 2:
+
+The test creates 2 more identities with following identity types:
+
+  * 1x `Type A B`
+  * 1x `Type C`
+
+and then with each identity it connects to clNonCustomer port and establishes a home node contract. 
+
+Then it reuses the previous connection used for sending *ProfileStatsRequest* and sends *ProfileStatsRequest*:
+
+  * `Message.id := 2`
+  * `SingleRequest.version := [1,0,0]`
+
+and reads the response.
+
+
+  
+##### Acceptance Criteria
+
+###### Step 1:
+
+Test successfully establishes the home node contracts.
+
+Node replies with *ProfileStatsResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ProfileStatsResponse.stats.Count == 5`
+  * `ProfileStatsResponse.stats == 
+    (
+      {identityType == "Type A", count == 2},
+      {identityType == "Type B", count == 3},
+      {identityType == "Type Alpha", count == 1},
+      {identityType == "Type A B", count == 1},
+      {identityType == "Type Beta", count == 1}
+    )`
+
+
+###### Step 2:
+
+Test successfully establishes the home node contracts.
+
+Node replies with *ProfileStatsResponse*:
+  
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+  * `ProfileStatsResponse.stats.Count == 6`
+  * `ProfileStatsResponse.stats == 
+    (
+      {identityType == "Type A", count == 2},
+      {identityType == "Type B", count == 3},
+      {identityType == "Type Alpha", count == 1},
+      {identityType == "Type A B", count == 2},
+      {identityType == "Type Beta", count == 1}
+      {identityType == "Type C", count == 1},
+    )`
 
 
 

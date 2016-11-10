@@ -68,7 +68,7 @@
 //                            of exactly two digits).
 //                 * "\unnnn" - Matches a Unicode character by using hexadecimal representation (exactly four digits, 
 //                              as represented by nnnn).
-//                 * "\.", "\*", "\[", "\]", "\\", "\?", "\^", "\|", "\(", "\)", "\{", "\}" - Escapes special characters.
+//                 * "\.", "\*", "\-", "\+", "\[", "\]", "\\", "\?", "\^", "\|", "\(", "\)", "\{", "\}" - Escapes special character.
 //                 * "[characterGroup]" - Matches any single character in characterGroup.
 //                 * "[^characterGroup]" - Matches any single character that is not in characterGroup.
 //                 * "[first-last]" - Matches any single character in the range from first to last. 
@@ -90,12 +90,14 @@
 //                 * "|" - Matches any one element separated by the vertical bar '|' character.
 //                 * "(subexpression)" - Captures the matched subexpression.
 //
+//               No other rules or special characters are allowed to appear in the regular expression of this type.
+//
 // * LocationType - Represents GPS location latitude or longitude. It is a signed integer that stores decimal(9,6)
 //                  type, which means that a floating point value of the latitude or longitude is multiplied
 //                  by 1,000,000 and converted to the integer (cutting of any digits right of the decimal point without 
 //                  rounding). To get the floating point value back, simply divide the integer value by 1,000,000.
 //                  For latitudes, valid values are in range [-90,000,000;90,000,000], for longitude the range is 
-//                  [-180,000,000;180,000,000]. A special constant NO_LOCATION = (int)0xFFFFFFFF is reserved for no location.
+//                  [-179,999,999;180,000,000]. A special constant NO_LOCATION = (int)0xFFFFFFFF is reserved for no location.
 //
 //
 //
@@ -1217,6 +1219,8 @@ message ApplicationServiceReceiveMessageNotificationResponse {
 
 //
 // Obtains identity profiles statistics from a node.
+//
+// Only actively hosted profiles are counted regardless of whether or not the profiles are initialized.
 //
 // Roles: clNonCustomer, clCustomer
 //
