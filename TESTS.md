@@ -2341,7 +2341,7 @@ The test creates 8 identities with following identity types:
 
 and then with each identity it connects to clNonCustomer port and establishes a home node contract. 
 
-Then it creates a new connection to clNonCustomer and sends *ProfileStatsRequest*:
+The test establishes a new TLS connection to clNonCustomer and sends *ProfileStatsRequest*:
 
   * `Message.id := 1`
   * `SingleRequest.version := [1,0,0]`
@@ -2410,6 +2410,41 @@ Node replies with *ProfileStatsResponse*:
 
 
 
+
+
+#### HN02024 - Profile Stats - No Stats
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test asks the node for profile statistics when node has an empty database.
+
+
+###### Step 1:
+
+The test establishes a new TLS connection to clNonCustomer and sends *ProfileStatsRequest*:
+
+  * `Message.id := 1`
+  * `SingleRequest.version := [1,0,0]`
+
+and reads the response.
+
+
+  
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *ProfileStatsResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ProfileStatsResponse.stats.Count == 0`
 
 
 
@@ -4525,6 +4560,191 @@ Node replies with *GetIdentityInformationResponse*:
   * `GetIdentityInformationResponse.isOnline == true`
   * `GetIdentityInformationResponse.identityPublicKey == $PublicKey`
   * `GetIdentityInformationResponse.applicationServices == ("b","c","d","e","a1","a2","a3","a4","a5","a6","a7","a8","a9","a10","b1","b2","b3","b4","b5","b6","b7","b8","b9","b10")`
+
+
+
+
+
+
+
+
+
+
+#### HN04014 - Check-In - Invalid Signature 2
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with the node. Then it performs the check-in process but it uses invalid signature.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
+  
+and reads the response. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
+  
+###### Step 2:
+The test then closes the connection and establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge := $Challenge`
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key, but only the first 32 bytes of the signature are used to make the signature invalid.
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_SIGNATURE`
+
+
+
+
+
+
+
+
+#### HN04015 - Check-In - Invalid Challenge 2
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+  * Node's clCustomer port
+
+##### Description 
+
+The test establishes a home node agreement with the node. Then it performs the check-in process but it uses invalid challenge.
+
+###### Step 1:
+The test establishes a TLS connection to the clNonCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge1 := StartConversationRequest.clientChallenge`
+  
+and reads the response. Then it sends *HomeNodeRequestRequest*:
+
+  * `Message.id := 2`
+  * `HomeNodeRequestRequest.contract` is uninitialized
+  
+and reads the response.
+  
+###### Step 2:
+The test then closes the connection and establishes a TLS connection to the clCustomer port of the node and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test's identity 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge2 := StartConversationRequest.clientChallenge`
+
+and reads the response from the node in form of *StartConversationResponse*:
+
+  * `$Challenge := StartConversationResponse.challenge`
+
+Then it sends *CheckInRequest*:
+
+  * `Message.id := 2`
+  * `CheckInRequest.challenge` is set to first 16 bytes of $Challenge
+  * `ConversationRequest.signature` is set to a signature of `CheckInRequest` part of the message using the test's identity private key
+  
+and reads the response.
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge1
+  * `StartConversationResponse.clientChallenge == $ClientChallenge1`
+
+Node replies with *HomeNodeRequestResponse*:
+
+  * `Message.id == 2`
+  * `Response.status == STATUS_OK`
+
+
+###### Step 2:
+Node replies with *StartConversationResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge2
+  * `StartConversationResponse.clientChallenge == $ClientChallenge2`
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "challenge"`
+
+
+
+
 
 
 
@@ -6870,7 +7090,7 @@ and disconnects.
 
 ###### Step 8:
 
-The second identity reads *ApplicationServiceSendMessageResponse* (#1 to callee received).
+After a 5 second wait, the second identity reads *ApplicationServiceSendMessageResponse* (#1 to callee received).
 
 Then it reads *ApplicationServiceReceiveMessageNotificationRequest* (#1 to CALLER).
 
@@ -8463,4 +8683,197 @@ Node replies with *ApplicationServiceSendMessageResponse*:
 
 
 
+
+
+
+
+
+### HN06xxx - Profile Search Related Functionality Tests
+
+#### HN06001 - Profile Search - Simple Search 1
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+  * "images/HN06001.jpg" file exists and contains JPEG image with size less than 20 kb
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+
+##### Description 
+
+The test fills in the node's database with a newly created profiles and then performs several diffent search queries.
+
+
+###### Step 1:
+
+The test creates a primary identity which it uses for getting list of ports performing the search and then 
+it creates the following identities, establishes home node agreements with the node, and initialize their profiles, 
+for the sole purpose of being able to search among their profiles:
+
+  * $profileInfo1 is `type := "Profile Type A", name := "Shanghai 1",   image := "images/HN06001.jpg", location := (31.23, 121.47),  extraData = null`
+  * $profileInfo2 is `type := "Profile Type A", name := "Mumbai 1",     image := "images/HN06001.jpg", location := (18.96, 72.82),   extraData = "t=running,Cycling,ice hockey,water polo"`
+  * $profileInfo3 is `type := "Profile Type A", name := "Karachi",      image := null,                 location := (24.86, 67.01),   extraData = "l=Karachi,PK;a=iop://185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969;t=traveling,cycling,running"`
+  * $profileInfo4 is `type := "Profile Type B", name := "Buenos Aires", image := "images/HN06001.jpg", location := (-34.61, -58.37), extraData = null`
+  * $profileInfo5 is `type := "Profile Type B", name := "Shanghai 2",   image := null,                 location := (31.231, 121.47), extraData = "running"`
+  * $profileInfo6 is `type := "Profile Type C", name := "Mumbai 2",     image := "images/HN06001.jpg", location := (18.961, 72.82),  extraData = "MTg1ZjhkYjMyMjcxZmUyNWY1NjFhNmZjOTM4YjJlMjY0MzA2ZWMzMDRlZGE1MTgwMDdkMTc2NDgyNjM4MTk2OQ=="`
+  * $profileInfo7 is `type := "Profile Type C", name := "Mumbai 3",     image := null,                 location := (18.961, 72.82),  extraData = "t=running;l=Mumbai,IN"`
+
+
+
+###### Step 2:
+
+Using the primary identity, the test establishes a new TLS connection to the node's clNonCustomer port 
+and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
+ 
+and reads the response.
+
+Then it sends *ProfileSearchRequest* to find all test profiles:
+
+  * `Message.id := 2`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+###### Step 3:
+
+Then it sends *ProfileSearchRequest*:
+
+and reads the response.
+
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+
+The test successfully obtains list of ports on which the node provides its services. 
+Then the test successfully establishes home node agreements for its test identities.
+Then the test successfully initializes all test profiles. 
+
+
+###### Step 2:
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
+
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+
+
+
+
+
+
+
+#### HN06002 - Profile Search - Empty Database
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+
+##### Description 
+
+The test performs a search query when the node has empty database.
+
+
+###### Step 1:
+
+The test creates a primary identity which it uses for getting list of ports and then it establishes 
+a new TLS connection to the node's clNonCustomer port and sends *StartConversationRequest*:
+
+  * `Message.id := 1`
+  * `StartConversationRequest.supportedVersions := [[1,0,0]]`
+  * `StartConversationRequest.publicKey` set to the test identity's 32 byte long public key
+  * `StartConversationRequest.clientChallenge` set to 32 byte random challenge; `$ClientChallenge := StartConversationRequest.clientChallenge`
+ 
+and reads the response. 
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 2`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+
+The test successfully obtains list of ports on which the node provides its services. 
+
+Node replies with *StartConversationResponse*:
+  
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ConversationResponse.signature` is a valid signature of $ClientChallenge
+  * `StartConversationResponse.clientChallenge == $ClientChallenge`
+
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 1`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 0`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 0`
 
