@@ -131,11 +131,27 @@ message NodeProfile
 {
   // TODO do we also need a public key here or will it anyway be checked via the DHT?
   bytes  nodeId = 1;
-  bytes  ipv4Address = 2;
-  uint32 ipv4Port = 3;
-  bytes  ipv6Address = 4;
-  uint32 ipv6Port = 5;
+  repeated Contact contacts = 2;
 };
+
+
+message Contact {
+  oneof ContactType {
+    Ipv4Address ipv4 = 1;
+    Ipv6Address ipv6 = 2;
+  }
+}
+
+message Ipv4Address {
+  string host = 1;
+  uint32 port = 2;
+}
+
+message Ipv6Address {
+  string host = 1;
+  uint32 port = 2;
+}
+
 
 
 message RegisterServiceRequest {
