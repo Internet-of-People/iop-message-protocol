@@ -8690,7 +8690,7 @@ Node replies with *ApplicationServiceSendMessageResponse*:
 
 ### HN06xxx - Profile Search Related Functionality Tests
 
-#### HN06001 - Profile Search - Simple Search 1
+#### HN06001 - Profile Search - Simple Search
 
 ##### Prerequisites/Inputs
 
@@ -8755,9 +8755,408 @@ and reads the response.
 
 ###### Step 3:
 
-Then it sends *ProfileSearchRequest*:
+Then it sends *ProfileSearchRequest* to find profiles 4 and 5 by their type:
+
+  * `Message.id := 3`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "*Type B"`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
 
 and reads the response.
+
+
+###### Step 4:
+
+Then it sends *ProfileSearchRequest* to find profiles 6 and 7 by their type:
+
+  * `Message.id := 4`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "Profile Type C"`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+  
+###### Step 5:
+
+Then it sends *ProfileSearchRequest* to find profiles 2, 6 and 7 by their name:
+
+  * `Message.id := 5`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := "Mumbai *"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+  
+###### Step 6:
+
+Then it sends *ProfileSearchRequest* to find profiles 1, 2, 4, 5, 6 and 7 by their name:
+
+  * `Message.id := 6`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := "*ai*"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+  
+###### Step 7:
+
+Then it sends *ProfileSearchRequest* to find profiles 6 and 7 by their location:
+
+  * `Message.id := 7`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := 18961000`
+  * `ProfileSearchRequest.longitude := 72820000`
+  * `ProfileSearchRequest.radius := 10`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+  
+###### Step 8:
+
+Then it sends *ProfileSearchRequest* to find profiles 2, 6 and 7 by their location:
+
+  * `Message.id := 8`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := 18961000`
+  * `ProfileSearchRequest.longitude := 72820000`
+  * `ProfileSearchRequest.radius := 5000`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+###### Step 9:
+
+Then it sends *ProfileSearchRequest* to find no profiles because of the location filter:
+
+  * `Message.id := 9`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := -12345678`
+  * `ProfileSearchRequest.longitude := 12345678`
+  * `ProfileSearchRequest.radius := 5000`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+###### Step 10:
+
+Then it sends *ProfileSearchRequest* to find no profiles because of the extra data filter:
+
+  * `Message.id := 10`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "no profiles"`
+
+and reads the response.
+
+
+###### Step 11:
+
+Then it sends *ProfileSearchRequest* to find profiles 2, 3 and 7 by their extraData information:
+
+  * `Message.id := 11`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "(^|;)t=(|[^=]+,)running([;,]|$)"`
+
+and reads the response.
+
+
+###### Step 12:
+
+Then it sends *ProfileSearchRequest* to find profiles 2, 3, 5, 6, 7, but only return first 2 records:
+
+  * `Message.id := 12`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 2`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ".+"`
+
+and reads the response. Then it sends *ProfileSearchPartRequest* to get the next 2 records:
+
+  * `Message.id := 13`
+  * `ProfileSearchPartRequest.recordIndex := 2`
+  * `ProfileSearchPartRequest.recordCount := 2`
+
+and reads the response. Then it sends *ProfileSearchPartRequest* to get the remaining record:
+
+  * `Message.id := 14`
+  * `ProfileSearchPartRequest.recordIndex := 4`
+  * `ProfileSearchPartRequest.recordCount := 1`
+
+and reads the response. Then it sends *ProfileSearchPartRequest* to get all records again:
+
+  * `Message.id := 15`
+  * `ProfileSearchPartRequest.recordIndex := 0`
+  * `ProfileSearchPartRequest.recordCount := 5`
+
+and reads the response.
+
+
+###### Step 13:
+
+Then it sends *ProfileSearchRequest* to find profiles 2, 3 and 7 by their extraData information, but only search for and get 2 records without images:
+
+  * `Message.id := 16`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := false`
+  * `ProfileSearchRequest.maxResponseRecordCount := 2`
+  * `ProfileSearchRequest.maxTotalRecordCount := 2`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "(^|;)t=(|[^=]+,)running([;,]|$)"`
+
+and reads the response.
+
+
+
+###### Step 14:
+
+Then it sends *ProfileSearchRequest* to find all profiles by their type:
+
+  * `Message.id := 17`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "profile*"`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+  
+###### Step 15:
+
+Then it sends *ProfileSearchRequest* to find all profiles by their type:
+
+  * `Message.id := 18`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "*file*"`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+  
+###### Step 16:
+
+Then it sends *ProfileSearchRequest* to find all profiles by their type:
+
+  * `Message.id := 19`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "**"`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+  
+###### Step 17:
+
+Then it sends *ProfileSearchRequest* to find all profiles by their type:
+
+  * `Message.id := 20`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "*"`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+
+###### Step 18:
+
+Then it sends *ProfileSearchRequest* to find profiles 1 and 2 by their name:
+
+  * `Message.id := 21`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := "*1"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+###### Step 19:
+
+Then it sends *ProfileSearchRequest* to find profile 1 its name:
+
+  * `Message.id := 22`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := "Shanghai 1"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+
+###### Step 20:
+
+Then it sends *ProfileSearchRequest* to find all profiles by their name:
+
+  * `Message.id := 23`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := "**"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+
+###### Step 21:
+
+Then it sends *ProfileSearchRequest* to find all profiles by their name:
+
+  * `Message.id := 24`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := "*"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+###### Step 22:
+
+Then it sends *ProfileSearchRequest* to find profile 2 using multiple criteria:
+
+  * `Message.id := 25`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := "*Type A"`
+  * `ProfileSearchRequest.name := "*ai*"`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "water"`
+
+and reads the response.
+
 
 
   
@@ -8783,7 +9182,7 @@ Node replies with *StartConversationResponse*:
 
 Node sends *ProfileSearchResponse*:
 
-  * `Message.id == 1`
+  * `Message.id == 2`
   * `Response.status == STATUS_OK`
   * `ProfileSearchResponse.totalRecordCount == 7`
   * `ProfileSearchResponse.maxResponseRecordCount == 100`
@@ -8801,7 +9200,392 @@ Node sends *ProfileSearchResponse*:
 
 
 
+###### Step 3:
 
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 3`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 2`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 2`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+    )`
+
+
+
+
+###### Step 4:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 4`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 2`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 2`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+  
+###### Step 5:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 5`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 3`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 3`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+  
+###### Step 6:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 6`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 6`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 6`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+  
+###### Step 7:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 7`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 2`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 2`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+  
+###### Step 8:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 8`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 3`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 3`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+###### Step 9:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 9`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 0`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 0`
+
+
+###### Step 10:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 10`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 0`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 0`
+
+
+###### Step 11:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 11`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 3`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 3`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+
+###### Step 12:
+
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 12`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 5`
+  * `ProfileSearchResponse.maxResponseRecordCount == 2`
+  * `ProfileSearchResponse.profiles.Count == 2`
+  * `$SetA := ProfileSearchResponse.profiles`
+
+
+Node sends *ProfileSearchPartResponse*:
+
+  * `Message.id == 13`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchPartResponse.recordIndex == 2`
+  * `ProfileSearchPartResponse.recordCount == 2`
+  * `ProfileSearchPartResponse.profiles.Count == 2`
+  * `$SetB := ProfileSearchPartResponse.profiles`
+
+
+Node sends *ProfileSearchPartResponse*:
+
+  * `Message.id == 14`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchPartResponse.recordIndex == 4`
+  * `ProfileSearchPartResponse.recordCount == 1`
+  * `ProfileSearchPartResponse.profiles.Count == 1`
+  * `$SetC := ProfileSearchPartResponse.profiles`
+
+
+Node sends *ProfileSearchPartResponse*:
+
+  * `Message.id == 15`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchPartResponse.recordIndex == 0`
+  * `ProfileSearchPartResponse.recordCount == 5`
+  * `ProfileSearchPartResponse.profiles.Count == 5`
+  * `$SetAll := ProfileSearchPartResponse.profiles ==
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+  * `$SetA + $SetB + $SetC == $SetAll`
+
+
+
+###### Step 13:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 16`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 2`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 2`
+  * `ProfileSearchResponse.profiles == any two of 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+
+###### Step 14:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 17`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+###### Step 15:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 18`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+###### Step 16:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 19`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+###### Step 17:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 20`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+###### Step 18:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 21`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 2`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 2`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+    )`
+
+
+###### Step 19:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 22`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 1`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 1`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+    )`
+
+
+###### Step 20:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 23`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+###### Step 21:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 24`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 7`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 7`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo1; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo4; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+
+###### Step 22:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 25`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 1`
+  * `ProfileSearchResponse.maxResponseRecordCount == 100`
+  * `ProfileSearchResponse.profiles.Count == 1`
+  * `ProfileSearchResponse.profiles == 
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+    )`
 
 
 
@@ -8876,4 +9660,87 @@ Node sends *ProfileSearchResponse*:
   * `ProfileSearchResponse.totalRecordCount == 0`
   * `ProfileSearchResponse.maxResponseRecordCount == 100`
   * `ProfileSearchResponse.profiles.Count == 0`
+
+
+
+
+
+
+
+
+#### HN06003 - Profile Search - Mass Location Search
+
+##### Prerequisites/Inputs
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+
+##### Description 
+
+The test creates a large number of identities, for which it establishes home node agreements with the node. 
+Then it performs a number of search queries with a focus on GPS location of the created identities and verifies the results. 
+
+
+###### Step 1:
+
+The test creates a primary identity which it uses for getting list of ports and then that it will use for sending search queries. 
+
+The test generates positive integers R1, R2, and R3:
+
+  * `20,000 < R2 < 150,000`
+  * `5,000 < R1 < 0.8 * R2`
+  * `1.50 * R2 < R3 < 500,000`
+
+The test generates 20 GPS locations, first 15 locations are generated as follows:
+
+  * Location 1 is within R2 range of (0.0, 0.0),
+  * location 2 is within R2 range of (89.9, 0.0),
+  * location 3 is within R2 range of (-89.9, 0.0),
+  * location 4 is within R2 range of (40.0, 0.0),
+  * location 5 is within R2 range of (0.0, 179.9),
+  * location 6 is within R2 range of (89.9, 179.9),
+  * location 7 is within R2 range of (-89.9, 179.9),
+  * location 8 is within R2 range of (40.0, 179.9),
+  * location 9 is within R2 range of (0.0, -179.9),
+  * location 10 is within R2 range of (89.9, -179.9),
+  * location 11 is within R2 range of (-89.9, -179.9),
+  * location 12 is within R2 range of (40.0, -179.9),
+  * location 13 is within R2 range of (0.0, 50.0),
+  * location 14 is within R2 range of (89.9, 50.0),
+  * location 15 is within R2 range of (-89.9, 50.0).
+
+the remaining 5 locations are random GPS locations.
+
+For each of 20 locations, the test generates, establishes home nodes agreements, and initializes profiles of 10 identities 
+that are all located randomly within R1 range of the location, 10 identities within R2 range and 10 identities within R3 range.
+
+
+###### Step 2:
+
+The test performs search queries using *ProfileSearchRequest*. For each of the 20 locations, it searches for profiles 
+located within R1, R2 and R3 and a random number (new for each query) within the range of 1,000,000 to 10,000,000.
+The tests verifies that the search results match the expected results.
+
+
+
+
+  
+##### Acceptance Criteria
+
+
+###### Step 1:
+
+The test successfully obtains list of ports on which the node provides its services. 
+Then the test successfully establishes home node agreements for its test identities.
+Then the test successfully initializes all test profiles. 
+
+
+###### Step 2:
+
+The node's results for each search query match locally computed expected results. 
 

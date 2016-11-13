@@ -53,7 +53,7 @@
 //                      IoP token.
 //
 //  * WildcardType - UTF-8 string with optional '*' wildcard character prefix or suffix, which represents any substring.
-//                   Matching is case sensitive. The format of this string is thus one of the following formats:
+//                   Matching is case insensitive. The format of this string is thus one of the following formats:
 //
 //                    * "data*" - starts with "data"
 //                    * "*data" - ends with "data"
@@ -1270,7 +1270,7 @@ message ProfileSearchRequest {
   bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
   uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
-                                                   // this has to be an integer between 1 and 1000.
+                                                   // this has to be an integer between 1 and 1000. The value must not be greater than 'maxTotalRecordCount'.
   uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the node will look for and save. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 1000. If 'includeThumbnailImages' is false,
                                                    // this has to be an integer between 1 and 10000.
