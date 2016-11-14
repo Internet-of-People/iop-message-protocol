@@ -1005,6 +1005,86 @@ Node replies with *Response*:
 
 
 
+#### HN01015 - Profile Search - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test sends *ProfileSearchRequest* to the primary port, but it requires clNonCustomer or clCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *ProfileSearchRequest*:
+
+  * `Message.id := 1`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
+#### HN01016 - Profile Search Part - Bad Role
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test sends *ProfileSearchPartRequest* to the primary port, but it requires clNonCustomer or clCustomer port to be used.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 1`
+  * `ProfileSearchPartRequest.recordIndex := 0`
+  * `ProfileSearchPartRequest.recordCount := 10`
+ 
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_ROLE`
+
+
+
+
+
 
 
 
@@ -2451,6 +2531,89 @@ Node replies with *ProfileStatsResponse*:
 
 
 
+#### HN02025 - Profile Search - Bad Conversation Status
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test sends *ProfileSearchRequest* request to the node without starting the conversation first.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *ProfileSearchRequest*:
+
+  * `Message.id := 1`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
+
+
+
+
+
+#### HN02026 - Profile Search Part - Bad Conversation Status
+
+##### Prerequisites/Inputs
+
+###### Inputs:
+  * Node's IP address
+  * Node's clNonCustomer port
+
+##### Description 
+
+The test sends *ProfileSearchPartRequest* request to the node without starting the conversation first.
+
+###### Step 1:
+
+The test connects to the primary port of the node and sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 1`
+  * `ProfileSearchPartRequest.recordIndex := 0`
+  * `ProfileSearchPartRequest.recordCount := 10`
+ 
+and reads the response.
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+Node replies with *Response*:
+  
+  * `Message.id == 1`
+  * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
+
+
+
+
+
+
+
+
 
 
 
@@ -2655,9 +2818,6 @@ Node replies with *Response*:
   
   * `Message.id == 1`
   * `Response.status == ERROR_BAD_CONVERSATION_STATUS`
-
-
-
 
 
 
@@ -9158,6 +9318,48 @@ Then it sends *ProfileSearchRequest* to find profile 2 using multiple criteria:
 and reads the response.
 
 
+###### Step 23:
+
+Then it sends *ProfileSearchRequest* to find profiles 2, 3, 5, 6, 7, but only return first 2 records:
+
+  * `Message.id := 26`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 2`
+  * `ProfileSearchRequest.maxTotalRecordCount := 100`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ".+"`
+
+and reads the response. After 15 seconds wait, it sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 27`
+  * `ProfileSearchPartRequest.recordIndex := 8`
+  * `ProfileSearchPartRequest.recordCount := 2`
+
+and reads the response. After 15 seconds wait, it sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 28`
+  * `ProfileSearchPartRequest.recordIndex := 4`
+  * `ProfileSearchPartRequest.recordCount := 5`
+
+and reads the response. After 22 seconds wait, it sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 29`
+  * `ProfileSearchPartRequest.recordIndex := 0`
+  * `ProfileSearchPartRequest.recordCount := 500`
+
+and reads the response. Then it sends *ProfileSearchPartRequest* to get all records:
+
+  * `Message.id := 30`
+  * `ProfileSearchPartRequest.recordIndex := 0`
+  * `ProfileSearchPartRequest.recordCount := 5`
+
+and reads the response.
+
 
   
 ##### Acceptance Criteria
@@ -9345,7 +9547,6 @@ Node sends *ProfileSearchResponse*:
 
 
 ###### Step 12:
-
 
 Node sends *ProfileSearchResponse*:
 
@@ -9589,6 +9790,57 @@ Node sends *ProfileSearchResponse*:
 
 
 
+###### Step 23:
+
+Node sends *ProfileSearchResponse*:
+
+  * `Message.id == 26`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchResponse.totalRecordCount == 5`
+  * `ProfileSearchResponse.maxResponseRecordCount == 2`
+  * `ProfileSearchResponse.profiles.Count == 2`
+
+
+Node sends *Response*:
+
+  * `Message.id == 27`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "recordIndex"`
+
+
+Node sends *Response*:
+
+  * `Message.id == 28`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "recordCount"`
+
+
+Node sends *Response*:
+
+  * `Message.id == 29`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "recordCount"`
+
+
+Node sends *ProfileSearchPartResponse*:
+
+  * `Message.id == 30`
+  * `Response.status == STATUS_OK`
+  * `ProfileSearchPartResponse.recordIndex == 0`
+  * `ProfileSearchPartResponse.recordCount == 5`
+  * `ProfileSearchPartResponse.profiles.Count == 5`
+  * `$SetAll := ProfileSearchPartResponse.profiles ==
+    (
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo2; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo3; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo5; image == empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo6; image != empty},
+      {isHosted == true, isOnline == false; type, name, latitude, longitude, extraData match $profileInfo7; image == empty},
+    )`
+
+
+
+
 
 
 #### HN06002 - Profile Search - Empty Database
@@ -9743,4 +9995,564 @@ Then the test successfully initializes all test profiles.
 ###### Step 2:
 
 The node's results for each search query match locally computed expected results. 
+
+
+
+
+
+
+
+
+
+
+
+#### HN06004 - Profile Search - Invalid Queries
+
+###### Prerequisites:
+  * Node's database is empty.
+
+###### Inputs:
+  * Node's IP address
+  * Node's primary port
+
+##### Description 
+
+The test performs a set of profile search queries with invalid values.
+
+###### Step 1:
+
+The test creates obtains list of service ports and then the test establishes a new TLS connection to the node's clNonCustomer port and establishes a conversation.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 2`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 0`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 3`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 200`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 4`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := false`
+  * `ProfileSearchRequest.maxResponseRecordCount := 1200`
+  * `ProfileSearchRequest.maxTotalRecordCount := 2000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 5`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 50`
+  * `ProfileSearchRequest.maxTotalRecordCount := 25`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 6`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 50`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1001`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 7`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := false`
+  * `ProfileSearchRequest.maxResponseRecordCount := 50`
+  * `ProfileSearchRequest.maxTotalRecordCount := 10010`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 8`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type` is set to string containing 70x 'a'
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 9`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type` is set to string containing 50x 'ɐ' (UTF8 code 0xc990), which consumes 2 bytes per character
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 10`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name` is set to string containing 70x 'a'
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 11`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name` is set to string containing 50x 'ɐ' (UTF8 code 0xc990), which consumes 2 bytes per character
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 12`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := -90,000,001`
+  * `ProfileSearchRequest.longitude := 1`
+  * `ProfileSearchRequest.radius := 1`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 13`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := 90,000,001`
+  * `ProfileSearchRequest.longitude := 1`
+  * `ProfileSearchRequest.radius := 1`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 14`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := 1`
+  * `ProfileSearchRequest.longitude := -180,000,000`
+  * `ProfileSearchRequest.radius := 1`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 15`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := 1`
+  * `ProfileSearchRequest.longitude := 180,000,001`
+  * `ProfileSearchRequest.radius := 1`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 16`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := 1`
+  * `ProfileSearchRequest.longitude := 1`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := ""`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 17`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData` is set to string containing 300x 'a'
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 18`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData` is set to string containing 150x 'ɐ' (UTF8 code 0xc990), which consumes 2 bytes per character
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 19`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "(^|;)key=([^=]+;)?va(?'alpha')lue($|,|;)"`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 20`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "iuawhefiuhawef\aaerwergj"`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 21`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "aerghearg\beraarg"`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 22`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "afewafawefwaef\"`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 23`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "(^|;)key=([^=]+;)?(?<double>A)B<double>($|,|;)"`
+
+and reads the response.
+
+Then it sends *ProfileSearchRequest*:
+
+  * `Message.id := 24`
+  * `ProfileSearchRequest.includeHostedOnly := false`
+  * `ProfileSearchRequest.includeThumbnailImages := true`
+  * `ProfileSearchRequest.maxResponseRecordCount := 100`
+  * `ProfileSearchRequest.maxTotalRecordCount := 1000`
+  * `ProfileSearchRequest.type := ""`
+  * `ProfileSearchRequest.name := ""`
+  * `ProfileSearchRequest.latitude := NO_LOCATION`
+  * `ProfileSearchRequest.longitude := NO_LOCATION`
+  * `ProfileSearchRequest.radius := 0`
+  * `ProfileSearchRequest.extraData := "(^|;)key=rai??n($|,|;)"`
+
+and reads the response.
+
+
+###### Step 2:
+
+Then it sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 25`
+  * `ProfileSearchPartRequest.recordIndex := 10`
+  * `ProfileSearchPartRequest.recordCount := 20`
+
+
+
+##### Acceptance Criteria
+
+###### Step 1:
+
+The test successfully obtains list of ports on which the node provides its services and establishes a conversation.
+
+Node replies with *Response*:
+
+  * `Message.id == 2`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "maxResponseRecordCount"`
+
+Node replies with *Response*:
+
+  * `Message.id == 3`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "maxResponseRecordCount"`
+
+Node replies with *Response*:
+
+  * `Message.id == 4`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "maxResponseRecordCount"`
+
+Node replies with *Response*:
+
+  * `Message.id == 5`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "maxResponseRecordCount"`
+
+Node replies with *Response*:
+
+  * `Message.id == 6`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "maxTotalRecordCount"`
+
+Node replies with *Response*:
+
+  * `Message.id == 7`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "maxTotalRecordCount"`
+
+Node replies with *Response*:
+
+  * `Message.id == 8`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "type"`
+
+Node replies with *Response*:
+
+  * `Message.id == 9`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "type"`
+
+Node replies with *Response*:
+
+  * `Message.id == 10`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "name"`
+
+Node replies with *Response*:
+
+  * `Message.id == 11`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "name"`
+
+Node replies with *Response*:
+
+  * `Message.id == 12`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "latitude"`
+
+Node replies with *Response*:
+
+  * `Message.id == 13`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "latitude"`
+
+Node replies with *Response*:
+
+  * `Message.id == 14`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "longitude"`
+
+Node replies with *Response*:
+
+  * `Message.id == 15`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "longitude"`
+
+Node replies with *Response*:
+
+  * `Message.id == 16`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "radius"`
+
+Node replies with *Response*:
+
+  * `Message.id == 17`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 18`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 19`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 20`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 21`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 22`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 23`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+Node replies with *Response*:
+
+  * `Message.id == 24`
+  * `Response.status == ERROR_INVALID_VALUE`
+  * `Response.details == "extraData"`
+
+
+###### Step 2:
+
+Then it sends *ProfileSearchPartRequest*:
+
+  * `Message.id := 25`
+  * `Response.status == ERROR_NOT_AVAILABLE`
+
 
