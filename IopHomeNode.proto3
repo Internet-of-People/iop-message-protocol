@@ -1256,7 +1256,8 @@ message ProfileStatsItem {
 // to obtain more results with subsequent ProfileSearchPartRequest messages.
 //
 // The node will not save more than 'maxTotalRecordCount' search requests. 
-// The node will delete the cached search results after 5 minutes from receiving ProfileSearchRequest. 
+// The node has allow the client to get additional results at least 1 minute from receiving ProfileSearchRequest,
+// but it can maintain the result cache for longer than that.
 //
 // Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
 //
