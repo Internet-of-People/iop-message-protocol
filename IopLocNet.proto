@@ -173,8 +173,8 @@ message GetNeighbourNodesByDistanceRequest {
 }
 
 message GpsLocation {
-  optional sint32 latitude = 1;
-  optional sint32 longitude = 2;
+  optional sfixed32 latitude = 1;
+  optional sfixed32 longitude = 2;
 }
 
 message NodeInfo {
