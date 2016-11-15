@@ -8,7 +8,8 @@ package iop.locnet;
 
 
 
-// TODO remove commented values if confirmed to be unused
+// TODO probably status codes should be shared between network protocols
+//      if not then remove commented values when they are confirmed to be unused
 enum Status {
   // General codes that can be returned to any message.
   STATUS_OK = 0;                                   // The operation completed successfully.
@@ -116,14 +117,19 @@ message LocalServiceResponse {
 
 enum ServiceType
 {
-  // TODO are low level "networks" directly reachable by clients?
-  //      If so, should be included here
-  Token       = 0;
-  Profile     = 1;
-  Proximity   = 2;
-  Relay       = 3;
-  Reputation  = 4;
-  Minting     = 5;
+// Low level networks
+  Unstructured = 0;
+  Content      = 1;
+  Latency      = 2;
+  Location     = 3;
+
+// High level servers
+  Token       = 10;
+  Profile     = 11;
+  Proximity   = 12;
+  Relay       = 13;
+  Reputation  = 14;
+  Minting     = 15;
 };
 
 
@@ -267,7 +273,12 @@ message ClientResponse {
 message GetServicesRequest {
 }
 
+message ServiceProfile {
+  ServiceType serviceType = 1;
+  NodeProfile profile = 2;
+}
+
 message GetServicesResponse {
-  repeated NodeProfile services = 1;
+  repeated ServiceProfile services = 1;
 }
 
