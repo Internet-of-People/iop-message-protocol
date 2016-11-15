@@ -103,7 +103,7 @@ message LocalServiceRequest {
   oneof LocalServiceRequestType {
     RegisterServiceRequest registerService = 1;
     DeregisterServiceRequest deregisterService = 2;
-    GetNeighbourNodesByDistanceRequest getNeighbours = 3;
+    GetNeighbourNodesByDistanceRequest getNeighbourNodes = 3;
   }
 }
 
@@ -111,7 +111,7 @@ message LocalServiceResponse {
   oneof LocalServiceResponseType {
     RegisterServiceResponse registerService = 1;
     DeregisterServiceResponse deregisterService = 2;
-    GetNeighbourNodesByDistanceResponse getNeighbours = 3;
+    GetNeighbourNodesByDistanceResponse getNeighbourNodes = 3;
   }
 }
 
@@ -189,7 +189,7 @@ message NodeInfo {
 }
 
 message GetNeighbourNodesByDistanceResponse {
-  repeated NodeInfo nodeInfo = 1;
+  repeated NodeInfo nodes = 1;
 }
 
 message RemoteNodeRequest {
