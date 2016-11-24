@@ -97,7 +97,7 @@
 //                  by 1,000,000 and converted to the integer (cutting of any digits right of the decimal point without 
 //                  rounding). To get the floating point value back, simply divide the integer value by 1,000,000.
 //                  For latitudes, valid values are in range [-90,000,000;90,000,000], for longitudes the range is 
-//                  [-179,999,999;180,000,000]. A special constant NO_LOCATION = (int)0xFFFFFFFF is reserved for no location.
+//                  [-179,999,999;180,000,000]. A special constant NO_LOCATION = 0x7FFFFFFF is reserved for no location.
 //
 //
 //
