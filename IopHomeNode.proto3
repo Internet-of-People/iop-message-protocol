@@ -52,6 +52,52 @@
 //                      a numberical value of 100,000,000 within a TokenAmountType field represents 1 full 
 //                      IoP token.
 //
+//  * WildcardType - UTF-8 string with optional '*' wildcard character prefix or suffix, which represents any substring.
+//                   Matching is case insensitive. The format of this string is thus one of the following formats:
+//
+//                    * "data*" - starts with "data"
+//                    * "*data" - ends with "data"
+//                    * "*data*" - contains "data"
+//                    * "data" - is exactly "data"
+//
+//                   Any additional '*' characters are interpreted as parts of the value.
+//
+//  * RegexType - Case-sensitive UTF-8 regular expression string supporting following rules:
+//
+//                 * "\xnn" - Matches a single byte character by using hexadecimal representation (nn consists 
+//                            of exactly two digits).
+//                 * "\unnnn" - Matches a Unicode character by using hexadecimal representation (exactly four digits, 
+//                              as represented by nnnn).
+//                 * "\.", "\*", "\-", "\+", "\[", "\]", "\\", "\?", "\^", "\|", "\(", "\)", "\{", "\}" - Escapes special character.
+//                 * "[characterGroup]" - Matches any single character in characterGroup.
+//                 * "[^characterGroup]" - Matches any single character that is not in characterGroup.
+//                 * "[first-last]" - Matches any single character in the range from first to last. 
+//                 * "." - Matches any single character.
+//                 * "\w" - Matches any word character.
+//                 * "\W" - Matches any non-word character.
+//                 * "\s" - Matches any white-space character.
+//                 * "\S" - Matches any non-white-space character.
+//                 * "\d" - Matches any decimal digit.
+//                 * "\D" - Matches any character other than a decimal digit.
+//                 * "^" - The match must start at the beginning of the string. 
+//                 * "$" - The match must occur at the end of the string.
+//                 * "*" - Matches the previous element zero or more times.
+//                 * "+" - Matches the previous element one or more times.
+//                 * "?" - Matches the previous element zero or one time.
+//                 * "{n}" - Matches the previous element exactly n times.
+//                 * "{n,}" - Matches the previous element at least n times.
+//                 * "{n,m}" - Matches the previous element at least n times, but no more than m times. 
+//                 * "|" - Matches any one element separated by the vertical bar '|' character.
+//                 * "(subexpression)" - Captures the matched subexpression.
+//
+//               No other rules or special characters are allowed to appear in the regular expression of this type.
+//
+// * LocationType - Represents GPS location latitude or longitude. It is a signed integer that stores decimal(9,6)
+//                  type, which means that a floating point value of the latitude or longitude is multiplied
+//                  by 1,000,000 and converted to the integer (cutting of any digits right of the decimal point without 
+//                  rounding). To get the floating point value back, simply divide the integer value by 1,000,000.
+//                  For latitudes, valid values are in range [-90,000,000;90,000,000], for longitudes the range is 
+//                  [-179,999,999;180,000,000]. A special constant NO_LOCATION = (int)0xFFFFFFFF is reserved for no location.
 //
 //
 //
@@ -197,6 +243,8 @@ message SingleRequest {
     GetIdentityInformationRequest getIdentityInformation = 5;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
+    ProfileStatsRequest profileStats = 8;
+    GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 9;
   }
 }
 
@@ -215,6 +263,8 @@ message SingleResponse {
     GetIdentityInformationResponse getIdentityInformation = 5;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
+    ProfileStatsResponse profileStats = 8;
+    GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 9;
   }
 }
 
@@ -237,6 +287,10 @@ message ConversationRequest {
     ApplicationServiceRemoveRequest applicationServiceRemove = 9;
     CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
     IncomingCallNotificationRequest incomingCallNotification = 11;
+    ProfileSearchRequest profileSearch = 12;
+    ProfileSearchPartRequest profileSearchPart = 13;
+    AddRelatedIdentityRequest addRelatedIdentity = 14;
+    RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
   }
 }
 
@@ -257,6 +311,10 @@ message ConversationResponse {
     ApplicationServiceRemoveResponse applicationServiceRemove = 9;
     CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
     IncomingCallNotificationResponse incomingCallNotification = 11;
+    ProfileSearchResponse profileSearch = 12;
+    ProfileSearchPartResponse profileSearchPart = 13;
+    AddRelatedIdentityResponse addRelatedIdentity = 14;
+    RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
   }
 }
 
@@ -524,8 +582,8 @@ message ListHomeNodePlansResponse {
 
 // Description of a home node hosting plan.
 message HomeNodePlan {
-  bytes planId = 1;                                // Identifier of the plan is an SHA1 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
-                                                   // with planId initialized to a byte array of 20 zero bytes.
+  bytes planId = 1;                                // Identifier of the plan is an SHA256 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
+                                                   // with planId initialized to a byte array of 32 zero bytes.
   bytes nodeNetworkId = 2;                         // Identifier of the node that offers the plan.
   string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
                                                    // at the end of the type to support multiple types to be served with a single plan. 
@@ -565,7 +623,7 @@ message StartConversationRequest {
 // A response to StartConversationRequest in case the requestee found at least one protocol version that 
 // both peers are willing to use. 
 // 
-// The 'clientChallenge' field is signed with a signature in 'ConversationResponse.signature'.
+// The 'clientChallenge' field value in raw format is signed with a signature in 'ConversationResponse.signature'.
 // 
 //
 // After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
@@ -709,14 +767,15 @@ message UpdateProfileRequest {
   bool setVersion = 1;                             // Profile version should be updated. 'version' must contain valid data.
   bool setName = 2;                                // Profile name should be updated. 'name' must contain valid data.
   bool setImage = 3;                               // Profile image should be updated. 'image' must contain valid data.
-  bool setLocation = 4;                            // Profile location should be updated. 'location' must contain valid data.
+  bool setLocation = 4;                            // Profile location should be updated. 'latitude' and 'longitude' must contain valid data.
   bool setExtraData = 5;                           // Profile extra data should be updated. 'extraData' must contain valid data.
 
   bytes version = 8;                               // VersionType. Version of the profile structure.
   string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
   bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long.
-  fixed32 location = 11;                           // Encoded GPS location information.
-  string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
+  sfixed32 latitude = 11;                          // LocationType. GPS location latitude information.
+  sfixed32 longitude = 12;                         // LocationType. GPS location longitude information.
+  string extraData = 13;                           // Semicolon separated 'key=value' list, max 200 bytes long.
 }
 
 
@@ -733,7 +792,8 @@ message UpdateProfileRequest {
 //     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
 //     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
 //     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
-//     * Response.details == "location" - 'UpdateProfileRequest.image' does not contain a valid location information.
+//     * Response.details == "latitude" - 'UpdateProfileRequest.latitude' does not contain a valid latitude information.
+//     * Response.details == "longitude" - 'UpdateProfileRequest.longitude' does not contain a valid longitude information.
 //     * Response.details == "extraData" - 'UpdateProfileRequest.extraData' does not contain a valid extra data information.
 //
 message UpdateProfileResponse {
@@ -1016,11 +1076,13 @@ message GetIdentityInformationResponse {
   bytes identityPublicKey = 5;                     // The requested identity's public key.
   string type = 6;                                 // The requested identity's type.
   string name = 7;                                 // The requested identity's name.
-  string extraData = 8;                            // The requested identity's extra data.
-  bytes profileImage = 9;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 10;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  sfixed32 latitude = 8;                           // LocationType. The requested identity's GPS location latitude information.
+  sfixed32 longitude = 9;                          // LocationType. The requested identity's GPS location longitude information.
+  string extraData = 10;                           // The requested identity's extra data.
+  bytes profileImage = 11;                         // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 12;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 11;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 13;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
@@ -1152,5 +1214,327 @@ message ApplicationServiceReceiveMessageNotificationRequest {
 // A response to ApplicationServiceReceiveMessageNotificationRequest.
 // 
 message ApplicationServiceReceiveMessageNotificationResponse {
+}
+
+
+//
+// Obtains identity profiles statistics from a node.
+//
+// Only actively hosted profiles are counted regardless of whether or not the profiles are initialized.
+//
+// Roles: clNonCustomer, clCustomer
+//
+message ProfileStatsRequest {
+}
+
+
+//
+// A response to ProfileStatsRequest.
+// 
+message ProfileStatsResponse {
+  repeated ProfileStatsItem stats = 1;             // List of profile statistics grouped by identity type.
+}
+
+
+//
+// Statistical information on identities of a specific type.
+//
+message ProfileStatsItem {
+  string identityType = 1;                         // Type of identity. 
+  uint32 count = 2;                                // Number of profiles hosted on the node of the specific type of identity.
+}
+
+
+//
+// Asks a node for a list of all identities that match the search criteria. This search never returns 
+// profiles of old customer identities who cancelled their home node agreement, even if the node still 
+// holds some information about those identities.
+//
+// Each search request only produces a limited number of results. The maximal size of the first set of results 
+// is provided by 'maxResponseRecordCount' field. The response to this message contains up to 'maxResponseRecordCount' 
+// results. If there are more results available, they are saved to the conversation context, which enables the client 
+// to obtain more results with subsequent ProfileSearchPartRequest messages.
+//
+// The node will not save more than 'maxTotalRecordCount' search requests. 
+// The node has allow the client to get additional results at least 1 minute from receiving ProfileSearchRequest,
+// but it can maintain the result cache for longer than that.
+//
+// Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
+//
+// Roles: clNonCustomer, clCustomer
+//
+// Conversation status: ConversationStarted, Verified, Authenticated
+//
+message ProfileSearchRequest {
+  bool includeHostedOnly = 1;                      // If set to true, the node only returns profiles of its own customers.
+                                                   // If set to false, profiles from the node's neighborhood can be included in the result.
+  bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
+  uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
+                                                   // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
+                                                   // this has to be an integer between 1 and 1000. The value must not be greater than 'maxTotalRecordCount'.
+  uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the node will look for and save. If 'includeThumbnailImages'
+                                                   // is true, this has to be an integer between 1 and 1000. If 'includeThumbnailImages' is false,
+                                                   // this has to be an integer between 1 and 10000.
+
+  // Search filters.
+  string type = 5;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
+                                                   // of identity types that match the wildcard string. If empty, all identity types are allowed.
+                                                   // Max 64 bytes long.
+  string name = 6;                                 // WildcardType or empty string. If not empty, the node will only return profiles 
+                                                   // with names that match the wildcard string. If empty, all profile names are allowed.
+                                                   // Max 64 bytes long.
+  sfixed32 latitude = 7;                           // LocationType. Encoded target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
+                                                   // it is, in combination with 'longitude' and 'radius' a specification of target area, 
+                                                   // where the identity has to be located (according to its profile information) in order to be 
+                                                   // included in the search results. If NO_LOCATION, 'longitude' and 'radius' are ignored 
+                                                   // and all locations are allowed.
+  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is encoded target GPS location longitude.
+  uint32 radius = 9;                               // If 'latitude' is not NO_LOCATION, this is target location radius in metres.
+  string extraData = 10;                           // RegexType or empty string. If not empty, specifies the regular expression that identity
+                                                   // profile's extra data information must match in order to be included in the results. 
+                                                   // If empty, no filtering based on extra data information is made.
+                                                   // Max 256 bytes long.
+}
+
+
+//
+// A response to ProfileSearchRequest.
+//
+// If 'maxResponseRecordCount' is lower than 'totalRecordCount', the client is allowed to send ProfileSearchPartRequest messages to obtain more results.
+//
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "maxResponseRecordCount" - 'ProfileSearchRequest.maxResponseRecordCount' is not within the required range.
+//     * Response.details == "maxTotalRecordCount" - 'ProfileSearchRequest.maxTotalRecordCount' is not within the required range.
+//     * Response.details == "type" - 'ProfileSearchRequest.type' is too long.
+//     * Response.details == "name" - 'ProfileSearchRequest.name' is too long.
+//     * Response.details == "latitude" - 'ProfileSearchRequest.latitude' is not a valid location latitude.
+//     * Response.details == "longitude" - 'ProfileSearchRequest.longitude' is not a valid location longitude.
+//     * Response.details == "radius" - 'ProfileSearchRequest.radius' is not a valid radius value.
+//     * Response.details == "extraData" - 'ProfileSearchRequest.extraData' is too long or it is not a valid value of RegexType.
+//
+message ProfileSearchResponse {
+  uint32 totalRecordCount = 1;                     // Total number of profiles that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'profiles' list.
+  uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxResponseRecordCount'.
+
+  // Search results.
+  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains no more than 'maxResponseRecordCount' items.
+}
+
+
+
+//
+// Information about a single profile record from a profile search query.
+//
+message IdentityNetworkProfileInformation {
+  bool isHosted = 1;                               // True if the requested identity is a customer of the node.
+  bytes neighborNodeNetworkId = 2;                 // If 'isHosted' is false, this field contains the network ID of the neighbor node that is a home node of the target profile.
+
+  bool isOnline = 3;                               // If 'isHosted' is true, this is true if the requested identity is currently online.
+
+  bytes identityPublicKey = 4;                     // The identity's public key.
+  string type = 5;                                 // The identity's type.
+  string name = 6;                                 // The identity's name.
+  sfixed32 latitude = 7;                           // LocationType. The identity's GPS location latitude information.
+  sfixed32 longitude = 8;                          // LocationType. The identity's GPS location longitude information.
+  string extraData = 9;                            // The identity's extra data.
+
+  bytes thumbnailImage = 10;                       // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image.
+}
+
+
+
+//
+// Request to get another part from the search query.
+//
+// This request only makes sense only if the client previously sent ProfileSearchRequest to the node and the search result contained
+// more records than the node provided in the ProfileSearchResponse, and the search results have not expired yet.
+//
+//
+// Roles: clNonCustomer, clCustomer
+//
+// Conversation status: ConversationStarted, Verified, Authenticated
+//
+message ProfileSearchPartRequest {
+  uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ProfileSearchResponse.totalRecordCount' - 1.
+  uint32 recordCount = 2;                           // Number of results to obtain. 'recordIndex' + 'recordCount' must not be greater than 'ProfileSearchResponse.totalRecordCount'.
+                                                    // If 'ProfileSearchResponse.includeThumbnailImages' was set, this has to be an integer between 1 and 100,
+                                                    // otherwise it has to be an integer between 1 and 1000.
+}
+
+
+//
+// A response to ProfileSearchPartRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
+//                           in this session, or its results have expired already.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "recordIndex" - 'ProfileSearchRequest.recordIndex' is not a valid index of the result.
+//     * Response.details == "recordCount" - 'ProfileSearchRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchRequest.recordIndex'.
+//
+message ProfileSearchPartResponse {
+  uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.recordIndex' value.
+  uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.recordCount' value.
+
+  // Search results.
+  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
+}
+
+
+//
+// A customer client announces a relation between its identity and another identity using a relationship card.
+//
+// The 'cardApplication' field is signed with a signature in 'ConversationRequest.signature'. This signature can be used
+// to prove that the card recipient wanted to use the card for the given purpose. The signature on the card of the card's issuer 
+// then can be used to prove that the issuer issued the card for the recipient. The customer's public key has to be equal 
+// to the card's recipient public key.
+//
+// Each node is allowed to define its own limit of number of relations that a single identity can have.
+// However, this limit should not exceed the maximal limit of 2000 relations, which is given by the maximal protocol message size.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message AddRelatedIdentityRequest {
+  CardApplicationInformation cardApplication = 1;   // Description of the relationship, which must correspond to the given 'card' - i.e. 'cardApplication.cardId' 
+                                                    // has to match 'signedCard.card.cardId'.
+  SignedRelationshipCard signedCard = 2;            // Signed relationship card. 'signedCard.card.recipientPublicKey' has to be the public key of the customer
+                                                    // that sends AddRelatedIdentityRequest to the node.
+}
+
+
+
+//
+// A response to AddRelatedIdentityRequest.
+//
+//
+// Specific Error Responses:
+//   * ERROR_QUOTA_EXCEEDED - The caller has reached its limit for a number of related identities on its profile.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'AddRelatedIdentityRequest.cardApplication' in 'ConversationRequest.signature' is not valid.
+//   * ERROR_ALREADY_EXISTS - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationId' already exists.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "cardApplication.cardId" - 'AddRelatedIdentityRequest.cardApplication.cardId' does not match 'AddRelatedIdentityRequest.signedCard.card.cardId'.
+//     * Response.details == "cardApplication.applicationId" - 'AddRelatedIdentityRequest.cardApplication.applicationId' is not a valid application identifier.
+//     * Response.details == "signedCard.issuerSignature" - 'AddRelatedIdentityRequest.signedCard.issuerSignature' is not a valid signature of 'AddRelatedIdentityRequest.signedCard.card' structure
+//                                                          using private key of the issuer whose public key is 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey'.
+//     * Response.details == "signedCard.card.cardId" - 'AddRelatedIdentityRequest.signedCard.card.cardId' is not a valid SHA256 hash of 'AddRelatedIdentityRequest.signedCard.card' structure.
+//     * Response.details == "signedCard.card.type" - 'AddRelatedIdentityRequest.signedCard.card.type' is not a valid card type.
+//     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.recipientPublicKey' is not the public key of the caller.
+//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo'.
+//
+message AddRelatedIdentityResponse {
+}
+
+
+
+//
+// A customer client removes the announcement of a relationship between its identity and another identity.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message RemoveRelatedIdentityRequest {
+  bytes applicationId = 1;                          // Identifier of the card application to remove. 
+}
+
+
+
+//
+// A response to RemoveRelatedIdentityRequest.
+//
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationId' was not found.
+//
+message RemoveRelatedIdentityResponse {
+}
+
+
+
+//
+// Description of a relationship card application. It consists of a card identifier, which is a hash of the card data
+// and the 'applicationId', which binds the use of the card with some other object, transaction, or action, which is specific 
+// for the given use of the card.
+//
+message CardApplicationInformation {
+  bytes cardId = 1;                                 // Identifier of a relationship card. See 'RelationshipCard.cardId'.
+  bytes applicationId = 2;                          // Unique identifier of the action that represents using the card. This is used to bind the application of the card 
+                                                    // with a specific transaction or action. If no transaction or action identifier exists, the recipient should 
+                                                    // generate a new GUID. If the given card is guaranteed to be used only once, this can be equal to 'cardId'.
+                                                    // Max 32 bytes long. Must not be empty.
+}
+
+
+// 
+// Description of a relationship card signed by its issuer. Only the identifier of the card is signed, but since this is a SHA256 
+// hash of all the card's fields (except for the ID itself), the signature of the identifier effectively signs the whole card information.
+//
+message SignedRelationshipCard {
+  RelationshipCard card = 1;                        // Description of the relationship card.
+  bytes issuerSignature = 2;                        // Signature of 'card.cardId' value in raw format using private key of the issuer of the card.
+                                                    // Max 100 bytes long.
+}
+
+
+//
+// Description of a relationship card.
+//
+message RelationshipCard {
+  bytes cardId = 1;                                 // Identifier of a relationship card is an SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
+                                                    // with cardId initialized to a byte array of 32 zero bytes.
+  string type = 2;                                  // Type of the relationship card. This is an application defined value. Max 64 bytes long.
+  sint64 validFrom = 3;                             // TimestampType. Time from which the card is valid. It must not be greater than 'validTo'.
+  sint64 validTo = 4;                               // TimestampType. Time after which the card is not valid.
+  bytes issuerPublicKey = 5;                        // Public key of the issuer of the card.
+  bytes recipientPublicKey = 6;                     // Public key of the recipient of the card.
+}
+
+
+
+
+// 
+// Obtains list of identity's relationships that match the given criteria.
+//
+// Roles: clNonCustomer, clCustomer
+//
+message GetIdentityRelationshipsInformationRequest {
+  bytes identityNetworkId = 1;                     // Identity's network identifier.
+  bool includeInvalid = 2;                         // If set to true, the response may include relationships which cards are no longer valid or not yet valid.
+  
+  string type = 3;                                 // WildcardType or empty string. If not empty, the node will only return relationships which card types 
+                                                   // match the wildcard string. If empty, all card types are allowed.
+                                                   // Max 64 bytes long.
+
+  bool specificIssuer = 4;                         // If set to true, the response will only include relationships which cards were issued by issuer with 'issuerPublicKey' public key.
+  bytes issuerNetworkId = 5;                       // If 'specificIssuer' is true, this is the network identifier of the card issuer whose relationships with the target identity are being queried.
+}
+
+
+
+//
+// A response to GetIdentityRelationshipsInformationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "type" - 'GetIdentityRelationshipsInformationRequest.type' is too long.
+//
+message GetIdentityRelationshipsInformationResponse {
+  repeated IdentityRelationship relationships = 1; // List of all matching identity relationships together with their relationship cards.
+}
+
+
+//
+// Description of a relationship between two identities together with signature proofs.
+//
+message IdentityRelationship {
+  CardApplicationInformation cardApplication = 1;  // Relationship card application.
+  bytes cardApplicationSignature = 2;              // Relationship card recipient's signature of 'cardApplication' structure.
+  SignedRelationshipCard card = 3;                 // Relationship card signed by its issuer.
 }
 
