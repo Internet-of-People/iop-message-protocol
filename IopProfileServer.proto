@@ -367,7 +367,7 @@ message ListRolesResponse {
 // Known server roles.
 enum ServerRoleType {
   PRIMARY = 0;                                     // Primary Interface server role.
-  ND_NEIGHBOR = 2;                                 // Neighbors Interface server role.
+  SR_NEIGHBOR = 2;                                 // Neighbors Interface server role.
   CL_NON_CUSTOMER = 6;                             // Customer Clients Interface server role.
   CL_CUSTOMER = 7;                                 // Non Customer Clients Interface server role.
   CL_APP_SERVICE = 9;                              // Application Service Interface server role.
