@@ -76,7 +76,6 @@ message Message {
 message Request {
   bytes version = 1;                               // VersionType. Protocol version specification.
   oneof RequestType {
-    // TODO is this construct OK with separate interfaces divided into different messages?
     LocalServiceRequest localService = 2;
     RemoteNodeRequest remoteNode = 3;
     ClientRequest client = 4;
@@ -104,6 +103,8 @@ message LocalServiceRequest {
     RegisterServiceRequest registerService = 1;
     DeregisterServiceRequest deregisterService = 2;
     GetNeighbourNodesByDistanceRequest getNeighbourNodes = 3;
+
+    NeighbourhoodChangedNotification neighbourhoodChanged = 4;
   }
 }
 
@@ -112,6 +113,8 @@ message LocalServiceResponse {
     RegisterServiceResponse registerService = 1;
     DeregisterServiceResponse deregisterService = 2;
     GetNeighbourNodesByDistanceResponse getNeighbourNodes = 3;
+
+    NeighbourhoodChangedReceived neighbourhoodUpdated = 4;
   }
 }
 
@@ -137,7 +140,7 @@ message NodeProfile
 {
   // TODO do we also need a public key here or will it anyway be checked via the DHT?
   bytes nodeId = 1;
-  repeated Contact contacts = 2;
+  Contact contact = 2;
 };
 
 
@@ -149,12 +152,12 @@ message Contact {
 }
 
 message Ipv4Address {
-  string host = 1;
+  bytes  host = 1;
   uint32 port = 2;
 }
 
 message Ipv6Address {
-  string host = 1;
+  bytes  host = 1;
   uint32 port = 2;
 }
 
@@ -191,6 +194,22 @@ message NodeInfo {
 message GetNeighbourNodesByDistanceResponse {
   repeated NodeInfo nodes = 1;
 }
+
+message NeighbourhoodChange {
+  oneof ChangeType {
+    NodeInfo addedNodeInfo = 1;
+    NodeInfo updatedNodeInfo = 2;
+    bytes removedNodeId = 3;
+  }; 
+}
+
+message NeighbourhoodChangedNotification {
+  repeated NeighbourhoodChange changes = 1;
+}
+
+message NeighbourhoodChangedReceived {
+}
+
 
 message RemoteNodeRequest {
   oneof RemoteNodeRequestType {
