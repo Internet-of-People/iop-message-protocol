@@ -102,9 +102,9 @@ message LocalServiceRequest {
   oneof LocalServiceRequestType {
     RegisterServiceRequest registerService = 1;
     DeregisterServiceRequest deregisterService = 2;
-    GetNeighbourNodesByDistanceRequest getNeighbourNodes = 3;
+    GetNeighbourNodesByDistanceLocalRequest getNeighbourNodes = 3;
 
-    NeighbourhoodChangedNotification neighbourhoodChanged = 4;
+    NeighbourhoodChangedNotificationRequest neighbourhoodChanged = 4;
   }
 }
 
@@ -114,7 +114,7 @@ message LocalServiceResponse {
     DeregisterServiceResponse deregisterService = 2;
     GetNeighbourNodesByDistanceResponse getNeighbourNodes = 3;
 
-    NeighbourhoodChangedReceived neighbourhoodUpdated = 4;
+    NeighbourhoodChangedNotificationResponse neighbourhoodUpdated = 4;
   }
 }
 
@@ -146,21 +146,15 @@ message NodeProfile
 
 message Contact {
   oneof ContactType {
-    Ipv4Address ipv4 = 1;
-    Ipv6Address ipv6 = 2;
+    IpAddress ipv4 = 1;
+    IpAddress ipv6 = 2;
   }
 }
 
-message Ipv4Address {
+message IpAddress {
   bytes  host = 1;
   uint32 port = 2;
 }
-
-message Ipv6Address {
-  bytes  host = 1;
-  uint32 port = 2;
-}
-
 
 
 message RegisterServiceRequest {
@@ -178,7 +172,8 @@ message DeregisterServiceRequest {
 message DeregisterServiceResponse {
 }
 
-message GetNeighbourNodesByDistanceRequest {
+message GetNeighbourNodesByDistanceLocalRequest {
+  bool keepAliveAndSendUpdates = 1;
 }
 
 message GpsLocation {
@@ -203,11 +198,11 @@ message NeighbourhoodChange {
   }; 
 }
 
-message NeighbourhoodChangedNotification {
+message NeighbourhoodChangedNotificationRequest {
   repeated NeighbourhoodChange changes = 1;
 }
 
-message NeighbourhoodChangedReceived {
+message NeighbourhoodChangedNotificationResponse {
 }
 
 
@@ -276,7 +271,7 @@ message GetClosestNodesByDistanceResponse {
 message ClientRequest {
   oneof ClientRequestType {
     GetServicesRequest getServices = 1;
-    GetNeighbourNodesByDistanceRequest getNeighbourNodes = 2;
+    GetNeighbourNodesByDistanceClientRequest getNeighbourNodes = 2;
     GetClosestNodesByDistanceRequest getClosestNodes = 3;
   }
 }
@@ -299,5 +294,8 @@ message ServiceProfile {
 
 message GetServicesResponse {
   repeated ServiceProfile services = 1;
+}
+
+message GetNeighbourNodesByDistanceClientRequest {
 }
 
