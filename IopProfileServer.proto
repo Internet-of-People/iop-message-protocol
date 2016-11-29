@@ -1,5 +1,5 @@
 //
-// Definition of IoP Home Node protocol.
+// Definition of IoP Profile Server protocol.
 // We strictly use only features that are binary compatible in ProtoBuf v2 and v3.
 // We use no v2 or v3 specific features.
 //
@@ -13,15 +13,14 @@
 // * Roles *
 // ~~~~~~~~~
 //
-// Each node has several roles. Each message belongs to one or more roles.
+// Each profile server has several roles. Each message belongs to one or more roles.
 // If a request is sent to a port that does not handle the specific role, 
 // ERROR_BAD_ROLE is returned.
 //
 // Existing roles and their short names are:
 //
-//   * Primary and Unrelated Nodes Interface = "primary"
-//   * Neighbors Interface = "ndNeighbor"
-//   * Colleagues Interface = "ndColleague"
+//   * Primary Interface = "primary"
+//   * Neighbors Interface = "srNeighbor"
 //   * Customer Clients Interface = "clCustomer"
 //   * Non Customer Clients Interface = "clNonCustomer"
 //   * Application Service Interface = "clAppService"
@@ -52,6 +51,52 @@
 //                      a numberical value of 100,000,000 within a TokenAmountType field represents 1 full 
 //                      IoP token.
 //
+//  * WildcardType - UTF-8 string with optional '*' wildcard character prefix or suffix, which represents any substring.
+//                   Matching is case insensitive. The format of this string is thus one of the following formats:
+//
+//                    * "data*" - starts with "data"
+//                    * "*data" - ends with "data"
+//                    * "*data*" - contains "data"
+//                    * "data" - is exactly "data"
+//
+//                   Any additional '*' characters are interpreted as parts of the value.
+//
+//  * RegexType - Case-sensitive UTF-8 regular expression string supporting following rules:
+//
+//                 * "\xnn" - Matches a single byte character by using hexadecimal representation (nn consists 
+//                            of exactly two digits).
+//                 * "\unnnn" - Matches a Unicode character by using hexadecimal representation (exactly four digits, 
+//                              as represented by nnnn).
+//                 * "\.", "\*", "\-", "\+", "\[", "\]", "\\", "\?", "\^", "\|", "\(", "\)", "\{", "\}" - Escapes special character.
+//                 * "[characterGroup]" - Matches any single character in characterGroup.
+//                 * "[^characterGroup]" - Matches any single character that is not in characterGroup.
+//                 * "[first-last]" - Matches any single character in the range from first to last. 
+//                 * "." - Matches any single character.
+//                 * "\w" - Matches any word character.
+//                 * "\W" - Matches any non-word character.
+//                 * "\s" - Matches any white-space character.
+//                 * "\S" - Matches any non-white-space character.
+//                 * "\d" - Matches any decimal digit.
+//                 * "\D" - Matches any character other than a decimal digit.
+//                 * "^" - The match must start at the beginning of the string. 
+//                 * "$" - The match must occur at the end of the string.
+//                 * "*" - Matches the previous element zero or more times.
+//                 * "+" - Matches the previous element one or more times.
+//                 * "?" - Matches the previous element zero or one time.
+//                 * "{n}" - Matches the previous element exactly n times.
+//                 * "{n,}" - Matches the previous element at least n times.
+//                 * "{n,m}" - Matches the previous element at least n times, but no more than m times. 
+//                 * "|" - Matches any one element separated by the vertical bar '|' character.
+//                 * "(subexpression)" - Captures the matched subexpression.
+//
+//               No other rules or special characters are allowed to appear in the regular expression of this type.
+//
+// * LocationType - Represents GPS location latitude or longitude. It is a signed integer that stores decimal(9,6)
+//                  type, which means that a floating point value of the latitude or longitude is multiplied
+//                  by 1,000,000 and converted to the integer (cutting of any digits right of the decimal point without 
+//                  rounding). To get the floating point value back, simply divide the integer value by 1,000,000.
+//                  For latitudes, valid values are in range [-90,000,000;90,000,000], for longitudes the range is 
+//                  [-179,999,999;180,000,000]. A special constant NO_LOCATION = 0x7FFFFFFF is reserved for no location.
 //
 //
 //
@@ -97,7 +142,7 @@
 syntax = "proto3";
 
 
-package iop.homenode;
+package iop.profileserver;
 
 // Return codes to requests that inform requestor about whether the operation completed successfully or which error occurred.
 enum Status {
@@ -139,8 +184,8 @@ enum Status {
 //   0D 34 12 00 00
 //
 // where 0x0D means type 'fixed32' (which value is 5) + index of 'header', which is 1 << 3,
-// this is followed be the 4 byte sequence 34 12 00 00, which is little endian of 0x00001234, which is 4660 decimal.
-// Thus the total number of bytes sent over the wire for this message would be 4665 bytes.
+// this is followed be the 4 byte sequence 34 12 00 00, which is little endian of 0x00001234, which is 4,660 decimal.
+// Thus the total number of bytes sent over the wire for this message would be 4,665 bytes.
 //
 message MessageWithHeader {
   fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
@@ -193,10 +238,12 @@ message SingleRequest {
   oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
-    ListHomeNodePlansRequest listHomeNodePlans = 4;
+    ListHostingPlansRequest listHostingPlans = 4;
     GetIdentityInformationRequest getIdentityInformation = 5;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
+    ProfileStatsRequest profileStats = 8;
+    GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 9;
   }
 }
 
@@ -211,10 +258,12 @@ message SingleResponse {
   oneof ResponseType {                             // See 'SingleRequest.RequestType'. Each request has its corresponding response.
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
-    ListHomeNodePlansResponse listHomeNodePlans = 4;
+    ListHostingPlansResponse listHostingPlans = 4;
     GetIdentityInformationResponse getIdentityInformation = 5;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
+    ProfileStatsResponse profileStats = 8;
+    GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 9;
   }
 }
 
@@ -228,15 +277,22 @@ message ConversationRequest {
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
     // Request body.
     StartConversationRequest start = 2;
-    HomeNodeRequestRequest homeNodeRequest = 3;
+    RegisterHostingRequest registerHosting = 3;
     CheckInRequest checkIn = 4;
     VerifyIdentityRequest verifyIdentity = 5;
     UpdateProfileRequest updateProfile = 6;
-    CancelHomeNodeAgreementRequest cancelHomeNodeAgreement = 7;
+    CancelHostingAgreementRequest cancelHostingAgreement = 7;
     ApplicationServiceAddRequest applicationServiceAdd = 8;
     ApplicationServiceRemoveRequest applicationServiceRemove = 9;
     CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
     IncomingCallNotificationRequest incomingCallNotification = 11;
+    ProfileSearchRequest profileSearch = 12;
+    ProfileSearchPartRequest profileSearchPart = 13;
+    AddRelatedIdentityRequest addRelatedIdentity = 14;
+    RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
+    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 16;
+    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 17;
+    NeighborSharedProfileUpdateRequest neighborSharedProfileUpdate = 18;
   }
 }
 
@@ -248,15 +304,22 @@ message ConversationResponse {
   oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
     // Response body.
     StartConversationResponse start = 2;
-    HomeNodeRequestResponse homeNodeRequest = 3;
+    RegisterHostingResponse registerHosting = 3;
     CheckInResponse checkIn = 4;
     VerifyIdentityResponse verifyIdentity = 5;
     UpdateProfileResponse updateProfile = 6;
-    CancelHomeNodeAgreementResponse cancelHomeNodeAgreement = 7;
+    CancelHostingAgreementResponse cancelHostingAgreement = 7;
     ApplicationServiceAddResponse applicationServiceAdd = 8;
     ApplicationServiceRemoveResponse applicationServiceRemove = 9;
     CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
     IncomingCallNotificationResponse incomingCallNotification = 11;
+    ProfileSearchResponse profileSearch = 12;
+    ProfileSearchPartResponse profileSearchPart = 13;
+    AddRelatedIdentityResponse addRelatedIdentity = 14;
+    RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
+    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 16;
+    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 17;
+    NeighborSharedProfileUpdateResponse neighborSharedProfileUpdate = 18;
   }
 }
 
@@ -268,7 +331,7 @@ message ConversationResponse {
 // An administrative message to test whether the peer is there and responds to requests.
 //
 // Each identity client is required to send a message not more than 60 seconds after the connection 
-// was established, or after the last message has been send over the connection. For node clients,
+// was established, or after the last message has been send over the connection. For server clients,
 // this limit is 300 seconds. Clients should use PingRequest if they have nothing else to send
 // and want to keep the connection open.
 //
@@ -303,12 +366,11 @@ message ListRolesResponse {
 
 // Known server roles.
 enum ServerRoleType {
-  PRIMARY = 0;                                     // Primary and Unrelated Nodes Interface server role.
-  ND_NEIGHBOR = 1;                                 // Neighbors Interface server role.
-  ND_COLLEAGUE = 2;                                // Colleagues Interface server role.
-  CL_NON_CUSTOMER = 3;                             // Customer Clients Interface server role.
-  CL_CUSTOMER = 4;                                 // Non Customer Clients Interface server role.
-  CL_APP_SERVICE = 5;                              // Application Service Interface server role.
+  PRIMARY = 0;                                     // Primary Interface server role.
+  SR_NEIGHBOR = 2;                                 // Neighbors Interface server role.
+  CL_NON_CUSTOMER = 6;                             // Customer Clients Interface server role.
+  CL_CUSTOMER = 7;                                 // Non Customer Clients Interface server role.
+  CL_APP_SERVICE = 9;                              // Application Service Interface server role.
 }
 
 
@@ -329,24 +391,24 @@ message ServerRole {
 
 
 //
-// Home Node Request and Check-in - Identity registration and first login full sequence
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Hosting Registration Request and Check-in - Identity registration and first login full sequence
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// A) Provided that the node's clNonCustomer port is different from clCustomer port, the sequence is as follows:
-//   1) Identity connects to the node on its primary port and gets information about its roles to ports mapping.
-//   2) Identity connects to the clNonCustomer port and sends a home node request.
+// A) Provided that the profile server's clNonCustomer port is different from clCustomer port, the sequence is as follows:
+//   1) Identity connects to the server on its primary port and gets information about its roles to ports mapping.
+//   2) Identity connects to the clNonCustomer port and sends a hosting registration request.
 //   3) Identity connects to the clCustomer port and performs a check-in.
 //
 // B) If clNonCustomer port is equal to clCustomer port, the sequence is as follows:
-//   1) Identity connects to the node on its primary port and gets information about its roles to ports mapping.
-//   2) Identity connects to the clNonCustomer+clCustomer port and sends a home node request.
+//   1) Identity connects to the server on its primary port and gets information about its roles to ports mapping.
+//   2) Identity connects to the clNonCustomer+clCustomer port and sends a hosting registration request.
 //   3) Identity performs a check-in over the connection from 2).
 //
 //
 //
 // Sequence diagram A.1) - this is called "Port Discovery Process":
 //
-// [ Identity ]                                                         [ Node:primary ] 
+// [ Identity ]                                                       [ Server:primary ] 
 //      |                                                                     |
 //      |                                                                     | status = NoConversation
 //      |                                                                     |
@@ -361,13 +423,13 @@ message ServerRole {
 //      |                                                                     |
 //
 //
-// Now the identity knows the list of node's roles and on which ports they are served.
+// Now the identity knows the list of server's roles and on which ports they are served.
 //
 //
 //
 // Sequence diagram A.2):
 //
-// [ Identity ]                                                         [ Node:clNonCustomer ] 
+// [ Identity ]                                                       [ Server:clNonCustomer ] 
 //      |                                                                     |
 //      |                                                                     | status = NoConversation
 //      |                                                                     |
@@ -381,23 +443,23 @@ message ServerRole {
 //      |                                                                     |
 //      |                                                                     |
 //      |                                                                     |
-//      |  HomeNodeRequestRequest                                             |
+//      |  RegisterHostingRequest                                             |
 //      *-------------------------------------------------------------------> *
 //      |                                                                     |
 //      |                                                                     |
 //      |                                                                     |
-//      |                                            HomeNodeRequestResponse  |
+//      |                                            RegisterHostingResponse  |
 //      * <-------------------------------------------------------------------*
 //      |                                                                     |
 //      |                                                                     |
 //
-// Now the identity is registered and the node is its home node, it can proceed with the check-in process.
+// Now the identity is registered and the server is hosting its profile, it can proceed with the check-in process.
 //
 //
 //
 // Sequence diagram A.3) - this is called "Check-in Process":
 //
-// [ Identity ]                                                         [ Node:clCustomer ] 
+// [ Identity ]                                                       [ Server:clCustomer ] 
 //      |                                                                     |
 //      |                                                                     | status = NoConversation
 //      |                                                                     |
@@ -427,7 +489,7 @@ message ServerRole {
 // Sequence diagram B.1) is same as A.1)
 // Sequence diagram B.2) + B.3):
 //
-// [ Identity ]                                                         [ Node:clNonCustomer+clCustomer ] 
+// [ Identity ]                                                       [ Server:clNonCustomer+clCustomer ] 
 //      |                                                                     |
 //      |                                                                     | status = NoConversation
 //      |                                                                     |
@@ -441,12 +503,12 @@ message ServerRole {
 //      |                                <challenge, signed clientChallenge>  |
 //      |                                                                     |
 //      |                                                                     |
-//      |  HomeNodeRequestRequest                                             |
+//      |  RegisterHostingRequest                                             |
 //      *-------------------------------------------------------------------> *
 //      |                                                                     |
 //      |                                                                     |
 //      |                                                                     |
-//      |                                            HomeNodeRequestResponse  |
+//      |                                            RegisterHostingResponse  |
 //      * <-------------------------------------------------------------------*
 //      |                                                                     |
 //      |                                                                     |
@@ -467,14 +529,14 @@ message ServerRole {
 // Identity Verification Process
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Similarly to how a node's customer checks-in in order to get to the Authenticated conversation 
-// status, a remote identity (not hosted by the node) can verify its public key by signing
-// a challenge provided by the node in order to get to the Verified conversation status.
+// Similarly to how a profile server's customer checks-in in order to get to the Authenticated 
+// conversation status, a remote identity (not hosted by the profile server) can verify its public key by 
+// signing a challenge provided by the server in order to get to the Verified conversation status.
 //
 //
 // Sequence diagram for so called "Identity Verification Process":
 //
-// [ Identity ]                                                         [ Node:clNonCustomer ] 
+// [ Identity ]                                                       [ Server:clNonCustomer ] 
 //      |                                                                     |
 //      |                                                                     | status = NoConversation
 //      |                                                                     |
@@ -501,32 +563,32 @@ message ServerRole {
 
 
 //
-// A client asks node for its home node plans that match the given criteria.
+// A client asks server for its hosting plans that match the given criteria.
 //
 // Roles: clNonCustomer
 //
-message ListHomeNodePlansRequest {
+message ListHostingPlansRequest {
   string identityType = 1;                         // A specific identity type, for which the client searches the plan.
   // Other criteria TBD.
 }
 
 
 //
-// A response to ListHomeNodePlansRequest that contains a list of matching plans.
+// A response to ListHostingPlansRequest that contains a list of matching plans.
 //
 // Specific Error Responses: 
-//   * ERROR_QUOTA_EXCEEDED - A node users this error code in case it wants to express that it will not accept any new clients because it has no free slots.
+//   * ERROR_QUOTA_EXCEEDED - A server uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
 //
-message ListHomeNodePlansResponse {
-  repeated HomeNodePlan plans = 1;                 // List of matching plans.
+message ListHostingPlansResponse {
+  repeated HostingPlan plans = 1;                 // List of matching plans.
 }
 
 
-// Description of a home node hosting plan.
-message HomeNodePlan {
-  bytes planId = 1;                                // Identifier of the plan is an SHA1 hash of the HomeNodePlan structure in Google Protobuf v3 encoding 
-                                                   // with planId initialized to a byte array of 20 zero bytes.
-  bytes nodeNetworkId = 2;                         // Identifier of the node that offers the plan.
+// Description of a hosting plan.
+message HostingPlan {
+  bytes planId = 1;                                // Identifier of the plan is an SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
+                                                   // with planId initialized to a byte array of 32 zero bytes.
+  bytes serverNetworkId = 2;                       // Identifier of the profile server that offers the plan.
   string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
                                                    // at the end of the type to support multiple types to be served with a single plan. 
                                                    // For example, the value "*" would mean that any identity type is supported,
@@ -555,7 +617,7 @@ message NameStringValuePair {
 //
 message StartConversationRequest {
   repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
-  bytes publicKey = 2;                             // Public key of the requestor.
+  bytes publicKey = 2;                             // Public key of the requestor. Max 128 bytes.
 
   bytes clientChallenge = 3;                       // 32 byte challenge data (random bytes generated by the requestor) that is used for authentication purposes.
 }
@@ -565,7 +627,7 @@ message StartConversationRequest {
 // A response to StartConversationRequest in case the requestee found at least one protocol version that 
 // both peers are willing to use. 
 // 
-// The 'clientChallenge' field is signed with a signature in 'ConversationResponse.signature'.
+// The 'clientChallenge' field value in raw format is signed with a signature in 'ConversationResponse.signature'.
 // 
 //
 // After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
@@ -573,6 +635,7 @@ message StartConversationRequest {
 // Specific Error Responses:
 //   * ERROR_UNSUPPORTED - If the requestee does not support any of the requestor's versions, it replies with this error code.
 //   * ERROR_INVALID_VALUE
+//     * Response.details == "publicKey" - 'StartConversationRequest.publicKey' is not a valid public key value. 
 //     * Response.details == "clientChallenge" - 'StartConversationRequest.clientChallenge' is not 32 byte long. 
 //
 message StartConversationResponse {
@@ -586,51 +649,50 @@ message StartConversationResponse {
 
 
 //
-// A client asks node to become its home node by sending HomeNodeRequestRequest
+// A client asks profile server to host its profile by sending RegisterHostingRequest
 // with a signed contract. The signature is provided in 'ConversationRequest.signature'.
 //
 // Roles: clNonCustomer
 //
 // Conversation status: ConversationStarted
 //
-message HomeNodeRequestRequest {
-  HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node.
-                                                   // The 'contract.plan' has to be the exact copy of a node offer, no field can be changed, otherwise node will refuse it.
+message RegisterHostingRequest {
+  HostingPlanContract contract = 1;                // Description of the contract that the client wants to have with the profile server.
+                                                   // The 'contract.plan' has to be the exact copy of the server's offer, no field can be changed, otherwise the server will refuse it.
                                                    // The 'contract.startTime' field has to be set either to the future, or to a time that is not 
-                                                   // more than 1 hour in past from the current node's time.
+                                                   // more than 1 hour in past from the current profile server's time.
 }
 
 
 //
-// A response to HomeNodeRequestRequest in case the node wants to accept the request.
+// A response to RegisterHostingRequest in case the profile server wants to accept the request.
 // The response body is signed with a signature in 'ConversationResponse.signature'.
 //
 // Specific Error Responses:
-//   * ERROR_QUOTA_EXCEEDED - A node uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
-//   * ERROR_NOT_FOUND - 'HomeNodePlanContract.contract.planId' does not correspond to a node's plan, or the plan values are different from what the node offers.
+//   * ERROR_QUOTA_EXCEEDED - A server uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
+//   * ERROR_NOT_FOUND - 'HostingPlanContract.contract.planId' does not correspond to any of the server's plans, or the plan values are different from what the server offers.
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
-//   * ERROR_ALREADY_EXISTS - The identity is hosted by the node already.
+//   * ERROR_ALREADY_EXISTS - The identity is hosted by the server already.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "contract.startTime" - 'HomeNodeRequestRequest.contract.startTime' is more than 1 hour in the past. 
-//     * Response.details == "contract.identityPublicKey" - 'HomeNodeRequestRequest.contract.identityPublicKey' does not match identity's public key.
-//     * Response.details == "contract.identityType" - 'HomeNodeRequestRequest.contract.identityType' does not match the hosting plan.
+//     * Response.details == "contract.startTime" - 'RegisterHostingRequest.contract.startTime' is more than 1 hour in the past. 
+//     * Response.details == "contract.identityPublicKey" - 'RegisterHostingRequest.contract.identityPublicKey' does not match identity's public key.
+//     * Response.details == "contract.identityType" - 'RegisterHostingRequest.contract.identityType' does not match the hosting plan.
 //
-message HomeNodeRequestResponse {
-  HomeNodePlanContract contract = 1;               // Description of the contract that the client wants to have with the node and the node accepted it.
-                                                   // This has to be exactly the same contract as the node received in 'HomeNodeRequest.contract',
-                                                   // otherwise it is a protocol violation.
+message RegisterHostingResponse {
+  HostingPlanContract contract = 1;                // Description of the contract that the client wants to have with the server and the server accepted it.
+                                                   // This has to be exactly the same contract as the profile server received in 'RegisterHostingRequest.contract'.
 }
 
 
-// A description of the contract between a client and a home node.
-message HomeNodePlanContract {
-  bytes planId = 1;                                // Identifier of the home node hosting plan.
+// A description of the contract between a client and a profile server.
+message HostingPlanContract {
+  bytes planId = 1;                                // Identifier of the profile server's hosting plan.
   bytes identityPublicKey = 2;                     // Public key of the client's identity.
   sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract.
-  string identityType = 4;                         // Type of the client's identity. It has to match the 'HomeNodePlan.identityType' filter in the selected plan.
-                                                   // For example, if 'HomeNodePlan.identityType' is "Taxi *" then 'identityType' can be "Taxi Driver",
-                                                   // but not "Bus Driver". Also 'identityType' can not contain "*" wildcard, so "Taxi *" is not a valid value
-                                                   // for 'identityType' here even if 'HomeNodePlan.identityType' is "Taxi *".
+  string identityType = 4;                         // Type of the client's identity. It has to match the 'HostingPlan.identityType' filter in the selected plan.
+                                                   // For example, if 'HostingPlan.identityType' is "Taxi *" then 'identityType' can be "Taxi Driver",
+                                                   // but not "Bus Driver". Also 'identityType' can not contain '*' wildcard character, so "Taxi *" is not a valid value
+                                                   // for 'identityType' here even if 'HostingPlan.identityType' is "Taxi *". Max 64 bytes long.
 }
 
 
@@ -656,7 +718,7 @@ message CheckInRequest {
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
-//   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//   * ERROR_NOT_FOUND - The identity is not a client of the profile server.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "challenge" - 'CheckInRequest.challenge' is not the exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
 //
@@ -689,15 +751,15 @@ message VerifyIdentityResponse {
 
 
 //
-// A customer client updates its profile hosted at the node.
+// A customer client updates its profile hosted at the profile server.
 // The client must make sure that its profile is complete after processing the request.
-// After sending HomeNodeRequestRequest, its profile is almost empty - only identity type 
+// After sending RegisterHostingRequest, its profile is almost empty - only identity type 
 // and public key are known. This means that the first call of this request 
 // has to contain all required information to make the profile complete. Namely the first 
 // UpdateProfileRequest has to have setVersion, setName, and setLocation set to true.
 //
 // The customer client is required to initialize its profile just after finishing 
-// the HomeNodeRequestRequest. Until the initialization of the profile is made, the identity 
+// the RegisterHostingRequest. Until the initialization of the profile is made, the identity 
 // is not considered as being fully initialized and can not be queried or called by other 
 // identities.
 // 
@@ -709,14 +771,15 @@ message UpdateProfileRequest {
   bool setVersion = 1;                             // Profile version should be updated. 'version' must contain valid data.
   bool setName = 2;                                // Profile name should be updated. 'name' must contain valid data.
   bool setImage = 3;                               // Profile image should be updated. 'image' must contain valid data.
-  bool setLocation = 4;                            // Profile location should be updated. 'location' must contain valid data.
+  bool setLocation = 4;                            // Profile location should be updated. 'latitude' and 'longitude' must contain valid data.
   bool setExtraData = 5;                           // Profile extra data should be updated. 'extraData' must contain valid data.
 
   bytes version = 8;                               // VersionType. Version of the profile structure.
   string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
   bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long.
-  fixed32 location = 11;                           // Encoded GPS location information.
-  string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
+  sfixed32 latitude = 11;                          // LocationType. GPS location latitude information.
+  sfixed32 longitude = 12;                         // LocationType. GPS location longitude information.
+  string extraData = 13;                           // Semicolon separated 'key=value' list, max 200 bytes long.
 }
 
 
@@ -724,7 +787,7 @@ message UpdateProfileRequest {
 // A response to UpdateProfileRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//   * ERROR_NOT_FOUND - The identity is not a client of the profile server.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "setVersion" - 'UpdateProfileRequest.setVersion' is not set during the first request.
 //     * Response.details == "setName" - 'UpdateProfileRequest.setName' is not set during the firts request.
@@ -733,7 +796,8 @@ message UpdateProfileRequest {
 //     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
 //     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
 //     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
-//     * Response.details == "location" - 'UpdateProfileRequest.image' does not contain a valid location information.
+//     * Response.details == "latitude" - 'UpdateProfileRequest.latitude' does not contain a valid latitude information.
+//     * Response.details == "longitude" - 'UpdateProfileRequest.longitude' does not contain a valid longitude information.
 //     * Response.details == "extraData" - 'UpdateProfileRequest.extraData' does not contain a valid extra data information.
 //
 message UpdateProfileResponse {
@@ -742,28 +806,28 @@ message UpdateProfileResponse {
 
 
 // 
-// A customer client cancels the home node agreement and optionally informs 
-// the node about its new home node location. The node will keep the information 
-// about identity's new location for some time.
+// A customer client cancels the hosting agreement and optionally informs the profile server 
+// about its new profile server location. The profile server will keep the information about 
+// identity's new location for some time.
 //
 // Roles: clCustomer
 //
 // Conversation status: Authenticated
 //
-message CancelHomeNodeAgreementRequest {
-  bool redirectToNewHomeNode = 1;                  // true, if the client wants to inform the home node about its new home node location, false otherwise.
-  bytes newHomeNodeNetworkId = 2;                  // If 'redirectToNewHomeNode' is true, an identifier of the new home node.
+message CancelHostingAgreementRequest {
+  bool redirectToNewProfileServer = 1;             // true, if the client wants to inform the profile server about its new profile server location, false otherwise.
+  bytes newProfileServerNetworkId = 2;             // If 'redirectToNewProfileServer' is true, an identifier of the new profile server.
 }
 
 //
-// A response to CancelHomeNodeAgreementRequest.
+// A response to CancelHostingAgreementRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - The identity is not a client of the node.
+//   * ERROR_NOT_FOUND - The identity is not a client of the profile server.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "newHomeNodeNetworkId" - 'CancelHomeNodeAgreementRequest.newHomeNodeNetworkId' is not a valid node network identifier.
+//     * Response.details == "newProfileServerNetworkId" - 'CancelHostingAgreementRequest.newProfileServerNetworkId' is not a valid profile server network identifier.
 //
-message CancelHomeNodeAgreementResponse {
+message CancelHostingAgreementResponse {
 }
 
 
@@ -824,27 +888,28 @@ message ApplicationServiceRemoveResponse {
 // Application Service Call - Identity A calls Identity B over application service AS1
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Prior to the service call, we assume the B (the callee) to be a customer of the node with a fully 
-// initialized profile and that it knows the ports on which the node operates. In this example, 
-// we further assume that A (the caller) is not a customer of the node. If A was a customer, 
+// Prior to the service call, we assume the B (the callee) to be a customer of the profile server with 
+// a fully initialized profile and that it knows the ports on which the server operates. In this example, 
+// we further assume that A (the caller) is not a customer of the profile server. If A was a customer, 
 // it would use the Check-in Process and communication over clCustomer port instead of communicating 
 // over clNonCustomer port and doing the Identity Verification Process. We also assume that A already 
-// knows which node is B's home node. Finally, we assume that B has enabled AS1 in its session 
+// knows which profile server hosts B's profile. Finally, we assume that B has enabled AS1 in its session 
 // using ApplicationServiceAddRequest.
 //
 // Then A can call B over AS1 (an application service):
 //
-// 1) A performs Port Discovery Process to find node's clNonCustomer and clAppService ports.
+// 1) A performs Port Discovery Process to find server's clNonCustomer and clAppService ports.
 // 2) A connects to clNonCustomer port and obtains information about B. A is interested 
 //    to know whether B is online and whether AS1 is supported.
 // 3) A initiates the call via CallIdentityApplicationServiceRequest.
-// 4) The node checks that B is online and that AS1 is available and then it issues a callee's token 
-//    and sends it to B with an information about the incoming call.
+// 4) The profile server checks that B is online and that AS1 is available and then it issues a callee's 
+//    token and sends it to B with an information about the incoming call.
 // 5) B decides to accept the call from A.
-// 6) The node issues a caller's token and sends it to A together with the information that B accepted the call.
-// 7,8) A and B connects to clAppService port and sends the initialization message with the caller's/callee's token
-//    to allow the node to recognize the connections. The node does not reply to these messages until B/A is also 
-//    connected.
+// 6) The server issues a caller's token and sends it to A together with the information that B accepted 
+//    the call.
+// 7,8) A and B connect to clAppService port and send the initialization message with their tokens to 
+//    allow the profile server to recognize the connections. The profile server does not reply to these 
+//    messages until both clients are connected.
 // 9) A and B can send messages to each other.
 // 
 //
@@ -852,7 +917,7 @@ message ApplicationServiceRemoveResponse {
 //
 // Sequence diagram 2) to 6):
 //
-//    [ A ]                                           [ Node:clNonCustomer ]                                  [ B ]
+//    [ A ]                                         [ Server:clNonCustomer ]                                  [ B ]
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
@@ -888,14 +953,14 @@ message ApplicationServiceRemoveResponse {
 //      |                                                   |                                                   |  
 //                                                                                                                   
 //
-// Now the both clients are expected to connect to clAppService and send an initialization message to the node 
+// Now the both clients are expected to connect to clAppService and send an initialization message to the server 
 // using their token.
 //
 //
 // Sequence diagram 7) to 9), assuming that B is the first one to send the initialization message 
 // on the clAppService port:
 //
-//    [ A ]                                           [ Node:clAppService ]                                   [ B ]
+//    [ A ]                                         [ Server:clAppService ]                                   [ B ]
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
@@ -984,7 +1049,7 @@ message ApplicationServiceRemoveResponse {
 
 
 // 
-// Obtains a basic information about an identity hosted on the node.
+// Obtains a basic information about an identity hosted on the profile server.
 // If the identity is online, the information includes a list of application services 
 // that the identity supports in the currently active session.
 //
@@ -1003,36 +1068,42 @@ message GetIdentityInformationRequest {
 // A response to GetIdentityInformationRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the node.
+//   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the profile server.
 //   * ERROR_UNINITIALIZED - The target identity's profile has not been initialized yet.
 //
 message GetIdentityInformationResponse {
-  bool isHosted = 1;                               // True if the requested identity is a customer of the node.
-  bool isTargetHomeNodeKnown = 2;                  // If 'isHosted' is false then this is true if the identity's new home node is known to the node. In all other cases, this is false.
-  bytes targetHomeNodeNetworkId = 3;               // If 'isTargetHomeNodeKnown' is true then this field contains the identity's new home node network ID.
+  bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
+  bool isTargetProfileServerKnown = 2;             // If 'isHosted' is false then this is true if the identity's new profile server is known to the profile server. In all other cases, this is false.
+  bytes targetProfileServerNetworkId = 3;          // If 'isTargetProfileServerKnown' is true then this field contains the identity's new profile server network ID.
 
   // Following fields are valid only if 'isHosted' is true.
   bool isOnline = 4;                               // True if the requested identity is currently online.
-  bytes identityPublicKey = 5;                     // The requested identity's public key.
-  string type = 6;                                 // The requested identity's type.
-  string name = 7;                                 // The requested identity's name.
-  string extraData = 8;                            // The requested identity's extra data.
-  bytes profileImage = 9;                          // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 10;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
+  bytes version = 5;                               // VersionType. Version of the profile.
+  bytes identityPublicKey = 6;                     // The requested identity's public key.
+  string type = 7;                                 // The requested identity's type.
+  string name = 8;                                 // The requested identity's name.
+  sfixed32 latitude = 9;                           // LocationType. The requested identity's GPS location latitude information.
+  sfixed32 longitude = 10;                         // LocationType. The requested identity's GPS location longitude information.
+  string extraData = 11;                           // The requested identity's extra data.
+  bytes profileImage = 12;                         // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
+  bytes thumbnailImage = 13;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 11;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 14;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
 
 // 
-// Request to establish a bridged connection between a requestor (the caller) and an identity (the callee) hosted on the node 
-// via one of its supported application service. The callee has to be online, otherwise the request will fail.
+// Request to establish a bridged connection between a requestor (the caller) and an identity (the callee) 
+// hosted on the profile server via one of its supported application service. The callee has to be online, 
+// otherwise the request will fail.
 //
-// The node informs the callee about the incoming call and issues a token pair (caller's and callee's tokens) to identify the caller 
-// and the callee on the Application Service Interface. The callee's token is sent to the callee with the information about the incoming call. 
-// If the callee wants to accept the call, the node informs the caller and sends it the caller's token. Both clients are then expected 
-// to establish new connections to the node's Application Service Interface and use their tokens to send a message to the other client.
+// The profile server informs the callee about the incoming call and issues a token pair (caller's and 
+// callee's tokens) to identify the caller and the callee on the Application Service Interface. The callee's 
+// token is sent to the callee with the information about the incoming call. If the callee wants to accept 
+// the call, the profile server informs the caller and sends it the caller's token. Both clients are then 
+// expected to establish new connections to the profile server's Application Service Interface and use their 
+// tokens to send a message to the other client.
 //
 // Roles: clNonCustomer, clCustomer
 //
@@ -1052,7 +1123,7 @@ message CallIdentityApplicationServiceRequest {
 //   * ERROR_REJECTED - The callee rejected the call.
 //   * ERROR_UNINITIALIZED - The callee's profile has not been initialized yet.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "identityNetworkId" - 'CallIdentityApplicationServiceRequest.identityNetworkId' does not identify an identity hosted by the node.
+//     * Response.details == "identityNetworkId" - 'CallIdentityApplicationServiceRequest.identityNetworkId' does not identify an identity hosted by the profile server.
 //     * Response.details == "serviceName" - 'CallIdentityApplicationServiceRequest.serviceName' is not an application service supported by the callee in the current session.
 //
 message CallIdentityApplicationServiceResponse {
@@ -1061,7 +1132,7 @@ message CallIdentityApplicationServiceResponse {
 
 
 // 
-// This request is sent by node to its customer client (the callee) when another client (the caller) wants 
+// This request is sent by profile server to its customer client (the callee) when another client (the caller) wants 
 // to establish a call over the customer client's application service.
 //
 // The callee is required to send its response to this request within 10 seconds, otherwise the call channel will not be established.
@@ -1078,7 +1149,8 @@ message IncomingCallNotificationRequest {
 
 
 //
-// A response to CallIdentityApplicationServiceRequest. This is sent by the customer client (the callee) to its home node.
+// A response to CallIdentityApplicationServiceRequest. This is sent by the customer client (the callee) 
+// to its profile server.
 //
 // Specific Error Responses:
 //   * ERROR_REJECTED - The callee rejects the call.
@@ -1089,27 +1161,28 @@ message IncomingCallNotificationResponse {
 
 
 // 
-// This request is sent by a client to the node in order to deliver a message to the other client over the opened 
-// application service call channel.
+// This request is sent by a client to the profile server in order to deliver a message to the other client 
+// over the opened application service call channel.
 //
 // After the client connects to clAppService port, it sends an initialization message using this request 
-// to inform the node about its identity. This initialization message is not delivered to the other party
-// and the node responds to this initialization message only after the other party is also connected.
-// In the initialization message, the 'message' field is ignored. If the other party fails to join the channel 
-// within 30 seconds, the node closes the existing connection to the connected client.
+// to inform the profile server about its identity. This initialization message is not delivered to the other 
+// party and the profile server responds to this initialization message only after the other party is also 
+// connected. In the initialization message, the 'message' field is ignored. If the other party fails to join 
+// the channel within 30 seconds, the profile server closes the existing connection to the connected client.
 //
-// Until the client receives a reply from the node to its initialization message, it is not allowed to send 
-// other ApplicationServiceSendMessageRequest. This would be an error and the node would destroy the channel.
+// Until the client receives a reply from the profile server to its initialization message, it is not allowed 
+// to send other ApplicationServiceSendMessageRequest. This would be an error and the profile server would
+// destroy the channel.
 //
-// If neither of clients connects to clAppService port or sends an inititial message within 30 seconds 
-// after the call was initiated, the node destroys the channel.
+// If neither of clients connects to clAppService port or sends an inititial message within 30 seconds after 
+// the call was initiated, the profile server destroys the channel.
 // 
 // Note that the clients are allowed to disconnect from clNonCustomer/clCustomer port once the caller receives 
 // CallIdentityApplicationServiceResponse and the callee sends IncomingCallNotificationResponse.
 //
-// Each client is only allowed to have 20 ApplicationServiceSendMessageRequest messages pending, 
-// which means that there was no ApplicationServiceSendMessageResponse sent to the client. If a client attempts 
-// to send another message while having 20 pending messages, the node destroys the call channel.
+// Each client is only allowed to have 20 ApplicationServiceSendMessageRequest messages pending, which means
+// that there was no ApplicationServiceSendMessageResponse sent to the client. If a client attempts to send
+// another message while having 20 pending messages, the profile server destroys the call channel.
 //
 //
 // Roles: clAppService
@@ -1121,16 +1194,17 @@ message ApplicationServiceSendMessageRequest {
 
 
 //
-// A response to ApplicationServiceSendMessageRequest. This is sent by the node to the client to confirm that it sent 
-// the message to the other client and the other client confirmed its arrival.
+// A response to ApplicationServiceSendMessageRequest. This is sent by the profile server to the client to 
+// confirm that it sent the message to the other client and the other client confirmed its arrival.
 // 
-// If the connection to one of the clients is terminated, the node closes the connection to the other client.
+// If the connection to one of the clients is terminated, the profile server closes the connection to the 
+// other client.
 //
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - 'ApplicationServiceSendMessageRequest.token' is not a valid token. This can have many causes.
-//                       The token itself can have invalid format, or no such token was ever issued by the node. 
+//                       The token itself can have invalid format, or no such token was ever issued by the server. 
 //                       However, it can also be the case that the token was valid in the past but the call channel 
-//                       was closed by the node for any reason and thus the token is no longer valid. 
+//                       was closed by the server for any reason and thus the token is no longer valid. 
 //
 message ApplicationServiceSendMessageResponse {
 }
@@ -1138,8 +1212,8 @@ message ApplicationServiceSendMessageResponse {
 
 
 // 
-// This request is sent by a home node after it received ApplicationServiceSendMessageRequest from one of the clients.
-// This forwards the message to its intended recipient.
+// This request is sent by a profile server after it received ApplicationServiceSendMessageRequest from 
+// one of the clients. This forwards the message to its intended recipient.
 //
 // Roles: clAppService
 //
@@ -1152,5 +1226,526 @@ message ApplicationServiceReceiveMessageNotificationRequest {
 // A response to ApplicationServiceReceiveMessageNotificationRequest.
 // 
 message ApplicationServiceReceiveMessageNotificationResponse {
+}
+
+
+//
+// Obtains identity profiles statistics from a profile server.
+//
+// Only actively hosted profiles are counted regardless of whether or not the profiles are initialized.
+//
+// Roles: clNonCustomer, clCustomer
+//
+message ProfileStatsRequest {
+}
+
+
+//
+// A response to ProfileStatsRequest.
+// 
+message ProfileStatsResponse {
+  repeated ProfileStatsItem stats = 1;             // List of profile statistics grouped by identity type.
+}
+
+
+//
+// Statistical information on identities of a specific type.
+//
+message ProfileStatsItem {
+  string identityType = 1;                         // Type of identity. 
+  uint32 count = 2;                                // Number of profiles hosted on the profile server of the specific type of identity.
+}
+
+
+//
+// Asks a profile server for a list of all identities that match the search criteria. This search never returns 
+// profiles of old customer identities who cancelled their hosting agreements, even if the profile server still 
+// holds some information about those identities.
+//
+// Each search request only produces a limited number of results. The maximal size of the first set of results 
+// is provided by 'maxResponseRecordCount' field. The response to this message contains up to 'maxResponseRecordCount' 
+// results. If there are more results available, they are saved to the conversation context, which enables the client 
+// to obtain more results with subsequent ProfileSearchPartRequest messages.
+//
+// The profile server will not save more than 'maxTotalRecordCount' search requests. 
+// The profile server has to allow the client to get additional results at least 1 minute from receiving 
+// ProfileSearchRequest, but it can maintain the result cache for longer than that.
+//
+// Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
+//
+// Roles: clNonCustomer, clCustomer
+//
+// Conversation status: ConversationStarted, Verified, Authenticated
+//
+message ProfileSearchRequest {
+  bool includeHostedOnly = 1;                      // If set to true, the profile server only returns profiles of its own customers.
+                                                   // If set to false, profiles from the server's neighborhood can be included in the result.
+  bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
+  uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
+                                                   // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
+                                                   // this has to be an integer between 1 and 1000. The value must not be greater than 'maxTotalRecordCount'.
+  uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the profile server will look for and save. If 'includeThumbnailImages'
+                                                   // is true, this has to be an integer between 1 and 1,000. If 'includeThumbnailImages' is false,
+                                                   // this has to be an integer between 1 and 10,000.
+
+  // Search filters.
+  string type = 5;                                 // WildcardType or empty string. If not empty, the profile server will only return profiles 
+                                                   // of identity types that match the wildcard string. If empty, all identity types are allowed.
+                                                   // Max 64 bytes long.
+  string name = 6;                                 // WildcardType or empty string. If not empty, the profile server  will only return profiles 
+                                                   // with names that match the wildcard string. If empty, all profile names are allowed.
+                                                   // Max 64 bytes long.
+  sfixed32 latitude = 7;                           // LocationType. Encoded target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
+                                                   // it is, in combination with 'longitude' and 'radius' a specification of target area, 
+                                                   // where the identity has to be located (according to its profile information) in order to be 
+                                                   // included in the search results. If NO_LOCATION, 'longitude' and 'radius' are ignored 
+                                                   // and all locations are allowed.
+  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is encoded target GPS location longitude.
+  uint32 radius = 9;                               // If 'latitude' is not NO_LOCATION, this is target location radius in metres.
+  string extraData = 10;                           // RegexType or empty string. If not empty, specifies the regular expression that identity
+                                                   // profile's extra data information must match in order to be included in the results. 
+                                                   // If empty, no filtering based on extra data information is made.
+                                                   // Max 256 bytes long.
+}
+
+
+//
+// A response to ProfileSearchRequest.
+//
+// If 'maxResponseRecordCount' is lower than 'totalRecordCount', the client is allowed to send 
+// ProfileSearchPartRequest messages to obtain more results.
+//
+// If a client is looking for a small set of profiles within a large area, it might need to perform 
+// multiple search queries across several profile servers in the target area in order to "cover" it. 
+// 'coveredServers' contains a list of profile servers forming the neighborhood of the profile server 
+// being queried. Neighborhood servers share their profile databases and a query to one server will 
+// thus cover profile servers in its neighborhood. Note that this information is not much relevant 
+// in case the number of result is large and is limited by the protocol. In this case, it is possible 
+// that the profile server returns results from profile databases only from a small subset of its 
+// neighborhood provided in the 'coveredServers' value, or even only from its own database.
+//
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "maxResponseRecordCount" - 'ProfileSearchRequest.maxResponseRecordCount' is not within the required range.
+//     * Response.details == "maxTotalRecordCount" - 'ProfileSearchRequest.maxTotalRecordCount' is not within the required range.
+//     * Response.details == "type" - 'ProfileSearchRequest.type' is too long.
+//     * Response.details == "name" - 'ProfileSearchRequest.name' is too long.
+//     * Response.details == "latitude" - 'ProfileSearchRequest.latitude' is not a valid location latitude.
+//     * Response.details == "longitude" - 'ProfileSearchRequest.longitude' is not a valid location longitude.
+//     * Response.details == "radius" - 'ProfileSearchRequest.radius' is not a valid radius value.
+//     * Response.details == "extraData" - 'ProfileSearchRequest.extraData' is too long or it is not a valid value of RegexType.
+//
+message ProfileSearchResponse {
+  uint32 totalRecordCount = 1;                     // Total number of profiles that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'profiles' list.
+  uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxResponseRecordCount'.
+
+  repeated bytes coveredServers = 3;               // List of network identifiers of profile servers whose profile databases were be used to produce the results, 
+                                                   // whether or not any of their hosted profiles actually appear in the results.
+                                                   // This information is relevant if 'totalRecordCount' is lower than 'ProfileSearchRequest.maxTotalRecordCount',
+                                                   // because otherwise there is no guarantee the results actually contain any records from neighborhood profile servers.
+
+  // Search results.
+  repeated IdentityNetworkProfileInformation profiles = 4;  // List of results that contains no more than 'maxResponseRecordCount' items.
+}
+
+
+
+//
+// Information about a single profile record from a profile search query.
+//
+message IdentityNetworkProfileInformation {
+  bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
+  bytes hostingServerNetworkId = 2;                // If 'isHosted' is false, this field contains the network ID of the neighbor profile server that hosts the target profile.
+
+  bool isOnline = 3;                               // If 'isHosted' is true, this is true if the requested identity is currently online.
+
+  bytes version = 4;                               // VersionType. Version of the profile.
+  bytes identityPublicKey = 5;                     // The identity's public key.
+  string type = 6;                                 // The identity's type.
+  string name = 7;                                 // The identity's name.
+  sfixed32 latitude = 8;                           // LocationType. The identity's GPS location latitude information.
+  sfixed32 longitude = 9;                          // LocationType. The identity's GPS location longitude information.
+  string extraData = 10;                           // The identity's extra data.
+
+  bytes thumbnailImage = 11;                       // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image, 
+                                                   // or zero-length byte array if the profile has no image set.
+}
+
+
+
+//
+// Request to get another part from the search query.
+//
+// This request only makes sense only if the client previously sent ProfileSearchRequest to 
+// the profile server and the search result contained more records than the server provided 
+// in the ProfileSearchResponse, and the search results have not expired yet.
+//
+//
+// Roles: clNonCustomer, clCustomer
+//
+// Conversation status: ConversationStarted, Verified, Authenticated
+//
+message ProfileSearchPartRequest {
+  uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ProfileSearchResponse.totalRecordCount' - 1.
+  uint32 recordCount = 2;                           // Number of results to obtain. 'recordIndex' + 'recordCount' must not be greater than 'ProfileSearchResponse.totalRecordCount'.
+                                                    // If 'ProfileSearchResponse.includeThumbnailImages' was set, this has to be an integer between 1 and 100,
+                                                    // otherwise it has to be an integer between 1 and 1,000.
+}
+
+
+//
+// A response to ProfileSearchPartRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
+//                           in this session, or its results have expired already.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "recordIndex" - 'ProfileSearchRequest.recordIndex' is not a valid index of the result.
+//     * Response.details == "recordCount" - 'ProfileSearchRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchRequest.recordIndex'.
+//
+message ProfileSearchPartResponse {
+  uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.recordIndex' value.
+  uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.recordCount' value.
+
+  // Search results.
+  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
+}
+
+
+//
+// A customer client announces a relation between its identity and another identity using 
+// a relationship card.
+//
+// The 'cardApplication' field is signed with a signature in 'ConversationRequest.signature'. 
+// This signature can be used to prove that the card recipient wanted to use the card for 
+// the given purpose. The signature on the card of the card's issuer then can be used to prove 
+// that the issuer issued the card for the recipient. The customer's public key has to be equal 
+// to the card's recipient public key.
+//
+// Each profile server is allowed to define its own limit of number of relations that a single 
+// identity can have. However, this limit should not exceed the maximal limit of 2,000 relations, 
+// which is given by the maximal protocol message size.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message AddRelatedIdentityRequest {
+  CardApplicationInformation cardApplication = 1;   // Description of the relationship, which must correspond to the given 'card' - i.e. 'cardApplication.cardId' 
+                                                    // has to match 'signedCard.card.cardId'.
+  SignedRelationshipCard signedCard = 2;            // Signed relationship card. 'signedCard.card.recipientPublicKey' has to be the public key of the customer
+                                                    // that sends AddRelatedIdentityRequest to the profile server.
+}
+
+
+
+//
+// A response to AddRelatedIdentityRequest.
+//
+//
+// Specific Error Responses:
+//   * ERROR_QUOTA_EXCEEDED - The caller has reached its limit for a number of related identities on its profile.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'AddRelatedIdentityRequest.cardApplication' in 'ConversationRequest.signature' is not valid.
+//   * ERROR_ALREADY_EXISTS - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationId' already exists.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "cardApplication.cardId" - 'AddRelatedIdentityRequest.cardApplication.cardId' does not match 'AddRelatedIdentityRequest.signedCard.card.cardId'.
+//     * Response.details == "cardApplication.applicationId" - 'AddRelatedIdentityRequest.cardApplication.applicationId' is not a valid application identifier.
+//     * Response.details == "signedCard.issuerSignature" - 'AddRelatedIdentityRequest.signedCard.issuerSignature' is not a valid signature of 'AddRelatedIdentityRequest.signedCard.card' structure
+//                                                          using private key of the issuer whose public key is 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey'.
+//     * Response.details == "signedCard.card.cardId" - 'AddRelatedIdentityRequest.signedCard.card.cardId' is not a valid SHA256 hash of 'AddRelatedIdentityRequest.signedCard.card' structure.
+//     * Response.details == "signedCard.card.version" - 'AddRelatedIdentityRequest.signedCard.card.version' is not a valid card version.
+//     * Response.details == "signedCard.card.type" - 'AddRelatedIdentityRequest.signedCard.card.type' is not a valid card type.
+//     * Response.details == "signedCard.card.issuerPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey' is not a valid public key.
+//     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.recipientPublicKey' is not the public key of the caller.
+//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo'.
+//
+message AddRelatedIdentityResponse {
+}
+
+
+
+//
+// A customer client removes the announcement of a relationship between its identity and another identity.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message RemoveRelatedIdentityRequest {
+  bytes applicationId = 1;                          // Identifier of the card application to remove. 
+}
+
+
+
+//
+// A response to RemoveRelatedIdentityRequest.
+//
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationId' was not found.
+//
+message RemoveRelatedIdentityResponse {
+}
+
+
+
+//
+// Description of a relationship card application. It consists of a card identifier, which is a hash 
+// of the card data and the 'applicationId', which binds the use of the card with some other object, 
+// transaction, or action, which is specific for the given use of the card.
+//
+message CardApplicationInformation {
+  bytes cardId = 1;                                 // Identifier of a relationship card. See 'RelationshipCard.cardId'.
+  bytes applicationId = 2;                          // Unique identifier of the action that represents using the card. This is used to bind the application of the card 
+                                                    // with a specific transaction or action. If no transaction or action identifier exists, the recipient should 
+                                                    // generate a new GUID. If the given card is guaranteed to be used only once, this can be equal to 'cardId'.
+                                                    // Max 32 bytes long. Must not be empty.
+}
+
+
+// 
+// Description of a relationship card signed by its issuer. Only the identifier of the card is 
+// signed, but since this is a SHA256 hash of all the card's fields (except for the ID itself), 
+// the signature of the identifier effectively signs the whole card information.
+//
+message SignedRelationshipCard {
+  RelationshipCard card = 1;                        // Description of the relationship card.
+  bytes issuerSignature = 2;                        // Signature of 'card.cardId' value in raw format using private key of the issuer of the card.
+                                                    // Max 100 bytes long.
+}
+
+
+//
+// Description of a relationship card.
+//
+message RelationshipCard {
+  bytes cardId = 1;                                 // Identifier of a relationship card is an SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
+                                                    // with cardId initialized to a byte array of 32 zero bytes.
+  bytes version = 2;                                // VersionType. Version of the relationship card structure.
+  string type = 3;                                  // Type of the relationship card. This is an application defined value. Max 64 bytes long.
+  sint64 validFrom = 4;                             // TimestampType. Time from which the card is valid. It must not be greater than 'validTo'.
+  sint64 validTo = 5;                               // TimestampType. Time after which the card is not valid.
+  bytes issuerPublicKey = 6;                        // Public key of the issuer of the card. Max 128 bytes long.
+  bytes recipientPublicKey = 7;                     // Public key of the recipient of the card. Max 128 bytes long.
+}
+
+
+
+
+// 
+// Obtains list of identity's relationships that match the given criteria.
+//
+// Roles: clNonCustomer, clCustomer
+//
+message GetIdentityRelationshipsInformationRequest {
+  bytes identityNetworkId = 1;                     // Identity's network identifier.
+  bool includeInvalid = 2;                         // If set to true, the response may include relationships which cards are no longer valid or not yet valid.
+  
+  string type = 3;                                 // WildcardType or empty string. If not empty, the server will only return relationships which card types 
+                                                   // match the wildcard string. If empty, all card types are allowed.
+                                                   // Max 64 bytes long.
+
+  bool specificIssuer = 4;                         // If set to true, the response will only include relationships which cards were issued by issuer with network identifier equal to 'issuerNetworkId'.
+  bytes issuerNetworkId = 5;                       // If 'specificIssuer' is true, this is the network identifier of the card issuer whose relationships with the target identity are being queried.
+}
+
+
+
+//
+// A response to GetIdentityRelationshipsInformationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "type" - 'GetIdentityRelationshipsInformationRequest.type' is too long.
+//
+message GetIdentityRelationshipsInformationResponse {
+  repeated IdentityRelationship relationships = 1; // List of all matching identity relationships together with their relationship cards.
+}
+
+
+//
+// Description of a relationship between two identities together with signature proofs.
+//
+message IdentityRelationship {
+  CardApplicationInformation cardApplication = 1;  // Relationship card application.
+  bytes cardApplicationSignature = 2;              // Relationship card recipient's signature of 'cardApplication' structure.
+  SignedRelationshipCard card = 3;                 // Relationship card signed by its issuer.
+}
+
+
+
+//
+// Initiates sharing of the profile database with a neighbor profile server.
+//
+// Profile server joining the network needs to contact its neighbors and share its profile database 
+// with them. Similarly, profile servers that detect a new neighbor in their neighborhood need 
+// to contact it and share their profile databases with the new profile server.
+//
+// Sharing the profile list always goes from one profile server (the client who sends this request) 
+// to the other profile server (who acts as a server in this session). If the server wants to share 
+// its profile database with the client server, it will initiate the same dialog on its own, 
+// acting as a client.
+//
+// Once the requesting profile server receives StartNeighborhoodInitializationResponse response, 
+// it can proceed with NeighborSharedProfileUpdateRequest requests. Once it sends all its profiles 
+// to the other party, it has to finish the initialization process using 
+// FinishNeighborhoodInitializationRequest. Only then the neighbor will consider the shared profiles 
+// as valid and will consider them in its search.
+//
+// If the request is processed successfully, the initialization of the neighbor relationship is 
+// started on the opened session and the initialization process has to be finished with 
+// FinishNeighborhoodInitializationRequest or it will fail when the connection is terminated. 
+// The target profile server can terminate the initialization process by disconnecting the other 
+// party if it takes more than 5 minutes to complete.
+//
+//
+// Roles: srNeighbor
+//
+// Conversation status: Verified
+//
+message StartNeighborhoodInitializationRequest {
+}
+
+
+//
+// A response to StartNeighborhoodInitializationRequest.
+//
+//
+// General Error Responses:
+//   * ERROR_BUSY - Profile server can use this error code during the neighborhood initialization process to express that it is currently busy 
+//                  with the neighborhood initialization process with one or more other profile servers.
+//
+message StartNeighborhoodInitializationResponse {
+}
+
+
+//
+// Profile server that initiated sharing of the profile database with its neighbor using 
+// StartNeighborhoodInitializationRequest uses this request to finish the initialization process. 
+// A successful response to this requests means that the profile database is now shared successfully 
+// on the target profile server and it will consider the shared profiles in its search queries.
+//
+//
+// Roles: srNeighbor
+//
+// Conversation status: Verified
+//
+message FinishNeighborhoodInitializationRequest {
+}
+
+
+//
+// A response to StartNeighborhoodInitializationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_REJECTED - No neighborhood initialization process was not started on this session using StartNeighborhoodInitializationRequest.
+//
+message FinishNeighborhoodInitializationResponse {
+}
+
+
+//
+// This request is sent by a profile server to announce a change in one or more of the profiles 
+// of its customers. This request is also used during the neighborhood initialization to upload 
+// the profile server's profile database to its neighbor. If the request is sent outside 
+// the neighborhood initialization process, it is considered as a standalone request.
+//
+//
+// Roles: srNeighbor
+//
+// Conversation status: Verified
+//
+message NeighborSharedProfileUpdateRequest {
+  repeated SharedProfileUpdateItem items = 1;      // List of profile update items.
+}
+
+
+//
+// A response to StartNeighborhoodInitializationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "$index.$field" - All items up to 'NeighborSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
+//                                             and an error occurred while processing the item with zero-based index $index. Items with index greater 
+//                                             then $index were not processed. The $field specifies which field was invalid as follows:
+//       * $field == "add" - Number of shared profiles from the requesting profile server exceeds the limit.
+//       * $field == "add.version" - `items[$index].add.version` is not a valid VersionType value.
+//       * $field == "add.identityPublicKey" - `items[$index].add.identityPublicKey` is not a valid public key value or the same identity already exists.
+//       * $field == "add.name" - `items[$index].add.name` is not a valid profile name.
+//       * $field == "add.type" - `items[$index].add.type` is not a valid identity type.
+//       * $field == "add.thumbnailImage" - `items[$index].add.thumbnailImage` is not a valid thumbnail image.
+//       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
+//       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
+//       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extraData value.
+//       * $field == "change.identityNetworkId" - `items[$index].change.identityNetworkId` does not represent an existing identity.
+//       * $field == "change.version" - `items[$index].change.version` is not a valid VersionType value.
+//       * $field == "change.name" - `items[$index].change.name` is not a valid profile name.
+//       * $field == "change.thumbnailImage" - `items[$index].change.thumbnailImage` is not a valid thumbnail image.
+//       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
+//       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
+//       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
+//       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity.
+//
+message NeighborSharedProfileUpdateResponse {
+}
+
+
+//
+// Information about update of a neighborhood's profile.
+//
+message SharedProfileUpdateItem {
+  oneof ActionType {                               // Update operation can be:
+    SharedProfileAddItem add = 1;                  //  * adding a new profile to the database,
+    SharedProfileChangeItem change = 2;            //  * changing an existing profile,
+    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile.
+  }
+}
+
+
+//
+// Information about newly created profile that is to be shared with a neighbor.
+//
+message SharedProfileAddItem {
+  bytes version = 1;                               // VersionType. Version of the profile structure.
+  bytes identityPublicKey = 2;                     // The identity's public key. Max 128 bytes long.
+  string name = 3;                                 // Name of the profile or empty string, max 64 bytes long.
+  string type = 4;                                 // The identity's type, non-empty string, max 64 bytes long. 
+  bool setThumbnailImage = 5;                      // If true, 'thumbnailImage' has to contain valid image date. If false, 'thumbnailImage' is ignored.
+  bytes thumbnailImage = 6;                        // If 'setThumbnailImage' is true, this contains profile image in PNG or JPEG format, max 5,120 bytes long.
+  sfixed32 latitude = 7;                           // LocationType. GPS location latitude information.
+  sfixed32 longitude = 8;                          // LocationType. GPS location longitude information.
+  string extraData = 9;                            // Semicolon separated 'key=value' list, or empty string, max 200 bytes long.
+}
+
+
+//
+// Information about changes in an existing profile data that are to be shared with a neighbor.
+//
+message SharedProfileChangeItem {
+  bytes identityNetworkId = 1;                     // The identity's network identifier.
+
+  bool setVersion = 2;                             // Profile version should be updated. 'version' must contain valid data.
+  bool setName = 3;                                // Profile name should be updated. 'name' must contain valid data.
+  bool setThumbnailImage = 4;                      // Profile image should be updated. 'thumbnailImage' must contain valid data.
+  bool setLocation = 5;                            // Profile location should be updated. 'latitude' and 'longitude' must contain valid data.
+  bool setExtraData = 6;                           // Profile extra data should be updated. 'extraData' must contain valid data.
+
+  bytes version = 7;                               // VersionType. Version of the profile structure.
+  string name = 8;                                 // Name of the profile, non-empty string, max 64 bytes long.
+  bytes thumbnailImage = 9;                        // Profile thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long.
+  sfixed32 latitude = 10;                          // LocationType. GPS location latitude information.
+  sfixed32 longitude = 11;                         // LocationType. GPS location longitude information.
+  string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
+}
+
+
+//
+// Information about the removal of an existing profile that is to be shared with a neighbor.
+//
+message SharedProfileDeleteItem {
+  bytes identityNetworkId = 1;                     // The identity's network identifier.
 }
 
