@@ -1601,6 +1601,11 @@ message IdentityRelationship {
 // The target profile server can terminate the initialization process by disconnecting the other 
 // party if it takes more than 5 minutes to complete.
 //
+// All profiles received from a neighbor have expiration time after which the profile server can 
+// delete them from its database. The minimal refresh time is 24 hours, which means that each server 
+// has to keep the profiles from its neighbors for at least 24 hours from the time of last update.
+// Each server is free to define its own refresh time longer than 24 hours.
+//
 //
 // Roles: srNeighbor
 //
@@ -1700,7 +1705,8 @@ message SharedProfileUpdateItem {
   oneof ActionType {                               // Update operation can be:
     SharedProfileAddItem add = 1;                  //  * adding a new profile to the database,
     SharedProfileChangeItem change = 2;            //  * changing an existing profile,
-    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile.
+    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile,
+    SharedProfileRefreshAllItem refresh = 4;       //  * refresh expiration date of all existing profiles.
   }
 }
 
@@ -1749,3 +1755,9 @@ message SharedProfileDeleteItem {
   bytes identityNetworkId = 1;                     // The identity's network identifier.
 }
 
+
+//
+// Request to refresh all existing profiles on the target server.
+//
+message SharedProfileRefreshAllItem {
+}
