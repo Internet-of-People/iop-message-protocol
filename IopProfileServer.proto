@@ -1585,8 +1585,8 @@ message IdentityRelationship {
 // to contact it and share their profile databases with the new profile server.
 //
 // Sharing the profile list always goes from one profile server (the client who sends this request) 
-// to the other profile server (who acts as a server in this session). If the server wants to share 
-// its profile database with the client server, it will initiate the same dialog on its own, 
+// to the target profile server (who acts as a server in this session). If the target server wants 
+// to share its profile database with the client server, it will initiate the same dialog on its own, 
 // acting as a client.
 //
 // Once the requesting profile server receives StartNeighborhoodInitializationResponse response, 
