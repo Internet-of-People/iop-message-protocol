@@ -1580,31 +1580,47 @@ message IdentityRelationship {
 //
 // Initiates sharing of the profile database with a neighbor profile server.
 //
-// Profile server joining the network needs to contact its neighbors and share its profile database 
-// with them. Similarly, profile servers that detect a new neighbor in their neighborhood need 
-// to contact it and share their profile databases with the new profile server.
+// Profile server joining the network needs to contact its neighbors and ask them to share their 
+// profile databases, so that it can include the profiles of their clients into its own searches.
+// Similarly, profile servers that detect a new neighbor in their neighborhood need to contact 
+// it and ask it to share its profile database with them.
 //
-// Sharing the profile list always goes from one profile server (the client who sends this request) 
-// to the target profile server (who acts as a server in this session). If the target server wants 
-// to share its profile database with the client server, it will initiate the same dialog on its own, 
-// acting as a client.
+// Sharing the profile list always goes from one profile server S (who acts as the server in 
+// the session) to the requesting profile server C (who acts as a client in the session). It is C 
+// who connects to S and sends a request asking S to share its database. If the server C wants 
+// to share its profile database with the server S, it has to wait for the request from C, which 
+// will ask it to share its database. This request will come if S considers C its neighbor.
 //
-// Once the requesting profile server receives StartNeighborhoodInitializationResponse response, 
-// it can proceed with NeighborSharedProfileUpdateRequest requests. Once it sends all its profiles 
-// to the other party, it has to finish the initialization process using 
-// FinishNeighborhoodInitializationRequest. Only then the neighbor will consider the shared profiles 
-// as valid and will consider them in its search.
+// The process starts with the server C sending StartNeighborhoodInitializationRequest message to S.
+// If S is accepts the request, it replies with StartNeighborhoodInitializationResponse and then 
+// it starts sending NeighborSharedProfileUpdateRequest messages until a full database is sent to C. 
+// With each update message, C has to check the validity of the data and if it accepts the batch
+// it replies with NeighborSharedProfileUpdateResponse. Once all of the profiles are sent to C,
+// S sends FinishNeighborhoodInitializationRequest and if C replies with successful message
+// FinishNeighborhoodInitializationResponse, the process is completed. 
+//
+// If S does not host any profiles yet, it may send FinishNeighborhoodInitializationRequest message 
+// without sending any NeighborSharedProfileUpdateRequest messages.
+//
+// Once C replies with FinishNeighborhoodInitializationResponse, the initialization process is 
+// finished and C can consider the profiles hosted on S in its search queries. If a connection 
+// is terminated or the process is disrupted in any other way, C can not consider the process 
+// as finished and must not include the profiles of S in its searches.
+//
+// The profile server S has the responsibility of keeping the information on C up to date. With 
+// each change of profile S hosts, it has to contact C and inform it about the change. This is done 
+// using NeighborSharedProfileUpdateRequest messages that are sent outside the initialization 
+// process (i.e. without sending StartNeighborhoodInitializationRequest message first).
 //
 // If the request is processed successfully, the initialization of the neighbor relationship is 
 // started on the opened session and the initialization process has to be finished with 
 // FinishNeighborhoodInitializationRequest or it will fail when the connection is terminated. 
-// The target profile server can terminate the initialization process by disconnecting the other 
-// party if it takes more than 5 minutes to complete.
 //
 // All profiles received from a neighbor have expiration time after which the profile server can 
 // delete them from its database. The minimal refresh time is 24 hours, which means that each server 
 // has to keep the profiles from its neighbors for at least 24 hours from the time of last update.
-// Each server is free to define its own refresh time longer than 24 hours.
+// Each server is free to define its own refresh time longer than 24 hours, which means it will 
+// not deleted unrefreshed data for more than 24 hours.
 //
 //
 // Roles: srNeighbor
@@ -1620,7 +1636,7 @@ message StartNeighborhoodInitializationRequest {
 //
 //
 // General Error Responses:
-//   * ERROR_BUSY - Profile server can use this error code during the neighborhood initialization process to express that it is currently busy 
+//   * ERROR_BUSY - Profile server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other profile servers.
 //
 message StartNeighborhoodInitializationResponse {
@@ -1628,10 +1644,9 @@ message StartNeighborhoodInitializationResponse {
 
 
 //
-// Profile server that initiated sharing of the profile database with its neighbor using 
+// Profile server that was requested to share its profile database with its neighbor using 
 // StartNeighborhoodInitializationRequest uses this request to finish the initialization process. 
-// A successful response to this requests means that the profile database is now shared successfully 
-// on the target profile server and it will consider the shared profiles in its search queries.
+// Sending this message means that all profiles were successfully shared.
 //
 //
 // Roles: srNeighbor
@@ -1643,10 +1658,11 @@ message FinishNeighborhoodInitializationRequest {
 
 
 //
-// A response to StartNeighborhoodInitializationRequest.
+// A response to FinishNeighborhoodInitializationRequest. Sending this response means that 
+// the sender will now consider the shared profiles from the other server in its search queries.
 //
 // Specific Error Responses:
-//   * ERROR_REJECTED - No neighborhood initialization process was not started on this session using StartNeighborhoodInitializationRequest.
+//   * ERROR_REJECTED - No neighborhood initialization process was started on this session using StartNeighborhoodInitializationRequest.
 //
 message FinishNeighborhoodInitializationResponse {
 }
@@ -1654,8 +1670,8 @@ message FinishNeighborhoodInitializationResponse {
 
 //
 // This request is sent by a profile server to announce a change in one or more of the profiles 
-// of its customers. This request is also used during the neighborhood initialization to upload 
-// the profile server's profile database to its neighbor. If the request is sent outside 
+// of its customers. This request is also used during the neighborhood initialization to send 
+// the profile server's profile database to the requesting server. If the request is sent outside 
 // the neighborhood initialization process, it is considered as a standalone request.
 //
 //
@@ -1669,7 +1685,7 @@ message NeighborSharedProfileUpdateRequest {
 
 
 //
-// A response to StartNeighborhoodInitializationRequest.
+// A response to NeighborSharedProfileUpdateRequest.
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_VALUE
@@ -1757,7 +1773,7 @@ message SharedProfileDeleteItem {
 
 
 //
-// Request to refresh all existing profiles on the target server.
+// Request to refresh all existing profiles of the requesting server on the target server.
 //
 message SharedProfileRefreshAllItem {
 }
