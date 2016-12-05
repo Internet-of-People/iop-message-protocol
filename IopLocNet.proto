@@ -212,7 +212,7 @@ message RemoteNodeRequest {
     BuildNetworkRequest renewColleague = 2;
     BuildNetworkRequest acceptNeighbour = 3;
     BuildNetworkRequest renewNeighbour = 4;
-    GetColleagueNodeCountRequest getColleagueNodeCount = 5;
+    GetNodeCountRequest getNodeCount = 5;
     GetRandomNodesRequest getRandomNodes = 6;
     GetClosestNodesByDistanceRequest getClosestNodes = 7;
   }
@@ -224,7 +224,7 @@ message RemoteNodeResponse {
     BuildNetworkResponse renewColleague = 2;
     BuildNetworkResponse acceptNeighbour = 3;
     BuildNetworkResponse renewNeighbour = 4;
-    GetColleagueNodeCountResponse getColleagueNodeCount = 5;
+    GetNodeCountResponse getNodeCount = 5;
     GetRandomNodesResponse getRandomNodes = 6;
     GetClosestNodesByDistanceResponse getClosestNodes = 7;
   }
@@ -239,10 +239,10 @@ message BuildNetworkResponse {
   bool accepted = 1;
 }
 
-message GetColleagueNodeCountRequest {
+message GetNodeCountRequest {
 }
 
-message GetColleagueNodeCountResponse {
+message GetNodeCountResponse {
   uint32 nodeCount = 1;
 }
 
