@@ -1658,8 +1658,10 @@ message FinishNeighborhoodInitializationRequest {
 
 
 //
-// A response to FinishNeighborhoodInitializationRequest. Sending this response means that 
-// the sender will now consider the shared profiles from the other server in its search queries.
+// A response to FinishNeighborhoodInitializationRequest. 
+//
+// Sending this response means that the sender will now consider the shared profiles from 
+// the other server in its search queries.
 //
 // Specific Error Responses:
 //   * ERROR_REJECTED - No neighborhood initialization process was started on this session using StartNeighborhoodInitializationRequest.
@@ -1688,6 +1690,7 @@ message NeighborSharedProfileUpdateRequest {
 // A response to NeighborSharedProfileUpdateRequest.
 //
 // Specific Error Responses:
+//   * ERROR_REJECTED - The target server is no longer interested in receiving updates from the profile server. This should have the same effect as sending StopNeighborhoodUpdatesRequest.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "$index.$field" - All items up to 'NeighborSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
 //                                             and an error occurred while processing the item with zero-based index $index. Items with index greater 
@@ -1776,4 +1779,27 @@ message SharedProfileDeleteItem {
 // Request to refresh all existing profiles of the requesting server on the target server.
 //
 message SharedProfileRefreshAllItem {
+}
+
+
+
+//
+// Asks a (former) neighbor to stop sending updates of its database to the profile server.
+//
+//
+// Roles: srNeighbor
+//
+// Conversation status: Verified
+//
+message StopNeighborhoodUpdatesRequest {
+}
+
+
+//
+// A response to StopNeighborhoodUpdatesRequest. 
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - The target server does not recognize the profile server as its neighbor.
+//
+message StopNeighborhoodUpdatesResponse {
 }
