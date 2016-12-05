@@ -1585,8 +1585,8 @@ message IdentityRelationship {
 // to contact it and share their profile databases with the new profile server.
 //
 // Sharing the profile list always goes from one profile server (the client who sends this request) 
-// to the other profile server (who acts as a server in this session). If the server wants to share 
-// its profile database with the client server, it will initiate the same dialog on its own, 
+// to the target profile server (who acts as a server in this session). If the target server wants 
+// to share its profile database with the client server, it will initiate the same dialog on its own, 
 // acting as a client.
 //
 // Once the requesting profile server receives StartNeighborhoodInitializationResponse response, 
@@ -1600,6 +1600,11 @@ message IdentityRelationship {
 // FinishNeighborhoodInitializationRequest or it will fail when the connection is terminated. 
 // The target profile server can terminate the initialization process by disconnecting the other 
 // party if it takes more than 5 minutes to complete.
+//
+// All profiles received from a neighbor have expiration time after which the profile server can 
+// delete them from its database. The minimal refresh time is 24 hours, which means that each server 
+// has to keep the profiles from its neighbors for at least 24 hours from the time of last update.
+// Each server is free to define its own refresh time longer than 24 hours.
 //
 //
 // Roles: srNeighbor
@@ -1700,7 +1705,8 @@ message SharedProfileUpdateItem {
   oneof ActionType {                               // Update operation can be:
     SharedProfileAddItem add = 1;                  //  * adding a new profile to the database,
     SharedProfileChangeItem change = 2;            //  * changing an existing profile,
-    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile.
+    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile,
+    SharedProfileRefreshAllItem refresh = 4;       //  * refresh expiration date of all existing profiles.
   }
 }
 
@@ -1749,3 +1755,9 @@ message SharedProfileDeleteItem {
   bytes identityNetworkId = 1;                     // The identity's network identifier.
 }
 
+
+//
+// Request to refresh all existing profiles on the target server.
+//
+message SharedProfileRefreshAllItem {
+}
