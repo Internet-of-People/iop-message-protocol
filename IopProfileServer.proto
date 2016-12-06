@@ -292,7 +292,8 @@ message ConversationRequest {
     RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
     StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 16;
     FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 17;
-    NeighborSharedProfileUpdateRequest neighborSharedProfileUpdate = 18;
+    NeighborhoodSharedProfileUpdateRequest neighborhoodSharedProfileUpdate = 18;
+    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 19;
   }
 }
 
@@ -319,7 +320,8 @@ message ConversationResponse {
     RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
     StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 16;
     FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 17;
-    NeighborSharedProfileUpdateResponse neighborSharedProfileUpdate = 18;
+    NeighborhoodSharedProfileUpdateResponse neighborhoodSharedProfileUpdate = 18;
+    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 19;
   }
 }
 
@@ -1593,14 +1595,14 @@ message IdentityRelationship {
 //
 // The process starts with the server C sending StartNeighborhoodInitializationRequest message to S.
 // If S is accepts the request, it replies with StartNeighborhoodInitializationResponse and then 
-// it starts sending NeighborSharedProfileUpdateRequest messages until a full database is sent to C. 
+// it starts sending NeighborhoodSharedProfileUpdateRequest messages until a full database is sent to C. 
 // With each update message, C has to check the validity of the data and if it accepts the batch
-// it replies with NeighborSharedProfileUpdateResponse. Once all of the profiles are sent to C,
+// it replies with NeighborhoodSharedProfileUpdateResponse. Once all of the profiles are sent to C,
 // S sends FinishNeighborhoodInitializationRequest and if C replies with successful message
 // FinishNeighborhoodInitializationResponse, the process is completed. 
 //
 // If S does not host any profiles yet, it may send FinishNeighborhoodInitializationRequest message 
-// without sending any NeighborSharedProfileUpdateRequest messages.
+// without sending any NeighborhoodSharedProfileUpdateRequest messages.
 //
 // Once C replies with FinishNeighborhoodInitializationResponse, the initialization process is 
 // finished and C can consider the profiles hosted on S in its search queries. If a connection 
@@ -1609,7 +1611,7 @@ message IdentityRelationship {
 //
 // The profile server S has the responsibility of keeping the information on C up to date. With 
 // each change of profile S hosts, it has to contact C and inform it about the change. This is done 
-// using NeighborSharedProfileUpdateRequest messages that are sent outside the initialization 
+// using NeighborhoodSharedProfileUpdateRequest messages that are sent outside the initialization 
 // process (i.e. without sending StartNeighborhoodInitializationRequest message first).
 //
 // If the request is processed successfully, the initialization of the neighbor relationship is 
@@ -1628,6 +1630,8 @@ message IdentityRelationship {
 // Conversation status: Verified
 //
 message StartNeighborhoodInitializationRequest {
+  uint32 primaryPort = 1;                          // Port of the profile server's Primary Interface.
+  uint32 srNeighborPort = 2;                       // Port of the profile server's Neighbors Interface.
 }
 
 
@@ -1636,8 +1640,13 @@ message StartNeighborhoodInitializationRequest {
 //
 //
 // General Error Responses:
+//   * ERROR_REJECTED - Profile server already has reached its limit of a number of servers that it shares its profile database with and is not willing to have more.
+//   * ERROR_ALREADY_EXISTS - Neighborhood initialization process has already been done.
 //   * ERROR_BUSY - Profile server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other profile servers.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65535.
+//     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.srNeighborPort' must be an integer between 1 and 65535.
 //
 message StartNeighborhoodInitializationResponse {
 }
@@ -1676,23 +1685,27 @@ message FinishNeighborhoodInitializationResponse {
 // the profile server's profile database to the requesting server. If the request is sent outside 
 // the neighborhood initialization process, it is considered as a standalone request.
 //
+// During the neighborhood initialization process, only items with `SharedProfileUpdateItem.ActionType` 
+// of `SharedProfileAddItem` can be sent.
+//
 //
 // Roles: srNeighbor
 //
 // Conversation status: Verified
 //
-message NeighborSharedProfileUpdateRequest {
+message NeighborhoodSharedProfileUpdateRequest {
   repeated SharedProfileUpdateItem items = 1;      // List of profile update items.
 }
 
 
 //
-// A response to NeighborSharedProfileUpdateRequest.
+// A response to NeighborhoodSharedProfileUpdateRequest.
 //
 // Specific Error Responses:
-//   * ERROR_REJECTED - The target server is no longer interested in receiving updates from the profile server. This should have the same effect as sending StopNeighborhoodUpdatesRequest.
+//   * ERROR_REJECTED - Profile server is no longer interested in receiving updates from the profile server. This should have the same effect as sending StopNeighborhoodUpdatesRequest.
+//   * ERROR_UNINITIALIZED - Neighborhood initialization process has not been done or finished yet.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "$index.$field" - All items up to 'NeighborSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
+//     * Response.details == "$index.$field" - All items up to 'NeighborhoodSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
 //                                             and an error occurred while processing the item with zero-based index $index. Items with index greater 
 //                                             then $index were not processed. The $field specifies which field was invalid as follows:
 //       * $field == "add" - Number of shared profiles from the requesting profile server exceeds the limit.
@@ -1712,8 +1725,9 @@ message NeighborSharedProfileUpdateRequest {
 //       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
 //       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
 //       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity.
+//       * $field == "actionType" - During the neighborhood initialization process, only `SharedProfileAddItem` is a valid update message.
 //
-message NeighborSharedProfileUpdateResponse {
+message NeighborhoodSharedProfileUpdateResponse {
 }
 
 
