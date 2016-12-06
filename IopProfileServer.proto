@@ -778,7 +778,7 @@ message UpdateProfileRequest {
 
   bytes version = 8;                               // VersionType. Version of the profile structure.
   string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long.
+  bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long, or empty binary data if the image is about to be erased.
   sfixed32 latitude = 11;                          // LocationType. GPS location latitude information.
   sfixed32 longitude = 12;                         // LocationType. GPS location longitude information.
   string extraData = 13;                           // Semicolon separated 'key=value' list, max 200 bytes long.
@@ -1702,8 +1702,10 @@ message NeighborhoodSharedProfileUpdateRequest {
 // A response to NeighborhoodSharedProfileUpdateRequest.
 //
 // Specific Error Responses:
-//   * ERROR_REJECTED - Profile server is no longer interested in receiving updates from the profile server. This should have the same effect as sending StopNeighborhoodUpdatesRequest.
-//   * ERROR_UNINITIALIZED - Neighborhood initialization process has not been done or finished yet.
+//   * ERROR_REJECTED - Neighborhood initialization process has not been done or finished yet, or profile server is no longer interested in receiving updates 
+//                      from the requesting profile server. This should have the same effect as if the profile server sent StopNeighborhoodUpdatesRequest to 
+//                      the requesting profile server. If the requesting profile server wants to share its database, it has to go through neighborhood 
+//                      initialization process from start.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "$index.$field" - All items up to 'NeighborhoodSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
 //                                             and an error occurred while processing the item with zero-based index $index. Items with index greater 
@@ -1717,6 +1719,7 @@ message NeighborhoodSharedProfileUpdateRequest {
 //       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
 //       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
 //       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extraData value.
+//       * $field == "change.set*" - `items[$index].change.set*` are all false.
 //       * $field == "change.identityNetworkId" - `items[$index].change.identityNetworkId` does not represent an existing identity.
 //       * $field == "change.version" - `items[$index].change.version` is not a valid VersionType value.
 //       * $field == "change.name" - `items[$index].change.name` is not a valid profile name.
@@ -1774,7 +1777,7 @@ message SharedProfileChangeItem {
 
   bytes version = 7;                               // VersionType. Version of the profile structure.
   string name = 8;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  bytes thumbnailImage = 9;                        // Profile thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long.
+  bytes thumbnailImage = 9;                        // Profile thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long, or zero length binary data if the image is about to be deleted.
   sfixed32 latitude = 10;                          // LocationType. GPS location latitude information.
   sfixed32 longitude = 11;                         // LocationType. GPS location longitude information.
   string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
