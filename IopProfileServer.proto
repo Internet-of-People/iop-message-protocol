@@ -732,7 +732,7 @@ message CheckInResponse {
 // A non-customer client verifies its public key by signing the challenge. This request is similar to CheckInRequest, 
 // but it is intended for non-customer clients. The client has to provide a signature in 'ConversationRequest.signature'.
 //
-// Roles: clNonCustomer
+// Roles: clNonCustomer, srNeighbor
 //
 // Conversation status: ConversationStarted
 //
