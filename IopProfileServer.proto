@@ -292,7 +292,8 @@ message ConversationRequest {
     RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
     StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 16;
     FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 17;
-    NeighborSharedProfileUpdateRequest neighborSharedProfileUpdate = 18;
+    NeighborhoodSharedProfileUpdateRequest neighborhoodSharedProfileUpdate = 18;
+    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 19;
   }
 }
 
@@ -319,7 +320,8 @@ message ConversationResponse {
     RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
     StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 16;
     FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 17;
-    NeighborSharedProfileUpdateResponse neighborSharedProfileUpdate = 18;
+    NeighborhoodSharedProfileUpdateResponse neighborhoodSharedProfileUpdate = 18;
+    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 19;
   }
 }
 
@@ -730,7 +732,7 @@ message CheckInResponse {
 // A non-customer client verifies its public key by signing the challenge. This request is similar to CheckInRequest, 
 // but it is intended for non-customer clients. The client has to provide a signature in 'ConversationRequest.signature'.
 //
-// Roles: clNonCustomer
+// Roles: clNonCustomer, srNeighbor
 //
 // Conversation status: ConversationStarted
 //
@@ -776,7 +778,7 @@ message UpdateProfileRequest {
 
   bytes version = 8;                               // VersionType. Version of the profile structure.
   string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long.
+  bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long, or empty binary data if the image is about to be erased.
   sfixed32 latitude = 11;                          // LocationType. GPS location latitude information.
   sfixed32 longitude = 12;                         // LocationType. GPS location longitude information.
   string extraData = 13;                           // Semicolon separated 'key=value' list, max 200 bytes long.
@@ -1580,31 +1582,47 @@ message IdentityRelationship {
 //
 // Initiates sharing of the profile database with a neighbor profile server.
 //
-// Profile server joining the network needs to contact its neighbors and share its profile database 
-// with them. Similarly, profile servers that detect a new neighbor in their neighborhood need 
-// to contact it and share their profile databases with the new profile server.
+// Profile server joining the network needs to contact its neighbors and ask them to share their 
+// profile databases, so that it can include the profiles of their clients into its own searches.
+// Similarly, profile servers that detect a new neighbor in their neighborhood need to contact 
+// it and ask it to share its profile database with them.
 //
-// Sharing the profile list always goes from one profile server (the client who sends this request) 
-// to the target profile server (who acts as a server in this session). If the target server wants 
-// to share its profile database with the client server, it will initiate the same dialog on its own, 
-// acting as a client.
+// Sharing the profile list always goes from one profile server S (who acts as the server in 
+// the session) to the requesting profile server C (who acts as a client in the session). It is C 
+// who connects to S and sends a request asking S to share its database. If the server C wants 
+// to share its profile database with the server S, it has to wait for the request from C, which 
+// will ask it to share its database. This request will come if S considers C its neighbor.
 //
-// Once the requesting profile server receives StartNeighborhoodInitializationResponse response, 
-// it can proceed with NeighborSharedProfileUpdateRequest requests. Once it sends all its profiles 
-// to the other party, it has to finish the initialization process using 
-// FinishNeighborhoodInitializationRequest. Only then the neighbor will consider the shared profiles 
-// as valid and will consider them in its search.
+// The process starts with the server C sending StartNeighborhoodInitializationRequest message to S.
+// If S is accepts the request, it replies with StartNeighborhoodInitializationResponse and then 
+// it starts sending NeighborhoodSharedProfileUpdateRequest messages until a full database is sent to C. 
+// With each update message, C has to check the validity of the data and if it accepts the batch
+// it replies with NeighborhoodSharedProfileUpdateResponse. Once all of the profiles are sent to C,
+// S sends FinishNeighborhoodInitializationRequest and if C replies with successful message
+// FinishNeighborhoodInitializationResponse, the process is completed. 
+//
+// If S does not host any profiles yet, it may send FinishNeighborhoodInitializationRequest message 
+// without sending any NeighborhoodSharedProfileUpdateRequest messages.
+//
+// Once C replies with FinishNeighborhoodInitializationResponse, the initialization process is 
+// finished and C can consider the profiles hosted on S in its search queries. If a connection 
+// is terminated or the process is disrupted in any other way, C can not consider the process 
+// as finished and must not include the profiles of S in its searches.
+//
+// The profile server S has the responsibility of keeping the information on C up to date. With 
+// each change of profile S hosts, it has to contact C and inform it about the change. This is done 
+// using NeighborhoodSharedProfileUpdateRequest messages that are sent outside the initialization 
+// process (i.e. without sending StartNeighborhoodInitializationRequest message first).
 //
 // If the request is processed successfully, the initialization of the neighbor relationship is 
 // started on the opened session and the initialization process has to be finished with 
 // FinishNeighborhoodInitializationRequest or it will fail when the connection is terminated. 
-// The target profile server can terminate the initialization process by disconnecting the other 
-// party if it takes more than 5 minutes to complete.
 //
 // All profiles received from a neighbor have expiration time after which the profile server can 
 // delete them from its database. The minimal refresh time is 24 hours, which means that each server 
 // has to keep the profiles from its neighbors for at least 24 hours from the time of last update.
-// Each server is free to define its own refresh time longer than 24 hours.
+// Each server is free to define its own refresh time longer than 24 hours, which means it will 
+// not deleted unrefreshed data for more than 24 hours.
 //
 //
 // Roles: srNeighbor
@@ -1612,6 +1630,8 @@ message IdentityRelationship {
 // Conversation status: Verified
 //
 message StartNeighborhoodInitializationRequest {
+  uint32 primaryPort = 1;                          // Port of the profile server's Primary Interface.
+  uint32 srNeighborPort = 2;                       // Port of the profile server's Neighbors Interface.
 }
 
 
@@ -1620,18 +1640,22 @@ message StartNeighborhoodInitializationRequest {
 //
 //
 // General Error Responses:
-//   * ERROR_BUSY - Profile server can use this error code during the neighborhood initialization process to express that it is currently busy 
+//   * ERROR_REJECTED - Profile server already has reached its limit of a number of servers that it shares its profile database with and is not willing to have more.
+//   * ERROR_ALREADY_EXISTS - Neighborhood initialization process has already been done.
+//   * ERROR_BUSY - Profile server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other profile servers.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65535.
+//     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.srNeighborPort' must be an integer between 1 and 65535.
 //
 message StartNeighborhoodInitializationResponse {
 }
 
 
 //
-// Profile server that initiated sharing of the profile database with its neighbor using 
+// Profile server that was requested to share its profile database with its neighbor using 
 // StartNeighborhoodInitializationRequest uses this request to finish the initialization process. 
-// A successful response to this requests means that the profile database is now shared successfully 
-// on the target profile server and it will consider the shared profiles in its search queries.
+// Sending this message means that all profiles were successfully shared.
 //
 //
 // Roles: srNeighbor
@@ -1643,10 +1667,13 @@ message FinishNeighborhoodInitializationRequest {
 
 
 //
-// A response to StartNeighborhoodInitializationRequest.
+// A response to FinishNeighborhoodInitializationRequest. 
+//
+// Sending this response means that the sender will now consider the shared profiles from 
+// the other server in its search queries.
 //
 // Specific Error Responses:
-//   * ERROR_REJECTED - No neighborhood initialization process was not started on this session using StartNeighborhoodInitializationRequest.
+//   * ERROR_REJECTED - No neighborhood initialization process was started on this session using StartNeighborhoodInitializationRequest.
 //
 message FinishNeighborhoodInitializationResponse {
 }
@@ -1654,26 +1681,33 @@ message FinishNeighborhoodInitializationResponse {
 
 //
 // This request is sent by a profile server to announce a change in one or more of the profiles 
-// of its customers. This request is also used during the neighborhood initialization to upload 
-// the profile server's profile database to its neighbor. If the request is sent outside 
+// of its customers. This request is also used during the neighborhood initialization to send 
+// the profile server's profile database to the requesting server. If the request is sent outside 
 // the neighborhood initialization process, it is considered as a standalone request.
+//
+// During the neighborhood initialization process, only items with `SharedProfileUpdateItem.ActionType` 
+// of `SharedProfileAddItem` can be sent.
 //
 //
 // Roles: srNeighbor
 //
 // Conversation status: Verified
 //
-message NeighborSharedProfileUpdateRequest {
+message NeighborhoodSharedProfileUpdateRequest {
   repeated SharedProfileUpdateItem items = 1;      // List of profile update items.
 }
 
 
 //
-// A response to StartNeighborhoodInitializationRequest.
+// A response to NeighborhoodSharedProfileUpdateRequest.
 //
 // Specific Error Responses:
+//   * ERROR_REJECTED - Neighborhood initialization process has not been done or finished yet, or profile server is no longer interested in receiving updates 
+//                      from the requesting profile server. This should have the same effect as if the profile server sent StopNeighborhoodUpdatesRequest to 
+//                      the requesting profile server. If the requesting profile server wants to share its database, it has to go through neighborhood 
+//                      initialization process from start.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "$index.$field" - All items up to 'NeighborSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
+//     * Response.details == "$index.$field" - All items up to 'NeighborhoodSharedProfileUpdateRequest.items[$index]' (exclusive) were processed correctly
 //                                             and an error occurred while processing the item with zero-based index $index. Items with index greater 
 //                                             then $index were not processed. The $field specifies which field was invalid as follows:
 //       * $field == "add" - Number of shared profiles from the requesting profile server exceeds the limit.
@@ -1685,6 +1719,7 @@ message NeighborSharedProfileUpdateRequest {
 //       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
 //       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
 //       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extraData value.
+//       * $field == "change.set*" - `items[$index].change.set*` are all false.
 //       * $field == "change.identityNetworkId" - `items[$index].change.identityNetworkId` does not represent an existing identity.
 //       * $field == "change.version" - `items[$index].change.version` is not a valid VersionType value.
 //       * $field == "change.name" - `items[$index].change.name` is not a valid profile name.
@@ -1693,8 +1728,9 @@ message NeighborSharedProfileUpdateRequest {
 //       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
 //       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
 //       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity.
+//       * $field == "actionType" - During the neighborhood initialization process, only `SharedProfileAddItem` is a valid update message.
 //
-message NeighborSharedProfileUpdateResponse {
+message NeighborhoodSharedProfileUpdateResponse {
 }
 
 
@@ -1741,7 +1777,7 @@ message SharedProfileChangeItem {
 
   bytes version = 7;                               // VersionType. Version of the profile structure.
   string name = 8;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  bytes thumbnailImage = 9;                        // Profile thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long.
+  bytes thumbnailImage = 9;                        // Profile thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long, or zero length binary data if the image is about to be deleted.
   sfixed32 latitude = 10;                          // LocationType. GPS location latitude information.
   sfixed32 longitude = 11;                         // LocationType. GPS location longitude information.
   string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long.
@@ -1757,7 +1793,30 @@ message SharedProfileDeleteItem {
 
 
 //
-// Request to refresh all existing profiles on the target server.
+// Request to refresh all existing profiles of the requesting server on the target server.
 //
 message SharedProfileRefreshAllItem {
+}
+
+
+
+//
+// Asks a (former) neighbor to stop sending updates of its database to the profile server.
+//
+//
+// Roles: srNeighbor
+//
+// Conversation status: Verified
+//
+message StopNeighborhoodUpdatesRequest {
+}
+
+
+//
+// A response to StopNeighborhoodUpdatesRequest. 
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - The target server does not recognize the profile server as its neighbor.
+//
+message StopNeighborhoodUpdatesResponse {
 }
