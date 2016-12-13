@@ -232,11 +232,12 @@ message RemoteNodeResponse {
 
 
 message BuildNetworkRequest {
-  NodeInfo nodeInfo = 1;
+  NodeInfo requestorNodeInfo = 1;
 }
 
 message BuildNetworkResponse {
   bool accepted = 1;
+  NodeInfo acceptorNodeInfo = 2;
 }
 
 message GetNodeCountRequest {
