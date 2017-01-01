@@ -129,8 +129,8 @@
 // message is sent in a different state, it is an error. Note that if the required status is Verified
 // and the current status is Authenticated, the requirement is satisfied.
 //
-//   * ERROR_BAD_CONVERSATION_STATUS - If the required state is NoConversation or ConversationStarted, 
-//                                     but the current state is different.
+//   * ERROR_BAD_CONVERSATION_STATUS - If the required status is NoConversation or ConversationStarted, 
+//                                     but the current status is different.
 //
 //   * ERROR_UNAUTHORIZED - If the required status is Authenticated, but the current status is different; 
 //                          OR the required status is Verified and the current status is neither Verified 
@@ -1594,7 +1594,7 @@ message IdentityRelationship {
 // will ask it to share its database. This request will come if S considers C its neighbor.
 //
 // The process starts with the server C sending StartNeighborhoodInitializationRequest message to S.
-// If S is accepts the request, it replies with StartNeighborhoodInitializationResponse and then 
+// If S accepts the request, it replies with StartNeighborhoodInitializationResponse and then 
 // it starts sending NeighborhoodSharedProfileUpdateRequest messages until a full database is sent to C. 
 // With each update message, C has to check the validity of the data and if it accepts the batch
 // it replies with NeighborhoodSharedProfileUpdateResponse. Once all of the profiles are sent to C,
