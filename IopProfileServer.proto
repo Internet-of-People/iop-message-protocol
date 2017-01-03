@@ -764,7 +764,7 @@ message VerifyIdentityResponse {
 // the RegisterHostingRequest. Until the initialization of the profile is made, the identity 
 // is not considered as being fully initialized and can not be queried or called by other 
 // identities.
-// 
+//
 // Roles: clCustomer
 //
 // Conversation status: Authenticated
@@ -1819,4 +1819,99 @@ message StopNeighborhoodUpdatesRequest {
 //   * ERROR_NOT_FOUND - The target server does not recognize the profile server as its neighbor.
 //
 message StopNeighborhoodUpdatesResponse {
+}
+
+
+
+
+
+//
+// CAN Integration
+//
+// CAN provides globally accessible index that can be used to find current information about a profile server 
+// based on its network ID. Similarly, there is another index of registered identities that allows anyone to 
+// find a network ID of the profile server that hosts an identity based on the identity's network ID.
+//
+// A profile server publishes its contact information in CAN when it is started for the first time. An identity 
+// client uses the following requests to ask its hosting profile server to publish its contact information in CAN 
+// and refresh it later as part of this information expires in time.
+//
+// CAN uses two different objects to store a contact information of a profile server or an identity. The first 
+// object is immutable and holds the actual contact information. The second object is a mutable pointer called 
+// IPNS record. The immutable object is only stored on the local CAN server and can be deleted by the profile 
+// server. The IPNS record is propagated to the CAN DHT and this record is subject to expiration in time. This 
+// means that IPNS records must be refreshed regularly, otherwise they become invalid and will be deleted.
+//
+// Once an identity client establishes a hosting agreement with a profile server, it uses 
+// CanGetProfileIndexHashRequest to obtain a CAN hash of its contact information. Then it creates and signs 
+// an IPNS record and it uses CanPublishIpnsRecordRequest to submit it to CAN using the profile server. The client 
+// does not have a direct write access to CAN, so it is the profile server that uploads IPNS record to CAN
+// on behalf of the identity client. Once the client wants to refresh its IPNS record in CAN, it creates and 
+// signs a new IPNS record and uses CanPublishIpnsRecordRequest again.
+// 
+
+
+//
+// Profile server contact information.
+//
+message CanProfileServerContact {
+  bytes publicKey;                                 // Profile server's public key.
+  bytes ipAddress;                                 // IPv4 or IPv6 public address of the network interface on which profile server operates.
+  int primaryPort;                                 // TCP port of profile server's primary interface.
+}
+
+
+//
+// Identity contact information.
+//
+message CanIdentityContact {
+  bytes hostingServerId;                           // Network ID of the profile server that hosts the identity.
+}
+
+
+// 
+// Obtain CAN hash of the identity contact information.
+//
+// Once an identity is hosted on a profile server, it can use CanGetProfileIndexHashRequest to obtain a hash 
+// of its contact information. The first time this request is called, the profile server uploads the contact 
+// information of the identity to CAN and receives the object hash from it. 
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message CanGetProfileIndexHashRequest {
+}
+
+//
+// A response to CanGetProfileIndexHashRequest.
+//
+// Specific Error Responses:
+//   * ERROR_REJECTED - CAN server reported error, see 'Response.details' for the error message it sent.
+//
+message CanGetProfileIndexHashResponse {
+  string hash;
+}
+
+
+//
+// Identity client asks its hosting profile server to publish its IPNS record in CAN on its behalf.
+//
+//
+// Roles: clCustomer
+//
+// Conversation status: Authenticated
+//
+message CanPublishIpnsRecordRequest {
+  string record;                                   // Signed and encoded IPNS record.
+}
+
+//
+// A response to CanPublishIpnsRecordRequest.
+//
+// Specific Error Responses:
+//   * ERROR_REJECTED - CAN server reported error, see 'Response.details' for the error message it sent.
+//
+message CanPublishIpnsRecordResponse {
 }
