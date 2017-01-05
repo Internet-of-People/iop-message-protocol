@@ -1968,6 +1968,7 @@ message CanIpnsEntry {
 
   bytes value = 1;                                 // User defined IPNS data.
   bytes signature = 2;                             // Signature of the IPNS record by its owner's private key.
+                                                   // See https://github.com/ipfs/go-ipfs/blob/master/namesys/publisher.go.
 
   ValidityType validityType = 3;                   // Type of meaning of 'validity' field.
   bytes validity = 4;                              // RFC3339 UTF-8 string converted to byte array.
