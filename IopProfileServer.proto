@@ -1966,7 +1966,7 @@ message CanIpnsEntry {
     EOL = 0;                                       // Validity value is specifies a time until which the IPNS record is valid.
   }
 
-  bytes value = 1;                                 // User defined IPNS data.
+  bytes value = 1;                                 // IPFS path converted to byte array.
   bytes signature = 2;                             // Signature of the IPNS record by its owner's private key.
                                                    // See https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/publisher.go.
 
