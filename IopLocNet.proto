@@ -220,6 +220,7 @@ message BuildNetworkRequest {
 message BuildNetworkResponse {
   bool accepted = 1;
   NodeInfo acceptorNodeInfo = 2;
+  bytes remoteHost = 3;
 }
 
 message GetNodeCountRequest {
