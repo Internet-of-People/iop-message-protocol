@@ -294,6 +294,8 @@ message ConversationRequest {
     FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 17;
     NeighborhoodSharedProfileUpdateRequest neighborhoodSharedProfileUpdate = 18;
     StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 19;
+    CanStoreDataRequest canStoreData = 20;
+    CanPublishIpnsRecordRequest canPublishIpnsRecord = 21;
   }
 }
 
@@ -322,6 +324,8 @@ message ConversationResponse {
     FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 17;
     NeighborhoodSharedProfileUpdateResponse neighborhoodSharedProfileUpdate = 18;
     StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 19;
+    CanStoreDataResponse canStoreData = 20;
+    CanPublishIpnsRecordResponse canPublishIpnsRecord = 21;
   }
 }
 
@@ -1843,6 +1847,8 @@ message StopNeighborhoodUpdatesResponse {
 // network identifier. The client must have a valid hosting agreement with a profile server in order to be 
 // allowed to use the CAN related requests.
 //
+// To delete the object, a client uses CanStoreDataRequest with empty data.
+//
 // CAN data objects are immutable. The profile server is responsible for deleting the old object from CAN when 
 // it wants to replace it by a new object. When the profile server's contact information changes, the profile 
 // server asks CAN to delete the old contact information object and publishes a new contact information object.
@@ -1900,7 +1906,7 @@ message CanKeyValue {
 
 
 // 
-// Obtain CAN hash of the identity contact information.
+// Uploads client's object to CAN and deletes the old one if there is any.
 //
 // Once an identity is hosted on a profile server, it can use CanStoreDataRequest to upload its CAN object 
 // to CAN. The object has to contain a link back to its profile server, but otherwise, it can contain arbitrary 
@@ -1912,8 +1918,9 @@ message CanKeyValue {
 // Conversation status: Authenticated
 //
 message CanStoreDataRequest {
-  CanIdentityData data = 1;                        // Data to store in CAN. 
+  CanIdentityData data = 1;                        // Data to store in CAN, or null to just delete the old object.
 }
+
 
 //
 // A response to CanStoreDataRequest. 
@@ -1927,8 +1934,11 @@ message CanStoreDataRequest {
 //     * Response.details == "data.hostingServerId" - 'CanStoreDataRequest.data.hostingServerId' is not the profile server's network ID.
 //
 message CanStoreDataResponse {
-  string hash = 1;                                 // Hash of 'CanStoreDataRequest.data' received from CAN.
+  bytes hash = 1;                                  // Hash of 'CanStoreDataRequest.data' received from CAN, or empty array if 'CanStoreDataRequest.data' was null.
 }
+
+
+
 
 
 //
@@ -1949,9 +1959,11 @@ message CanPublishIpnsRecordRequest {
 //
 // Specific Error Responses:
 //   * ERROR_REJECTED - CAN server reported error, see 'Response.details' for the error message it sent.
+//   * ERROR_NOT_FOUND - Client did not upload any CAN object yet.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "record" - 'CanPublishIpnsRecordRequest.record' does not represent a valid IPNS record.
-//     * Response.details == "record.expiration" - 'CanPublishIpnsRecordRequest.record' is IPNS record with invalid expiration date.
+//     * Response.details == "record.value" - 'CanPublishIpnsRecordRequest.value' does not match the path to the last CAN object the client uploaded using CanStoreDataRequest.
+//     * Response.details == "record.validity" - 'CanPublishIpnsRecordRequest.record.validity' is invalid expiration date or it is greater than the client's hosting contract validity.
 //
 message CanPublishIpnsRecordResponse {
 }
@@ -1961,7 +1973,7 @@ message CanPublishIpnsRecordResponse {
 // IPNS record as defined in https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/pb/namesys.proto
 //
 message CanIpnsEntry {
-  // Type of validityType
+  // Type of validity value.
   enum ValidityType {
     EOL = 0;                                       // Validity value is specifies a time until which the IPNS record is valid.
   }
@@ -1978,3 +1990,16 @@ message CanIpnsEntry {
   uint64 ttl = 6;                                  // Time to live of the IPNS record in cache.
 }
 
+
+//
+// Representation of a cryptographic key in CAN API.
+//
+message CanCryptoKey {
+  // Type of the key algorithm. 
+  enum KeyType {
+    RSA = 0;
+    Ed25519 = 1;
+  }
+  KeyType type = 1;                                // Type of the key.
+  bytes data = 2;                                  // Key binary data.
+}
