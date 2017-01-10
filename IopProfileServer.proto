@@ -1987,7 +1987,7 @@ message CanIpnsEntry {
 
   uint64 sequence = 5;                             // Record sequence number that has to be increased on updates.
 
-  uint64 ttl = 6;                                  // Time to live of the IPNS record in cache.
+  uint64 ttl = 6;                                  // Time to live of the IPNS record in cache in nanoseconds.
 }
 
 

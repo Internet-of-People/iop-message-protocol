@@ -22,4 +22,5 @@ The tests in this section are intended for testing of IoP Profile Server softwar
   * [PS06xxx - Profile Search Related Functionality Tests](./tests/PS06.md)
   * [PS07xxx - Related Identities Related Functionality Tests](./tests/PS07.md)
   * [PS08xxx - Neighborhood Related Functionality Tests](./tests/PS08.md)
+  * [PS09xxx - CAN Integration Related Functionality Tests](./tests/PS09.md)
 
