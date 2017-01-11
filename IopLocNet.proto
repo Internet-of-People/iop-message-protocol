@@ -127,14 +127,7 @@ message NodeProfile
 
 
 message Contact {
-  oneof ContactType {
-    IpAddress ipv4 = 1;
-    IpAddress ipv6 = 2;
-  }
-}
-
-message IpAddress {
-  bytes  host = 1;
+  bytes  ipAddress = 1;
   uint32 port = 2;
 }
 
@@ -220,7 +213,7 @@ message BuildNetworkRequest {
 message BuildNetworkResponse {
   bool accepted = 1;
   NodeInfo acceptorNodeInfo = 2;
-  bytes remoteHost = 3;
+  bytes remoteIpAddress = 3;
 }
 
 message GetNodeCountRequest {
