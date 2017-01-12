@@ -1978,7 +1978,9 @@ message CanIpnsEntry {
     EOL = 0;                                       // Validity value is specifies a time until which the IPNS record is valid.
   }
 
-  bytes value = 1;                                 // IPFS path converted to byte array.
+  bytes value = 1;                                 // IPFS path string converted to byte array. The path string has to be "/ipfs/$objectHashEncoded",
+                                                   // where $objectHashEncoded is base58 encoded hash of the CAN object that the client received as `CanStoreDataResponse.hash`.
+                                                   // The base58 encoding must be used without the multibase prefix - for example "/ipfs/QmaRvpLT4RgBDVY6cQKwqQGQNtbM31KSqh8TxvQgFoEUus".
   bytes signature = 2;                             // Signature of the IPNS record by its owner's private key.
                                                    // See https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/publisher.go.
 
