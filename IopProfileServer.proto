@@ -1935,6 +1935,7 @@ message CanStoreDataRequest {
 //
 message CanStoreDataResponse {
   bytes hash = 1;                                  // Hash of 'CanStoreDataRequest.data' received from CAN in multihash binary format, or empty array if 'CanStoreDataRequest.data' was null.
+                                                   // See https://github.com/multiformats/ for more about multiformats and multihashes.
 }
 
 
