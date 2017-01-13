@@ -1934,7 +1934,7 @@ message CanStoreDataRequest {
 //     * Response.details == "data.hostingServerId" - 'CanStoreDataRequest.data.hostingServerId' is not the profile server's network ID.
 //
 message CanStoreDataResponse {
-  bytes hash = 1;                                  // Hash of 'CanStoreDataRequest.data' received from CAN, or empty array if 'CanStoreDataRequest.data' was null.
+  bytes hash = 1;                                  // Hash of 'CanStoreDataRequest.data' received from CAN in multihash binary format, or empty array if 'CanStoreDataRequest.data' was null.
 }
 
 
