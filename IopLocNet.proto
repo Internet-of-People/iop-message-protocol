@@ -8,6 +8,44 @@ package iop.locnet;
 
 
 
+// Return codes to mark whether the operation completed successfully or which error occurred.
+// TODO should status codes be shared between projects and maybe separated into an IopCommon.proto?
+// NOTE value of common status codes are exactly the same as defined in IopProfileServer to make this easy.
+//
+enum Status {
+  // General codes that can be returned to any message.
+  STATUS_OK = 0;                                   // The operation completed successfully.
+
+  ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
+  ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
+  ERROR_INTERNAL = 8;                              // Internal error occurred while processing the message.
+
+  ERROR_INVALID_VALUE = 54;                        // A field in the request contains an invalid value.
+}
+
+
+
+// All further network/server types of the Internet of People
+// that can be registered here so as it can be searched geographically on the client interface.
+enum ServiceType
+{
+// Low level networks
+  Unstructured = 0;
+  Content      = 1;
+  Latency      = 2;
+  Location     = 3;
+
+// High level servers
+  Token       = 10;
+  Profile     = 11;
+  Proximity   = 12;
+  Relay       = 13;
+  Reputation  = 14;
+  Minting     = 15;
+};
+
+
+
 // GpsLocation represents a 2D GPS position without height.
 // Latitude and longitude coordinates use a signed integer stored as type decimal(9,6),
 // which means that a floating point value of the latitude or longitude is multiplied by 1,000,000
@@ -22,19 +60,33 @@ message GpsLocation {
 }
 
 
-// Return codes to mark whether the operation completed successfully or which error occurred.
-// TODO should status codes be shared between projects and maybe separated into an IopCommon.proto?
-// NOTE value of common status codes are exactly the same as defined in IopProfileServer to make this easy.
-//
-enum Status {
-  // General codes that can be returned to any message.
-  STATUS_OK = 0;                                   // The operation completed successfully.
 
-  ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
-  ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
-  ERROR_INTERNAL = 8;                              // Internal error occurred while processing the message.
+// Endpoint address that can be contacted by a client.
+// IP address is represented as a byte array which must contain 4 bytes for Ipv4 addresses and
+// 16 bytes for an Ipv6 address.
+// Port must be a simple TCP port which should be uint16, but there is no appropriate data type
+// in ProtoBuf so it is represented as uint32.
+message Contact {
+  bytes  ipAddress = 1;
+  uint32 port = 2;
+}
 
-  ERROR_INVALID_VALUE = 54;                        // A field in the request contains an invalid value.
+
+
+// Publicly known identity of a node, created after the similar "profile" entity of the profile server.
+message NodeProfile
+{
+  // TODO do we also need a public key here or will it anyway be checked via the DHT?
+  bytes nodeId = 1;
+  Contact contact = 2;
+};
+
+
+
+// Node profile information extended by further data, currently only the GPS location of the node.
+message NodeInfo {
+  NodeProfile profile = 1;
+  GpsLocation location = 2;
 }
 
 
@@ -81,6 +133,7 @@ message Message {
 // The third interface is for "end users" (i.e. client programs) to locate nodes and services
 // based on geographical information.
 // The different operation set for each interface is collected under a specific RequestType here.
+//
 message Request {
   bytes version = 1;                               
   oneof RequestType {
@@ -105,59 +158,38 @@ message Response {
 }
 
 
-
+// Distinct operations of the local service interface.
 message LocalServiceRequest {
   oneof LocalServiceRequestType {
+    // These requests are sent as usual from the client to the server asking to perform an operation.
     RegisterServiceRequest registerService = 1;
     DeregisterServiceRequest deregisterService = 2;
     GetNeighbourNodesByDistanceLocalRequest getNeighbourNodes = 3;
 
+    // This is an unique, exceptional request. If the client previously sent
+    // a getNeigbhourNodes request to the server and set the keepAlive flag,
+    // the server is supposed to keep the connection alive and notify the client
+    // about changes in its neigbhourhood by sending the following request to the client.
     NeighbourhoodChangedNotificationRequest neighbourhoodChanged = 4;
   }
 }
 
 message LocalServiceResponse {
   oneof LocalServiceResponseType {
+    // Responses sent back to the client from the server as usual.
     RegisterServiceResponse registerService = 1;
     DeregisterServiceResponse deregisterService = 2;
     GetNeighbourNodesByDistanceResponse getNeighbourNodes = 3;
 
+    // For each neigbhourhood change notification, the client must send this response as an acknowledgement.
     NeighbourhoodChangedNotificationResponse neighbourhoodUpdated = 4;
   }
 }
 
-enum ServiceType
-{
-// Low level networks
-  Unstructured = 0;
-  Content      = 1;
-  Latency      = 2;
-  Location     = 3;
-
-// High level servers
-  Token       = 10;
-  Profile     = 11;
-  Proximity   = 12;
-  Relay       = 13;
-  Reputation  = 14;
-  Minting     = 15;
-};
 
 
-message NodeProfile
-{
-  // TODO do we also need a public key here or will it anyway be checked via the DHT?
-  bytes nodeId = 1;
-  Contact contact = 2;
-};
-
-
-message Contact {
-  bytes  ipAddress = 1;
-  uint32 port = 2;
-}
-
-
+// Register a local service (e.g. the Profile Server) with the location-based network
+// so as clients can detect its existence and contact it.
 message RegisterServiceRequest {
   ServiceType serviceType = 1;
   NodeProfile nodeProfile = 2;
@@ -166,6 +198,7 @@ message RegisterServiceRequest {
 message RegisterServiceResponse {
 }
 
+// Remove a previously registered entry of a service.
 message DeregisterServiceRequest {
   ServiceType serviceType = 1;
 }
@@ -173,20 +206,21 @@ message DeregisterServiceRequest {
 message DeregisterServiceResponse {
 }
 
+
+// Get the list of neighbouring nodes by distance.
+// If the keepAlive flag is set, the server must keep the connection alive and notify the client
+// about changes in its neigbhourhood by sending NeighbourhoodChangeRequests to the client.
 message GetNeighbourNodesByDistanceLocalRequest {
   bool keepAliveAndSendUpdates = 1;
 }
 
-
-message NodeInfo {
-  NodeProfile profile = 1;
-  GpsLocation location = 2;
-}
-
+// Response is a list of node data about all neighbours.
 message GetNeighbourNodesByDistanceResponse {
   repeated NodeInfo nodes = 1;
 }
 
+
+// Atomic change notification element: a neigbhour node is either added, updated or deleted.
 message NeighbourhoodChange {
   oneof ChangeType {
     NodeInfo addedNodeInfo = 1;
@@ -195,6 +229,7 @@ message NeighbourhoodChange {
   }; 
 }
 
+// A list of changes to be sent in a single bulk notification.
 message NeighbourhoodChangedNotificationRequest {
   repeated NeighbourhoodChange changes = 1;
 }
@@ -228,16 +263,19 @@ message RemoteNodeResponse {
 }
 
 
+// Initiate/Renew a colleage/neighbour relationship between nodes.
+// The requestor node sends its own node information to the other node in the request.
 message BuildNetworkRequest {
   NodeInfo requestorNodeInfo = 1;
 }
 
 message BuildNetworkResponse {
-  bool accepted = 1;
-  NodeInfo acceptorNodeInfo = 2;
-  bytes remoteIpAddress = 3;
+  bool accepted = 1;             // Whether the remote node agreed to create/renew the requested relation.
+  NodeInfo acceptorNodeInfo = 2; // If the remote node accepted the request, it returns its latest node information to make sure that no outdated external Ip address or location is stored.
+  bytes remoteIpAddress = 3;     // The remote external IP address of the initiator node as detected by the addressed (i.e. this) node. Useful for autodetection of the external IP address and its changes.
 }
 
+// Get the total count of network nodes known by the remote node.
 message GetNodeCountRequest {
 }
 
@@ -245,6 +283,7 @@ message GetNodeCountResponse {
   uint32 nodeCount = 1;
 }
 
+// Request for a list of random nodes.
 message GetRandomNodesRequest {
   uint32 maxNodeCount = 1;
   bool includeNeighbours = 2;
@@ -254,6 +293,7 @@ message GetRandomNodesResponse {
   repeated NodeInfo nodes = 1;
 }
 
+// List the nodes that are closest to a specific location, useful for exploring the map.
 message GetClosestNodesByDistanceRequest {
   GpsLocation location = 1;
   float maxRadiusKm = 2;
@@ -283,6 +323,7 @@ message ClientResponse {
   }
 }
 
+// List the list of other Internet of People services that are accessible for clients on the same node.
 message GetServicesRequest {
 }
 
@@ -295,6 +336,9 @@ message GetServicesResponse {
   repeated ServiceProfile services = 1;
 }
 
+// Requests for the same service as provided on the Local Service interface.
+// It's a different request type only because clients are not allowed
+// to keep the connection alive and wait for neighbourhood notication changes.
 message GetNeighbourNodesByDistanceClientRequest {
 }
 
