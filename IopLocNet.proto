@@ -61,14 +61,15 @@ message GpsLocation {
 
 
 
-// Endpoint address that can be contacted by a client.
+// Node endpoints that can be contacted by a client.
 // IP address is represented as a byte array which must contain 4 bytes for Ipv4 addresses and
 // 16 bytes for an Ipv6 address.
 // Port must be a simple TCP port which should be uint16, but there is no appropriate data type
 // in ProtoBuf so it is represented as uint32.
 message Contact {
   bytes  ipAddress = 1;
-  uint32 port = 2;
+  uint32 nodePort = 2;   // Port where remote node interface (for nodes of the same network) is available
+  uint32 clientPort = 3; // Port where client interface (for end users) is available
 }
 
 
