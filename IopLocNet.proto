@@ -60,34 +60,34 @@ message GpsLocation {
 }
 
 
-
 // Node endpoints that can be contacted by a client.
 // IP address is represented as a byte array which must contain 4 bytes for Ipv4 addresses and
 // 16 bytes for an Ipv6 address.
 // Port must be a simple TCP port which should be uint16, but there is no appropriate data type
 // in ProtoBuf so it is represented as uint32.
-message Contact {
+message NodeContact {
   bytes  ipAddress = 1;
   uint32 nodePort = 2;   // Port where remote node interface (for nodes of the same network) is available
   uint32 clientPort = 3; // Port where client interface (for end users) is available
 }
 
 
-
-// Publicly known identity of a node, created after the similar "profile" entity of the profile server.
-message NodeProfile
-{
-  // TODO do we also need a public key here or will it anyway be checked via the DHT?
-  bytes nodeId = 1;
-  Contact contact = 2;
-};
-
-
-
-// Node profile information extended by further data, currently only the GPS location of the node.
+// Publicly known identity of a node, created after the similar "profile" entity of the profile server,
+// extended the GPS location of the node.
 message NodeInfo {
-  NodeProfile profile = 1;
-  GpsLocation location = 2;
+  // TODO do we also need a public key here?
+  bytes nodeId = 1;
+  NodeContact contact = 2;
+  GpsLocation location = 3;
+}
+
+
+
+// Describe a single service running on the same host. Fields and their formats are analogue to NodeInfo.
+// We assume that the service can be accessed on the same IP address as the location based network node.
+message ServiceInfo {
+  ServiceType type = 1;
+  uint32 port = 2;  // network port where service is reachable on this host
 }
 
 
@@ -192,8 +192,7 @@ message LocalServiceResponse {
 // Register a local service (e.g. the Profile Server) with the location-based network
 // so as clients can detect its existence and contact it.
 message RegisterServiceRequest {
-  ServiceType serviceType = 1;
-  NodeProfile nodeProfile = 2;
+  ServiceInfo service = 1;
 }
 
 message RegisterServiceResponse {
@@ -324,18 +323,15 @@ message ClientResponse {
   }
 }
 
+
 // List the list of other Internet of People services that are accessible for clients on the same node.
 message GetServicesRequest {
 }
 
-message ServiceProfile {
-  ServiceType serviceType = 1;
-  NodeProfile profile = 2;
+message GetServicesResponse {
+  repeated ServiceInfo services = 1;
 }
 
-message GetServicesResponse {
-  repeated ServiceProfile services = 1;
-}
 
 // Requests for the same service as provided on the Local Service interface.
 // It's a different request type only because clients are not allowed
