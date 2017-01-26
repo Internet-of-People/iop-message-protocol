@@ -1694,7 +1694,8 @@ message FinishNeighborhoodInitializationResponse {
 // Conversation status: Verified
 //
 message NeighborhoodSharedProfileUpdateRequest {
-  repeated SharedProfileUpdateItem items = 1;      // List of profile update items.
+  repeated SharedProfileUpdateItem items = 1;      // List of profile update items. Within the request, the profiles added/changed/deleted must be unique.
+                                                   // It is thus not possible to send two update items that refer to the same profile.
 }
 
 
@@ -1712,7 +1713,8 @@ message NeighborhoodSharedProfileUpdateRequest {
 //                                             then $index were not processed. The $field specifies which field was invalid as follows:
 //       * $field == "add" - Number of shared profiles from the requesting profile server exceeds the limit.
 //       * $field == "add.version" - `items[$index].add.version` is not a valid VersionType value.
-//       * $field == "add.identityPublicKey" - `items[$index].add.identityPublicKey` is not a valid public key value or the same identity already exists.
+//       * $field == "add.identityPublicKey" - `items[$index].add.identityPublicKey` is not a valid public key value or the same identity already exists, 
+//                                             or another update item in the same request refered to this identity.
 //       * $field == "add.name" - `items[$index].add.name` is not a valid profile name.
 //       * $field == "add.type" - `items[$index].add.type` is not a valid identity type.
 //       * $field == "add.thumbnailImage" - `items[$index].add.thumbnailImage` is not a valid thumbnail image.
@@ -1720,14 +1722,16 @@ message NeighborhoodSharedProfileUpdateRequest {
 //       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
 //       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extraData value.
 //       * $field == "change.set*" - `items[$index].change.set*` are all false.
-//       * $field == "change.identityNetworkId" - `items[$index].change.identityNetworkId` does not represent an existing identity.
+//       * $field == "change.identityNetworkId" - `items[$index].change.identityNetworkId` does not represent an existing identity, or another update item 
+//                                                in the same request refered to this identity.
 //       * $field == "change.version" - `items[$index].change.version` is not a valid VersionType value.
 //       * $field == "change.name" - `items[$index].change.name` is not a valid profile name.
 //       * $field == "change.thumbnailImage" - `items[$index].change.thumbnailImage` is not a valid thumbnail image.
 //       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
 //       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
 //       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
-//       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity.
+//       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity, or another update item 
+//                                                in the same request refered to this identity.
 //       * $field == "actionType" - During the neighborhood initialization process, only `SharedProfileAddItem` is a valid update message.
 //
 message NeighborhoodSharedProfileUpdateResponse {
