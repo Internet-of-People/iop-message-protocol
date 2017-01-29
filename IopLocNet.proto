@@ -46,6 +46,15 @@ enum ServiceType
 
 
 
+// Describe a single service running on the same host. Fields and their formats are analogue to NodeInfo.
+// We assume that the service can be accessed on the same IP address as the location based network node.
+message ServiceInfo {
+  ServiceType type = 1;
+  uint32 port = 2;  // network port where service is reachable on this host
+}
+
+
+
 // GpsLocation represents a 2D GPS position without height.
 // Latitude and longitude coordinates use a signed integer stored as type decimal(9,6),
 // which means that a floating point value of the latitude or longitude is multiplied by 1,000,000
@@ -79,15 +88,7 @@ message NodeInfo {
   bytes nodeId = 1;
   NodeContact contact = 2;
   GpsLocation location = 3;
-}
-
-
-
-// Describe a single service running on the same host. Fields and their formats are analogue to NodeInfo.
-// We assume that the service can be accessed on the same IP address as the location based network node.
-message ServiceInfo {
-  ServiceType type = 1;
-  uint32 port = 2;  // network port where service is reachable on this host
+  repeated ServiceInfo services = 32;
 }
 
 
