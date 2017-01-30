@@ -194,6 +194,7 @@ message LocalServiceResponse {
 // so as clients can detect its existence and contact it.
 message RegisterServiceRequest {
   ServiceInfo service = 1;
+  bytes nodeId = 2;                   // If service.type == Profile, this is the profile server's network identifier.
 }
 
 message RegisterServiceResponse {
