@@ -50,7 +50,8 @@ enum ServiceType
 // We assume that the service can be accessed on the same IP address as the location based network node.
 message ServiceInfo {
   ServiceType type = 1;
-  uint32 port = 2;  // network port where service is reachable on this host
+  uint32 port = 2;       // Network port where service is reachable on this host.
+  bytes serviceData = 3; // Optional binary data that the service can share about itself. Has no predefined format, any custom data can be added here. Useful for e.g. sharing the profile server node ID. Must be no more than 1KB.
 }
 
 
@@ -194,7 +195,6 @@ message LocalServiceResponse {
 // so as clients can detect its existence and contact it.
 message RegisterServiceRequest {
   ServiceInfo service = 1;
-  bytes nodeId = 2;                   // If service.type == Profile, this is the profile server's network identifier.
 }
 
 message RegisterServiceResponse {
