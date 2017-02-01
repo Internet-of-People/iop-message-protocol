@@ -249,6 +249,7 @@ message RemoteNodeRequest {
     GetNodeCountRequest getNodeCount = 5;
     GetRandomNodesRequest getRandomNodes = 6;
     GetClosestNodesByDistanceRequest getClosestNodes = 7;
+    GetNodeInfoRequest  getNodeInfo = 8;
   }
 }
 
@@ -261,6 +262,7 @@ message RemoteNodeResponse {
     GetNodeCountResponse getNodeCount = 5;
     GetRandomNodesResponse getRandomNodes = 6;
     GetClosestNodesByDistanceResponse getClosestNodes = 7;
+    GetNodeInfoResponse  getNodeInfo = 8;
   }
 }
 
@@ -311,7 +313,7 @@ message GetClosestNodesByDistanceResponse {
 
 message ClientRequest {
   oneof ClientRequestType {
-    GetServicesRequest getServices = 1;
+    GetNodeInfoRequest getNodeInfo = 1;
     GetNeighbourNodesByDistanceClientRequest getNeighbourNodes = 2;
     GetClosestNodesByDistanceRequest getClosestNodes = 3;
   }
@@ -319,7 +321,7 @@ message ClientRequest {
 
 message ClientResponse {
   oneof ClientResponseType {
-    GetServicesResponse getServices = 1;
+    GetNodeInfoResponse getNodeInfo = 1;
     GetNeighbourNodesByDistanceResponse getNeighbourNodes = 2;
     GetClosestNodesByDistanceResponse getClosestNodes = 3;
   }
@@ -327,11 +329,11 @@ message ClientResponse {
 
 
 // List the list of other Internet of People services that are accessible for clients on the same node.
-message GetServicesRequest {
+message GetNodeInfoRequest {
 }
 
-message GetServicesResponse {
-  repeated ServiceInfo services = 1;
+message GetNodeInfoResponse {
+  NodeInfo nodeInfo = 1;
 }
 
 
