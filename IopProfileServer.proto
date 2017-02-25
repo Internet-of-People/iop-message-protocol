@@ -639,7 +639,6 @@ message StartConversationRequest {
 // After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
 //
 // Specific Error Responses:
-//   * ERROR_UNSUPPORTED - If the requestee does not support any of the requestor's versions, it replies with this error code.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "publicKey" - 'StartConversationRequest.publicKey' is not a valid public key value. 
 //     * Response.details == "clientChallenge" - 'StartConversationRequest.clientChallenge' is not 32 byte long. 
