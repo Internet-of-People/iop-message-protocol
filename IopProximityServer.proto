@@ -1,0 +1,293 @@
+//
+// Definition of IoP Proximity Server network protocol.
+// We strictly use only features that are binary compatible in ProtoBuf v2 and v3.
+// We use no v2 or v3 specific features.
+//
+// An integral part of the protocol are the protocol tests:
+// https://github.com/Internet-of-People/message-protocol/blob/master/TESTS.md
+// The tests must comply with this protocol file, but may add some additional requirements
+// or constraints on the behavior of a compatible software.
+//
+//
+//
+// * Profile Server Network Protocol Inheritance *
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Proximity Server network protocol is created using the same basic principles as Profile Server network protocol.
+// Please see the Roles, Reused Types and Conversations sections of Profile Server network protocol protofile 
+// (https://github.com/Internet-of-People/message-protocol/blob/master/IopProfileServer.proto) for more information 
+// about these common concepts. Also see there descriptions of using ListRolesRequest, StartConversationRequest 
+// and VerifyIdentityRequest requests as these are replicated in the Proximity Server network protocol as well.
+//
+// Proximity Server implements the following server roles:
+//
+//   * Primary Interface = "primary"
+//   * Neighbors Interface = "neighbor"
+//   * Clients Interface = "client"
+//
+
+
+syntax = "proto3";
+
+
+package iop.proximityserver;
+
+// Return codes to requests that inform requestor about whether the operation completed successfully or which error occurred.
+enum Status {
+  // General codes that can be returned to any message.
+  STATUS_OK = 0;                                   // The operation completed successfully.
+
+  ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
+  ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
+  ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in 'Response.timestamp'.
+  ERROR_BUSY = 4;                                  // The peer will not process the request because it is too busy. The requestor can try later.
+
+  ERROR_UNAUTHORIZED = 5;                          // Within conversation, some requests require authorization of the peer before certain requests are allowed.
+
+  ERROR_BAD_ROLE = 6;                              // If a request is sent to a port that does not handle the specific role, this error is returned.
+  ERROR_BAD_CONVERSATION_STATUS = 7;               // The conversation status is different from what the message requires.
+  ERROR_INTERNAL = 8;                              // Internal error occurred while processing the message.
+
+
+  // Return codes specific to a request.
+  ERROR_QUOTA_EXCEEDED = 51;                       // The peer reached or exceeded prescribed limits.
+  ERROR_INVALID_SIGNATURE = 52;                    // The signature provided be the peer does not correspond to the peer's key or the message being signed.
+  ERROR_NOT_FOUND = 53;                            // A referenced object was not found.
+  ERROR_INVALID_VALUE = 54;                        // One of the values provided is invalid.
+  ERROR_ALREADY_EXISTS = 55;                       // An object with the same identifier already exists.
+  ERROR_NOT_AVAILABLE = 56;                        // A request object is not available.
+  ERROR_REJECTED = 57;                             // A third party rejected the requested action.
+  ERROR_UNINITIALIZED = 58;                        // The requested object can not be obtained, queried or used as it is not initialized.
+}
+
+
+// This is complete message as it goes over the wire. It includes the 32-bit header with message length.
+//
+// There is a 1 byte prefix because of Google Protobuf protocol, so the actual binary data for a message
+// with body size 4660 bytes would be:
+//
+//
+//   0D 34 12 00 00
+//
+// where 0x0D means type 'fixed32' (which value is 5) + index of 'header', which is 1 << 3,
+// this is followed be the 4 byte sequence 34 12 00 00, which is little endian of 0x00001234, which is 4,660 decimal.
+// Thus the total number of bytes sent over the wire for this message would be 4,665 bytes.
+//
+message MessageWithHeader {
+  fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
+  Message body = 2;                                // Message itself.
+}
+
+
+
+// Format of a single message.
+message Message {
+  uint32 id = 1;                                   // Requestor defined message ID that the requestee has to return in the response. 
+                                                   // Requestor is responsible for using different ID for every unprocessed message.
+                                                   // If at any point there exist two open requests (i.e. without a response) with the same ID, it is a violation of the protocol and the behavior is undefined.
+
+  oneof MessageType {                              // Message can be either:
+    Request request = 2;                           //  * a new request,
+    Response response = 3;                         //  * or response to a previous request.
+  }
+}
+
+
+// Every conversation starts with a request of a requestor.
+// This can be either a single request, for which it is expected to receive a single response,
+// or this can be part of a longer conversation between the peers.
+message Request {
+  oneof ConversationType {                         // Either a request lives on its own without any session or context, or it is a part of a conversation.
+    SingleRequest singleRequest = 1;               // Single requests are requests that are supposed to be sent without further context.
+    ConversationRequest conversationRequest = 2;   // Conversation requests form a session with a context that has to be maintained by peers in order to correctly interpret the messages.
+  }  
+}
+
+
+// To every request there is a response.
+message Response {
+  Status status = 1;                               // Return code.
+  sint64 timestamp = 2;                            // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
+  string details = 3;                              // In case of an error, this field may contain additional details.
+
+  oneof ConversationType {                         // See 'Request.ConversationType'.
+    SingleResponse singleResponse = 8;             // Responses to single requests are sent as single responses,
+    ConversationResponse conversationResponse = 9; // responses to conversation requests are sent as conversation responses.
+  }
+}
+
+
+// Single requests live on their own without any session or context. 
+// It is always possible to process a single request without any additional informaiton.
+message SingleRequest {
+  bytes version = 1;                               // VersionType. Protocol version specification.
+  oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
+    PingRequest ping = 2;
+    ListRolesRequest listRoles = 3;
+  }
+}
+
+
+
+// Single response is a reaction to single request. 
+message SingleResponse {
+  bytes version = 1;                               // VersionType. See 'SingleRequest.version'. The version of response can be different than the version in request, 
+                                                   // if the requestee does not support the version by the requestor.
+                                                   // If the requestor is able to process the message using the version of protocol, the version value is the same as in the request.
+
+  oneof ResponseType {                             // See 'SingleRequest.RequestType'. Each request has its corresponding response.
+    PingResponse ping = 2;
+    ListRolesResponse listRoles = 3;
+  }
+}
+
+
+
+// Conversation requests live in a session with a context that is important for the interpretation of the requests.
+// Unlike single requests, the order of messages is very important as each message may change the session context.
+message ConversationRequest {
+  bytes signature = 1;                             // Optional (request specific) signature that signs the Protobuf binary form of the included request body or its part.
+
+  oneof RequestType {                              // There are many different requests that can be sent in the conversation.
+    // Request body.
+    StartConversationRequest start = 2;
+    VerifyIdentityRequest verifyIdentity = 3;
+  }
+}
+
+
+// Conversation response is a reaction to a conversation request.
+message ConversationResponse {
+  bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body or its part.
+
+  oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
+    // Response body.
+    StartConversationResponse start = 2;
+    VerifyIdentityResponse verifyIdentity = 3;
+  }
+}
+
+
+
+
+
+//
+// An administrative message to test whether the peer is there and responds to requests.
+//
+// Each identity client is required to send a message not more than 60 seconds after the connection 
+// was established, or after the last message has been send over the connection. For server clients,
+// this limit is 300 seconds. Clients should use PingRequest if they have nothing else to send
+// and want to keep the connection open.
+//
+//
+// Roles: any
+//
+message PingRequest {
+  bytes payload = 1;                               // At most 64 bytes of arbitrary data that will be sent back by the peer.
+}
+
+// A response to PingRequest to reassure the connection works fine.
+message PingResponse {
+  bytes payload = 1;                               // See 'PingRequest.payload'.
+  sint64 clock = 2;                                // TimestampType. Clock on the requestee's machine.
+}
+
+
+
+//
+// Request server to provide a mapping between ports and roles.
+//
+// Roles: primary
+//
+message ListRolesRequest {
+}
+
+// A response to ListRolesRequest with a list of all open ports and associated roles.
+message ListRolesResponse {
+  repeated ServerRole roles = 1;                   // List of server roles.
+}
+
+
+// Known server roles.
+enum ServerRoleType {
+  PRIMARY = 0;                                     // Primary Interface server role.
+  NEIGHBOR = 1;                                    // Neighbors Interface server role.
+  CLIENT = 2;                                      // Clients Interface server role.
+}
+
+
+// Description of a single server role.
+message ServerRole {
+  ServerRoleType role = 1;                         // Server role type.
+  uint32 port = 2;                                 // On which port is this server role provided.
+  bool isTcp = 3;                                  // true if the port is TCP port, false means UDP.
+  bool isTls = 4;                                  // true if the port is TLS encrypted, false otherwise.
+}
+
+
+
+
+
+//
+// Every conversation starts with this request, in which the requestor sends a list of protocol versions 
+// it supports and its public key that identifies it.
+//
+// Roles: any
+//
+// Conversation status: NoConversation
+//
+message StartConversationRequest {
+  repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
+  bytes publicKey = 2;                             // Public key of the requestor. Max 128 bytes.
+
+  bytes clientChallenge = 3;                       // 32 byte challenge data (random bytes generated by the requestor) that is used for authentication purposes.
+}
+
+
+//
+// A response to StartConversationRequest in case the requestee found at least one protocol version that 
+// both peers are willing to use. 
+// 
+// The 'clientChallenge' field value in raw format is signed with a signature in 'ConversationResponse.signature'.
+// 
+//
+// After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "publicKey" - 'StartConversationRequest.publicKey' is not a valid public key value. 
+//     * Response.details == "clientChallenge" - 'StartConversationRequest.clientChallenge' is not 32 byte long. 
+//
+message StartConversationResponse {
+  bytes version = 1;                               // VersionType. The version that the requestee selected from the offered set.
+  bytes publicKey = 2;                             // Public key of the requestee.
+
+  bytes challenge = 3;                             // 32 byte challenge data (random bytes generated by the requestee) that is used for later authentication purposes.
+  bytes clientChallenge = 4;                       // Copy of 'StartConversationRequest.clientChallenge' that is signed by the requestee. 
+                                                   // The requestor can then verify the signature in order to check the requestee's claimed identity.
+}
+
+
+
+// 
+// A client verifies its public key by signing the challenge. The client has to provide a signature in 'ConversationRequest.signature'.
+//
+// Roles: neighbor, client
+//
+// Conversation status: ConversationStarted
+//
+message VerifyIdentityRequest {
+  bytes challenge = 1;                             // The exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
+}
+
+//
+// A response to VerifyIdentityRequest. If no error occurs, the conversation status is upgraded to Verified.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "challenge" - 'VerifyIdentityRequest.challenge' is not the exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
+//
+message VerifyIdentityResponse {
+}
+
+

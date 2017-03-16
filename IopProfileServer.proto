@@ -351,7 +351,7 @@ message PingRequest {
 // A response to PingRequest to reassure the connection works fine.
 message PingResponse {
   bytes payload = 1;                               // See 'PingRequest.payload'.
-  sint64 clock = 2;                                // 64-bit signed Unix UTC time on the requestee's machine.
+  sint64 clock = 2;                                // TimestampType. Clock on the requestee's machine.
 }
 
 
