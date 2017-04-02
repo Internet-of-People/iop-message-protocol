@@ -291,3 +291,38 @@ message VerifyIdentityResponse {
 }
 
 
+
+
+//
+// CAN Integration
+//
+// CAN provides globally accessible distribute storage that is used for multiple purposes in IoP. From proximity 
+// server's point of view, the most important use case is implementation of indexing that allows IoP users 
+// to find other proximity servers only using their network identifier. 
+//
+// A proximity server publishes its contact information in CAN when it is started for the first time. It also 
+// creates a so called IPNS record that maps the proximity server network ID to this contact information record 
+// and thus allows anyone to find the contact information known just the network ID of the proximity server.
+//
+// CAN data objects are immutable. The proximity server is responsible for deleting the old object from CAN when 
+// it wants to replace it by a new object. When the proximity server's contact information changes, the proximity 
+// server asks CAN to delete the old contact information object and publishes a new contact information object.
+// Then it has to submit a new IPNS to point to the new object.
+//
+// IPNS records expire in time and must be refreshed. This is done by creating a new IPNS record by the IPNS 
+// record owner and replacing the old version of the record with the new one. If an IPNS record expires, it 
+// becomes invalid and will be discarded by CAN network.
+//
+// IPNS records has to be signed by the private key of its owner, otherwise they are invalid. This requirement 
+// prevents malicious manipulations of IPNS records.
+//
+
+
+//
+// Proximity server contact information.
+//
+message CanProximityServerContact {
+  bytes publicKey = 1;                             // Proximity server's public key.
+  bytes ipAddress = 2;                             // IPv4 or IPv6 public address of the network interface on which proximity server operates.
+  uint32 primaryPort = 3;                          // TCP port of proximity server's primary interface.
+}
