@@ -1637,6 +1637,7 @@ message IdentityRelationship {
 message StartNeighborhoodInitializationRequest {
   uint32 primaryPort = 1;                          // Port of the profile server's Primary Interface.
   uint32 srNeighborPort = 2;                       // Port of the profile server's Neighbors Interface.
+  bytes ipAddress = 3;                             // IPv4 or IPv6 public address of the network interface on which profile server operates.
 }
 
 
@@ -1652,6 +1653,7 @@ message StartNeighborhoodInitializationRequest {
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65535.
 //     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.srNeighborPort' must be an integer between 1 and 65535.
+//     * Response.details == "ipAddress" - 'StartNeighborhoodInitializationRequest.ipAddress' is not a valid IPv4 or IPv6 address or it is a local network IP address.
 //
 message StartNeighborhoodInitializationResponse {
 }
