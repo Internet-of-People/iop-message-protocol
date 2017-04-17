@@ -594,7 +594,7 @@ message ListHostingPlansResponse {
 
 // Description of a hosting plan.
 message HostingPlan {
-  bytes planId = 1;                                // Identifier of the plan is an SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
+  bytes planId = 1;                                // Identifier of the plan is a SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
                                                    // with planId initialized to a byte array of 32 zero bytes.
   bytes serverNetworkId = 2;                       // Identifier of the profile server that offers the plan.
   string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
@@ -1276,7 +1276,7 @@ message ProfileStatsItem {
 //
 // The profile server will not save more than 'maxTotalRecordCount' search requests. 
 // The profile server has to allow the client to get additional results at least 1 minute from receiving 
-// ProfileSearchRequest, but it can maintain the result cache for longer than that.
+// ProfileSearchRequest, but it can maintain the results cache for longer than that.
 //
 // Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
 //
@@ -1290,7 +1290,7 @@ message ProfileSearchRequest {
   bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
   uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
-                                                   // this has to be an integer between 1 and 1000. The value must not be greater than 'maxTotalRecordCount'.
+                                                   // this has to be an integer between 1 and 1,000. The value must not be greater than 'maxTotalRecordCount'.
   uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the profile server will look for and save. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 1,000. If 'includeThumbnailImages' is false,
                                                    // this has to be an integer between 1 and 10,000.
@@ -1302,14 +1302,14 @@ message ProfileSearchRequest {
   string name = 6;                                 // WildcardType or empty string. If not empty, the profile server  will only return profiles 
                                                    // with names that match the wildcard string. If empty, all profile names are allowed.
                                                    // Max 64 bytes long.
-  sfixed32 latitude = 7;                           // LocationType. Encoded target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
-                                                   // it is, in combination with 'longitude' and 'radius' a specification of target area, 
+  sfixed32 latitude = 7;                           // LocationType. Target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
+                                                   // it is, in combination with 'longitude' and 'radius', a specification of target area, 
                                                    // where the identity has to be located (according to its profile information) in order to be 
                                                    // included in the search results. If NO_LOCATION, 'longitude' and 'radius' are ignored 
                                                    // and all locations are allowed.
-  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is encoded target GPS location longitude.
+  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is target GPS location longitude.
   uint32 radius = 9;                               // If 'latitude' is not NO_LOCATION, this is target location radius in metres.
-  string extraData = 10;                           // RegexType or empty string. If not empty, specifies the regular expression that identity
+  string extraData = 10;                           // RegexType or empty string. If not empty, it specifies the regular expression that identity
                                                    // profile's extra data information must match in order to be included in the results. 
                                                    // If empty, no filtering based on extra data information is made.
                                                    // Max 256 bytes long.
@@ -1327,9 +1327,10 @@ message ProfileSearchRequest {
 // 'coveredServers' contains a list of profile servers forming the neighborhood of the profile server 
 // being queried. Neighborhood servers share their profile databases and a query to one server will 
 // thus cover profile servers in its neighborhood. Note that this information is not much relevant 
-// in case the number of result is large and is limited by the protocol. In this case, it is possible 
-// that the profile server returns results from profile databases only from a small subset of its 
-// neighborhood provided in the 'coveredServers' value, or even only from its own database.
+// in case the number of result is large and the number of results is limited by the protocol. 
+// In this case, it is possible that the profile server returns results from profile databases only 
+// from a small subset of its neighborhood provided in the 'coveredServers' value, or even only from 
+// its own database.
 //
 //
 // Specific Error Responses:
@@ -1347,7 +1348,7 @@ message ProfileSearchResponse {
   uint32 totalRecordCount = 1;                     // Total number of profiles that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'profiles' list.
   uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxResponseRecordCount'.
 
-  repeated bytes coveredServers = 3;               // List of network identifiers of profile servers whose profile databases were be used to produce the results, 
+  repeated bytes coveredServers = 3;               // List of network identifiers of profile servers whose profile databases were used to produce the results, 
                                                    // whether or not any of their hosted profiles actually appear in the results.
                                                    // This information is relevant if 'totalRecordCount' is lower than 'ProfileSearchRequest.maxTotalRecordCount',
                                                    // because otherwise there is no guarantee the results actually contain any records from neighborhood profile servers.
@@ -1408,8 +1409,8 @@ message ProfileSearchPartRequest {
 //   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
 //                           in this session, or its results have expired already.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "recordIndex" - 'ProfileSearchRequest.recordIndex' is not a valid index of the result.
-//     * Response.details == "recordCount" - 'ProfileSearchRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchRequest.recordIndex'.
+//     * Response.details == "recordIndex" - 'ProfileSearchPartRequest.recordIndex' is not a valid index of the result.
+//     * Response.details == "recordCount" - 'ProfileSearchPartRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchPartRequest.recordIndex'.
 //
 message ProfileSearchPartResponse {
   uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.recordIndex' value.
@@ -1529,7 +1530,7 @@ message SignedRelationshipCard {
 // Description of a relationship card.
 //
 message RelationshipCard {
-  bytes cardId = 1;                                 // Identifier of a relationship card is an SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
+  bytes cardId = 1;                                 // Identifier of a relationship card is a SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
                                                     // with cardId initialized to a byte array of 32 zero bytes.
   bytes version = 2;                                // VersionType. Version of the relationship card structure.
   string type = 3;                                  // Type of the relationship card. This is an application defined value. Max 64 bytes long.
@@ -1648,7 +1649,7 @@ message StartNeighborhoodInitializationRequest {
 //
 //
 // General Error Responses:
-//   * ERROR_REJECTED - Profile server already has reached its limit of a number of servers that it shares its profile database with and is not willing to have more.
+//   * ERROR_REJECTED - Profile server has already reached its limit of a number of servers that it shares its profile database with and is not willing to have more.
 //   * ERROR_ALREADY_EXISTS - Neighborhood initialization process has already been done, or the initialization process with the peer is currently in the progress.
 //   * ERROR_BUSY - Profile server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other profile servers.
