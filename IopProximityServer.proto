@@ -560,7 +560,8 @@ message ActivitySearchRequest {
 //     * Response.details == "maxTotalRecordCount" - 'ActivitySearchRequest.maxTotalRecordCount' is not within the required range.
 //     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier.
 //     * Response.details == "type" - 'ActivitySearchRequest.type' is too long.
-//     * Response.details == "expirationNotBefore" - 'ActivitySearchRequest.expirationNotBefore' is non-zero and smaller than 'ActivitySearchRequest.startNotAfter'.
+//     * Response.details == "startNotAfter" - 'ActivitySearchRequest.startNotAfter' does not represent a valid timestamp value.
+//     * Response.details == "expirationNotBefore" - 'ActivitySearchRequest.expirationNotBefore' is non-zero and smaller than 'ActivitySearchRequest.startNotAfter' or it does not represent a valid timestamp value.
 //     * Response.details == "latitude" - 'ActivitySearchRequest.latitude' is not a valid location latitude.
 //     * Response.details == "longitude" - 'ActivitySearchRequest.longitude' is not a valid location longitude.
 //     * Response.details == "radius" - 'ActivitySearchRequest.radius' is not a valid radius value.

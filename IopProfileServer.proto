@@ -1467,7 +1467,8 @@ message AddRelatedIdentityRequest {
 //     * Response.details == "signedCard.card.type" - 'AddRelatedIdentityRequest.signedCard.card.type' is not a valid card type.
 //     * Response.details == "signedCard.card.issuerPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey' is not a valid public key.
 //     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.recipientPublicKey' is not the public key of the caller.
-//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo'.
+//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo' or it does not represent a valid timestamp value.
+//     * Response.details == "signedCard.card.validTo" - 'AddRelatedIdentityRequest.signedCard.card.validTo' does not represent a valid timestamp value.
 //
 message AddRelatedIdentityResponse {
 }
