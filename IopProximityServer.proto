@@ -31,33 +31,8 @@ syntax = "proto3";
 
 package iop.proximityserver;
 
-// Return codes to requests that inform requestor about whether the operation completed successfully or which error occurred.
-enum Status {
-  // General codes that can be returned to any message.
-  STATUS_OK = 0;                                   // The operation completed successfully.
+import "IopShared.proto";
 
-  ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
-  ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
-  ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in 'Response.timestamp'.
-  ERROR_BUSY = 4;                                  // The peer will not process the request because it is too busy. The requestor can try later.
-
-  ERROR_UNAUTHORIZED = 5;                          // Within conversation, some requests require authorization of the peer before certain requests are allowed.
-
-  ERROR_BAD_ROLE = 6;                              // If a request is sent to a port that does not handle the specific role, this error is returned.
-  ERROR_BAD_CONVERSATION_STATUS = 7;               // The conversation status is different from what the message requires.
-  ERROR_INTERNAL = 8;                              // Internal error occurred while processing the message.
-
-
-  // Return codes specific to a request.
-  ERROR_QUOTA_EXCEEDED = 51;                       // The peer reached or exceeded prescribed limits.
-  ERROR_INVALID_SIGNATURE = 52;                    // The signature provided be the peer does not correspond to the peer's key or the message being signed.
-  ERROR_NOT_FOUND = 53;                            // A referenced object was not found.
-  ERROR_INVALID_VALUE = 54;                        // One of the values provided is invalid.
-  ERROR_ALREADY_EXISTS = 55;                       // An object with the same identifier already exists.
-  ERROR_NOT_AVAILABLE = 56;                        // A request object is not available.
-  ERROR_REJECTED = 57;                             // A third party rejected the requested action.
-  ERROR_UNINITIALIZED = 58;                        // The requested object can not be obtained, queried or used as it is not initialized.
-}
 
 
 // This is complete message as it goes over the wire. It includes the 32-bit header with message length.
@@ -105,7 +80,7 @@ message Request {
 
 // To every request there is a response.
 message Response {
-  Status status = 1;                               // Return code.
+  iop.shared.Status status = 1;                    // Return code.
   sint64 timestamp = 2;                            // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
   string details = 3;                              // In case of an error, this field may contain additional details.
 
