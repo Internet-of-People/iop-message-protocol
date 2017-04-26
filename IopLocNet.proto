@@ -198,6 +198,7 @@ message RegisterServiceRequest {
 }
 
 message RegisterServiceResponse {
+  GpsLocation location = 1; // GPS location of the LOC node.
 }
 
 // Remove a previously registered entry of a service.
