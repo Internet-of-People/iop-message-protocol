@@ -372,6 +372,11 @@ message CreateActivityResponse {
 // its database and propagates this information to its neighborhood. The proximity server will not refuse 
 // the update if the suggested new primary proximity server is on the list of proximity servers to ignore.
 //
+// If a client needs to update something that this request does not allow to update, it means that such 
+// a change is considered as a fundamental change, in which case the activity should be deleted and recreated.
+// This includes, for example, a change in client's profile server contact information, activity structure 
+// version information, or its type.
+//
 // Roles: client
 //
 // Conversation status: Verified
@@ -414,6 +419,7 @@ message UpdateActivityRequest {
 //     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "set*" - Nothing was set to be updated.
+//     * Response.details == "id" - 'UpdateActivityRequest.id' is not a valid client's activity identifier.
 //     * Response.details == "latitude" - 'UpdateActivityRequest.latitude' is not a valid latitude information.
 //     * Response.details == "longitude" - 'UpdateActivityRequest.longitude' is not a valid longitude information.
 //     * Response.details == "precision" - 'UpdateActivityRequest.precision' must be an integer between 0 and 20,000.
