@@ -401,7 +401,7 @@ message UpdateActivityRequest {
  
   sint64 startTime = 11;                           // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
-  sint64 expirationTime = 12;                      // Time when the activity expires. This can be no further in the future than 24 hours from 
+  sint64 expirationTime = 12;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours from 
                                                    // the moment the request was sent. It has to be greater than or equal to activity's start time.
 
   string extraData = 13;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
@@ -860,7 +860,7 @@ message SharedActivityChangeItem {
  
   sint64 startTime = 11;                           // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
-  sint64 expirationTime = 12;                      // Time when the activity expires. This can be no further in the future than 24 hours from 
+  sint64 expirationTime = 12;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours from 
                                                    // the moment the request was sent. It has to be greater than or equal to activity's start time.
 
   string extraData = 13;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
