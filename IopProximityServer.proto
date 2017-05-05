@@ -311,7 +311,7 @@ message CreateActivityRequest {
 
   sfixed32 latitude = 5;                           // LocationType. GPS location latitude information.
   sfixed32 longitude = 6;                          // LocationType. GPS location longitude information.
-  uint32 precision = 7;                            // Precision information in metres is an integer between 0 and 20,000.
+  uint32 precision = 7;                            // Precision information in metres is an integer between 0 and 1,000.
  
   sint64 startTime = 8;                            // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
@@ -350,9 +350,9 @@ message ServerContactInfo {
 //     * Response.details == "type" - 'CreateActivityRequest.type' is not a valid activity type.
 //     * Response.details == "latitude" - 'CreateActivityRequest.latitude' is not a valid latitude information.
 //     * Response.details == "longitude" - 'CreateActivityRequest.longitude' is not a valid longitude information.
-//     * Response.details == "precision" - 'CreateActivityRequest.precision' must be an integer between 0 and 20,000.
+//     * Response.details == "precision" - 'CreateActivityRequest.precision' must be an integer between 0 and 1,000.
 //     * Response.details == "startTime" - 'CreateActivityRequest.startTime' does not contain a valid start time information.
-//     * Response.details == "expirationTime" - 'CreateActivityRequest.expirationTime' does not contain a valid expiration time information.
+//     * Response.details == "expirationTime" - 'CreateActivityRequest.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
 //     * Response.details == "extraData" - 'CreateActivityRequest.extraData' does not contain a valid extra data information.
 //     * Response.details == "ignoreServerIds" - 'CreateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
 //
@@ -397,7 +397,7 @@ message UpdateActivityRequest {
 
   sfixed32 latitude = 8;                           // LocationType. GPS location latitude information.
   sfixed32 longitude = 9;                          // LocationType. GPS location longitude information.
-  uint32 precision = 10;                           // Precision information in metres is an integer between 0 and 20,000.
+  uint32 precision = 10;                           // Precision information in metres is an integer between 0 and 1,000.
  
   sint64 startTime = 11;                           // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
@@ -422,10 +422,10 @@ message UpdateActivityRequest {
 //     * Response.details == "id" - 'UpdateActivityRequest.id' is not a valid client's activity identifier.
 //     * Response.details == "latitude" - 'UpdateActivityRequest.latitude' is not a valid latitude information.
 //     * Response.details == "longitude" - 'UpdateActivityRequest.longitude' is not a valid longitude information.
-//     * Response.details == "precision" - 'UpdateActivityRequest.precision' must be an integer between 0 and 20,000.
+//     * Response.details == "precision" - 'UpdateActivityRequest.precision' must be an integer between 0 and 1,000.
 //     * Response.details == "extraData" - 'UpdateActivityRequest.extraData' does not contain a valid extra data information.
 //     * Response.details == "startTime" - 'UpdateActivityRequest.startTime' does not contain a valid start time information.
-//     * Response.details == "expirationTime" - 'UpdateActivityRequest.expirationTime' does not contain a valid expiration time information. 
+//     * Response.details == "expirationTime" - 'UpdateActivityRequest.expirationTime' does not contain a valid expiration time information or its value is smaller than 'UpdateActivityRequest.startTime'.
 //     * Response.details == "ignoreServerIds" - 'UpdateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
 //
 message UpdateActivityResponse {
@@ -490,7 +490,7 @@ message ActivitySearchRequest {
                                                    // does not know the activity identifier. 
                                                    // If non-zero, 'ownerNetworkId' has to contain valid network identifier of the owner.
   bytes ownerNetworkId = 5;                        // Optionally, a network identifier of the creator of the activity. If it is set, only activities 
-                                                   // created by this identity are allowed.
+                                                   // created by this identity are allowed. If not used, this should be empty byte array.
 
   string type = 6;                                 // WildcardType or empty string. If not empty, the proximity server will only return activities
                                                    // of activity types that match the wildcard string. If empty, all activity types are allowed.
@@ -539,7 +539,7 @@ message ActivitySearchRequest {
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "maxResponseRecordCount" - 'ActivitySearchRequest.maxResponseRecordCount' is not within the required range.
 //     * Response.details == "maxTotalRecordCount" - 'ActivitySearchRequest.maxTotalRecordCount' is not within the required range.
-//     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier.
+//     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier, or this is an empty byte array but 'ActivitySearchRequest.id' is not zero.
 //     * Response.details == "type" - 'ActivitySearchRequest.type' is too long.
 //     * Response.details == "startNotAfter" - 'ActivitySearchRequest.startNotAfter' does not represent a valid timestamp value.
 //     * Response.details == "expirationNotBefore" - 'ActivitySearchRequest.expirationNotBefore' is non-zero and smaller than 'ActivitySearchRequest.startNotAfter' or it does not represent a valid timestamp value.
@@ -785,18 +785,18 @@ message NeighborhoodSharedActivityUpdateRequest {
 //       * $field == "add.type" - `items[$index].add.type` is not a valid activity type.
 //       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
 //       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
-//       * $field == "add.precision" - `items[$index].add.precision` must be an integer between 0 and 20,000.
+//       * $field == "add.precision" - `items[$index].add.precision` must be an integer between 0 and 1,000.
 //       * $field == "add.startTime" - `items[$index].add.startTime` does not contain a valid start time information.
-//       * $field == "add.expirationTime" - `items[$index].add.expirationTime` does not contain a valid expiration time information.
+//       * $field == "add.expirationTime" - `items[$index].add.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].add.startTime'.
 //       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extra data value.
 //       * $field == "change.set*" - `items[$index].change.set*` are all false.
 //       * $field == "change.id" - `items[$index].change.id` does not represent an existing activity, or another update item in the same request referred to this activity.
 //       * $field == "change.ownerNetworkId" - `items[$index].change.ownerNetworkId` is not a valid network identifier.
 //       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
 //       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
-//       * $field == "change.precision" - `items[$index].change.precision` must be an integer between 0 and 20,000.
+//       * $field == "change.precision" - `items[$index].change.precision` must be an integer between 0 and 1,000.
 //       * $field == "change.startTime" - `items[$index].change.startTime` does not contain a valid start time information.
-//       * $field == "change.expirationTime" - `items[$index].change.expirationTime` does not contain a valid expiration time information.
+//       * $field == "change.expirationTime" - `items[$index].change.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].change.startTime'.
 //       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
 //       * $field == "delete.id" - `items[$index].delete.id` does not represent an existing activity, or another update item in the same request referred to this activity.
 //       * $field == "delete.ownerNetworkId" - `items[$index].delete.identityNetworkId` is not a valid network identifier.
@@ -830,7 +830,7 @@ message SharedActivityAddItem {
 
   sfixed32 latitude = 6;                           // LocationType. GPS location latitude information. 
   sfixed32 longitude = 7;                          // LocationType. GPS location longitude information.
-  uint32 precision = 8;                            // Precision information in metres is an integer between 0 and 20,000.
+  uint32 precision = 8;                            // Precision information in metres is an integer between 0 and 1,000.
  
   sint64 startTime = 9;                            // TimestampType. Time when the activity starts.
   sint64 expirationTime = 10;                      // TimestampType. Time when the activity expires. 
@@ -856,7 +856,7 @@ message SharedActivityChangeItem {
 
   sfixed32 latitude = 8;                           // LocationType. GPS location latitude information.
   sfixed32 longitude = 9;                          // LocationType. GPS location longitude information.
-  uint32 precision = 10;                           // Precision information in metres is an integer between 0 and 20,000.
+  uint32 precision = 10;                           // Precision information in metres is an integer between 0 and 1,000.
  
   sint64 startTime = 11;                           // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
