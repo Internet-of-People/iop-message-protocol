@@ -300,27 +300,41 @@ message VerifyIdentityResponse {
 // Conversation status: Verified
 //
 message CreateActivityRequest {
+  ActivityInformation activity = 1;                // Description of the activity.
+  repeated bytes ignoreServerIds = 2;              // List of network identifiers of proximity servers to ignore. The list can be empty.
+}
+
+
+
+//
+// Decription of an activity.
+//
+message ActivityInformation {
   bytes version = 1;                               // VersionType. Version of the activity structure.
   uint32 id = 2;                                   // Unique identifier of the client’s activity. The globally unique identification of an activity 
                                                    // is this activity ID combined with the user’s network identifier. It is client’s responsibility 
                                                    // not to present two activities with the same activity ID to the proximity network.
                                                    // 0 is not a valid activity identifier.
+  bytes ownerPublicKey = 3;                        // Public key of the identity that created the activity. Max 128 bytes long.
+  ServerContactInfo profileServerContact = 4;      // Contact information to the owner's profile server.
+  string type = 5;                                 // Type of activity in human readable form, non-empty string, max 64 bytes long.
 
-  ServerContactInfo profileServerContact = 3;      // Contact information to the client’s profile server.
-  string type = 4;                                 // Type of activity in human readable form, non-empty string, max 64 bytes long.
-
-  sfixed32 latitude = 5;                           // LocationType. GPS location latitude information.
-  sfixed32 longitude = 6;                          // LocationType. GPS location longitude information.
-  uint32 precision = 7;                            // Precision information in metres is an integer between 0 and 1,000.
+  sfixed32 latitude = 6;                           // LocationType. GPS location latitude information. Together with 'longitude' and 'precision' this provides information 
+                                                   // the activity location. On non-primary proximity servers, this is not the latest reported location of the activity, 
+                                                   // but rather the last known location to the server being queried, which will often be the original location of the activity.
+                                                   // On primary proximity servers, the location information is current.
+  sfixed32 longitude = 7;                          // LocationType. GPS location longitude information.
+  uint32 precision = 8;                            // Precision information in metres is an integer between 0 and 1,000.
  
-  sint64 startTime = 8;                            // TimestampType. Time when the activity starts. This can be in the past for already running 
+  sint64 startTime = 9;                            // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
-  sint64 expirationTime = 9;                       // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours 
+  sint64 expirationTime = 10;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours 
                                                    // from the moment the request was sent. It has to be greater than or equal to 'startTime'.
+                                                   // On non-primary proximity servers, this may not be the accurate expiration time of the activity, 
+                                                   // but rather the last known expiration time, which will often be the expiration time, with which was 
+                                                   // the activity originally created.
 
-  string extraData = 10;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
-
-  repeated bytes ignoreServerIds = 11;             // List of network identifiers of proximity servers to ignore. The list can be empty.
+  string extraData = 11;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
 }
 
 
@@ -342,18 +356,19 @@ message ServerContactInfo {
 //   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
 //     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "version" - 'CreateActivityRequest.version' does not contain a valid version information.
-//     * Response.details == "id" - 'CreateActivityRequest.id' is not a valid activity identifier.
-//     * Response.details == "profileServerContact.networkId" - 'CreateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
-//     * Response.details == "profileServerContact.ipAddress" - 'CreateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
-//     * Response.details == "profileServerContact.primaryPort" - 'CreateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65535.
-//     * Response.details == "type" - 'CreateActivityRequest.type' is not a valid activity type.
-//     * Response.details == "latitude" - 'CreateActivityRequest.latitude' is not a valid latitude information.
-//     * Response.details == "longitude" - 'CreateActivityRequest.longitude' is not a valid longitude information.
-//     * Response.details == "precision" - 'CreateActivityRequest.precision' must be an integer between 0 and 1,000.
-//     * Response.details == "startTime" - 'CreateActivityRequest.startTime' does not contain a valid start time information.
-//     * Response.details == "expirationTime" - 'CreateActivityRequest.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
-//     * Response.details == "extraData" - 'CreateActivityRequest.extraData' does not contain a valid extra data information.
+//     * Response.details == "activity.version" - 'CreateActivityRequest.activity.version' does not contain a valid version information.
+//     * Response.details == "activity.id" - 'CreateActivityRequest.activity.id' is not a valid activity identifier.
+//     * Response.details == "activity.ownerPublicKey" - 'CreateActivityRequest.ownerPublicKey.id' is not the public key of the client who sent the request.
+//     * Response.details == "activity.profileServerContact.networkId" - 'CreateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
+//     * Response.details == "activity.profileServerContact.ipAddress" - 'CreateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
+//     * Response.details == "activity.profileServerContact.primaryPort" - 'CreateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "activity.type" - 'CreateActivityRequest.activity.type' is not a valid activity type.
+//     * Response.details == "activity.latitude" - 'CreateActivityRequest.activity.latitude' is not a valid latitude information.
+//     * Response.details == "activity.longitude" - 'CreateActivityRequest.activity.longitude' is not a valid longitude information.
+//     * Response.details == "activity.precision" - 'CreateActivityRequest.activity.precision' must be an integer between 0 and 1,000.
+//     * Response.details == "activity.startTime" - 'CreateActivityRequest.activity.startTime' does not contain a valid start time information.
+//     * Response.details == "activity.expirationTime" - 'CreateActivityRequest.activity.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
+//     * Response.details == "activity.extraData" - 'CreateActivityRequest.activity.extraData' does not contain a valid extra data information.
 //     * Response.details == "ignoreServerIds" - 'CreateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
 //
 message CreateActivityResponse {
@@ -372,42 +387,20 @@ message CreateActivityResponse {
 // its database and propagates this information to its neighborhood. The proximity server will not refuse 
 // the update if the suggested new primary proximity server is on the list of proximity servers to ignore.
 //
-// If a client needs to update something that this request does not allow to update, it means that such 
-// a change is considered as a fundamental change, in which case the activity should be deleted and recreated.
-// This includes, for example, a change in client's profile server contact information, activity structure 
-// version information, or its type.
-//
 // Roles: client
 //
 // Conversation status: Verified
 //
 message UpdateActivityRequest {
-  uint32 id = 1;                                   // Unique identifier of the client’s activity. 
-
+  ActivityInformation activity = 1;                // Description of the activity.
   bool noPropagation = 2;                          // If set to true, the proximity server will not propagate the update to the neighborhood.
                                                    // This is useful for updates of parts of activity's extra data information that do not affect 
                                                    // other clients who search for this activity.
 
-  bool setLocation = 3;                            // Activity location should be updated. 'latitude' and 'longitude' must contain valid data.
-  bool setPrecision = 4;                           // Activity location's precision should be updated. 'precision' must contain valid data.
-  bool setStartTime = 5;                           // Activity start time should be updated. 'startTime' must contain valid data.
-  bool setExpirationTime = 6;                      // Activity expiration time should be updated. 'expirationTime' must contain valid data.
-  bool setExtraData = 7;                           // Activity extra data should be updated. 'extraData' must contain valid data.
-
-
-  sfixed32 latitude = 8;                           // LocationType. GPS location latitude information.
-  sfixed32 longitude = 9;                          // LocationType. GPS location longitude information.
-  uint32 precision = 10;                           // Precision information in metres is an integer between 0 and 1,000.
- 
-  sint64 startTime = 11;                           // TimestampType. Time when the activity starts. This can be in the past for already running 
-                                                   // or past activities as well as in the future for future activities.
-  sint64 expirationTime = 12;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours from 
-                                                   // the moment the request was sent. It has to be greater than or equal to activity's start time.
-
-  string extraData = 13;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
-
-  repeated bytes ignoreServerIds = 14;             // List of network identifiers of proximity servers to ignore. The list can be empty.
+  repeated bytes ignoreServerIds = 3;              // List of network identifiers of proximity servers to ignore. The list can be empty.
 }
+
+
 
 
 //
@@ -418,14 +411,19 @@ message UpdateActivityRequest {
 //   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
 //     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "set*" - Nothing was set to be updated.
-//     * Response.details == "id" - 'UpdateActivityRequest.id' is not a valid client's activity identifier.
-//     * Response.details == "latitude" - 'UpdateActivityRequest.latitude' is not a valid latitude information.
-//     * Response.details == "longitude" - 'UpdateActivityRequest.longitude' is not a valid longitude information.
-//     * Response.details == "precision" - 'UpdateActivityRequest.precision' must be an integer between 0 and 1,000.
-//     * Response.details == "extraData" - 'UpdateActivityRequest.extraData' does not contain a valid extra data information.
-//     * Response.details == "startTime" - 'UpdateActivityRequest.startTime' does not contain a valid start time information.
-//     * Response.details == "expirationTime" - 'UpdateActivityRequest.expirationTime' does not contain a valid expiration time information or its value is smaller than 'UpdateActivityRequest.startTime'.
+//     * Response.details == "activity.version" - 'UpdateActivityRequest.activity.version' does not contain a valid version information.
+//     * Response.details == "activity.id" - 'UpdateActivityRequest.activity.id' is not a valid activity identifier.
+//     * Response.details == "activity.ownerPublicKey" - 'UpdateActivityRequest.ownerPublicKey.id' is not the public key of the client who sent the request.
+//     * Response.details == "activity.profileServerContact.networkId" - 'UpdateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
+//     * Response.details == "activity.profileServerContact.ipAddress" - 'UpdateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
+//     * Response.details == "activity.profileServerContact.primaryPort" - 'UpdateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "activity.type" - 'UpdateActivityRequest.activity.type' is not a valid activity type.
+//     * Response.details == "activity.latitude" - 'UpdateActivityRequest.activity.latitude' is not a valid latitude information.
+//     * Response.details == "activity.longitude" - 'UpdateActivityRequest.activity.longitude' is not a valid longitude information.
+//     * Response.details == "activity.precision" - 'UpdateActivityRequest.activity.precision' must be an integer between 0 and 1,000.
+//     * Response.details == "activity.startTime" - 'UpdateActivityRequest.activity.startTime' does not contain a valid start time information.
+//     * Response.details == "activity.expirationTime" - 'UpdateActivityRequest.activity.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
+//     * Response.details == "activity.extraData" - 'UpdateActivityRequest.activity.extraData' does not contain a valid extra data information.
 //     * Response.details == "ignoreServerIds" - 'UpdateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
 //
 message UpdateActivityResponse {
@@ -570,27 +568,8 @@ message ActivityNetworkInformation {
   bool isPrimary = 1;                              // True if the activity's primary proximity server is the server being queried.
   ServerContactInfo primaryServer = 2;             // If 'isPrimary' is false, this contains the contact information to the primary proximity server of the activity.
 
-  bytes version = 3;                               // VersionType. Version of the activity structure.
-  uint32 id = 4;                                   // Unique identifier of the activity among all activities of the same owner.
-  bytes ownerPublicKey = 5;                        // Public key of the identity that created the activity. Max 128 bytes long.
-  ServerContactInfo profileServerContact = 6;      // Contact information to the owner's profile server.
-  string type = 7;                                 // Type of the activity.
-
-  sfixed32 latitude = 8;                           // LocationType. GPS location latitude information. Together with 'longitude' and 'precision' this provides information 
-                                                   // the activity location. However, if 'isPrimary' is false, this is not the latest reported location of the activity, 
-                                                   // but rather the last known location to the server being queried, which will often be the original location of the activity.
-                                                   // Only if 'isPrimary' is true, the location information is current.
-  sfixed32 longitude = 9;                          // LocationType. GPS location longitude information.
-  uint32 precision = 10;                           // Precision information in metres.
- 
-  sint64 startTime = 11;                           // TimestampType. Time when the activity starts.
-  sint64 expirationTime = 12;                      // TimestampType. Time when the activity expires. If 'isPrimary' is false, this may not be the accurate expiration
-                                                   // time of the activity, but rather the last known expiration time, which  will often be the original expiration time
-                                                   // of the activity.
-
-  string extraData = 13;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
+  ActivityInformation activity = 3;                // Description of the activity.
 }
-
 
 
 //
@@ -706,8 +685,8 @@ message StartNeighborhoodInitializationRequest {
 //   * ERROR_BUSY - Proximity server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other proximity servers.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65535.
-//     * Response.details == "neighborPort" - 'StartNeighborhoodInitializationRequest.neighborPort' must be an integer between 1 and 65535.
+//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "neighborPort" - 'StartNeighborhoodInitializationRequest.neighborPort' must be an integer between 1 and 65,535.
 //     * Response.details == "ipAddress" - 'StartNeighborhoodInitializationRequest.ipAddress' is not a valid IPv4 or IPv6 address or it is a local network IP address.
 //
 message StartNeighborhoodInitializationResponse {
@@ -781,7 +760,7 @@ message NeighborhoodSharedActivityUpdateRequest {
 //       * $field == "add.ownerPublicKey" - `items[$index].add.ownerPublicKey` is not a valid public key value.
 //       * $field == "add.profileServerContact.networkId" - `items[$index].add.profileServerContact.networkId` is not a valid network identifier.
 //       * $field == "add.profileServerContact.ipAddress" - `items[$index].add.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
-//       * $field == "add.profileServerContact.primaryPort" - `items[$index].add.profileServerContact.primaryPort` must be an integer between 1 and 65535.
+//       * $field == "add.profileServerContact.primaryPort" - `items[$index].add.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
 //       * $field == "add.type" - `items[$index].add.type` is not a valid activity type.
 //       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
 //       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
@@ -789,15 +768,20 @@ message NeighborhoodSharedActivityUpdateRequest {
 //       * $field == "add.startTime" - `items[$index].add.startTime` does not contain a valid start time information.
 //       * $field == "add.expirationTime" - `items[$index].add.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].add.startTime'.
 //       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extra data value.
-//       * $field == "change.set*" - `items[$index].change.set*` are all false.
-//       * $field == "change.id" - `items[$index].change.id` does not represent an existing activity, or another update item in the same request referred to this activity.
-//       * $field == "change.ownerNetworkId" - `items[$index].change.ownerNetworkId` is not a valid network identifier.
+//       * $field == "change.version" - `items[$index].change.version` is not a valid activity version.
+//       * $field == "change.id" - `items[$index].change.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
+//                                 request referred to this activity.
+//       * $field == "change.ownerPublicKey" - `items[$index].change.ownerPublicKey` is not a valid public key value.
+//       * $field == "change.profileServerContact.networkId" - `items[$index].change.profileServerContact.networkId` is not a valid network identifier.
+//       * $field == "change.profileServerContact.ipAddress" - `items[$index].change.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
+//       * $field == "change.profileServerContact.primaryPort" - `items[$index].change.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
+//       * $field == "change.type" - `items[$index].change.type` is not a valid activity type.
 //       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
 //       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
 //       * $field == "change.precision" - `items[$index].change.precision` must be an integer between 0 and 1,000.
 //       * $field == "change.startTime" - `items[$index].change.startTime` does not contain a valid start time information.
 //       * $field == "change.expirationTime" - `items[$index].change.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].change.startTime'.
-//       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
+//       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extra data value.
 //       * $field == "delete.id" - `items[$index].delete.id` does not represent an existing activity, or another update item in the same request referred to this activity.
 //       * $field == "delete.ownerNetworkId" - `items[$index].delete.identityNetworkId` is not a valid network identifier.
 //       * $field == "actionType" - During the neighborhood initialization process, only `add` is a valid update message type.
@@ -811,66 +795,18 @@ message NeighborhoodSharedActivityUpdateResponse {
 //
 message SharedActivityUpdateItem {
   oneof ActionType {                               // Update operation can be:
-    SharedActivityAddItem add = 1;                 //  * adding a new activity to the database,
-    SharedActivityChangeItem change = 2;           //  * changing an existing activity,
-    SharedActivityDeleteItem delete = 3;           //  * deleting an existing activity.
+    ActivityInformation add = 1;                   //  * adding a new activity to the database,
+    ActivityInformation change = 2;                //  * changing an existing activity,
+    ActivityFullId delete = 3;                     //  * deleting an existing activity.
   }
 }
 
 
-//
-// Information about newly created activity that is to be shared with a neighbor.
-//
-message SharedActivityAddItem {
-  bytes version = 1;                               // VersionType. Version of the activity structure.
-  uint32 id = 2;                                   // Unique identifier of the activity among all activities of the same owner.
-  bytes ownerPublicKey = 3;                        // Public key of the identity that created the activity. Max 128 bytes long.
-  ServerContactInfo profileServerContact = 4;      // Contact information to the owner's profile server.
-  string type = 5;                                 // Type of the activity, non-empty string. Max 64 bytes long.
-
-  sfixed32 latitude = 6;                           // LocationType. GPS location latitude information. 
-  sfixed32 longitude = 7;                          // LocationType. GPS location longitude information.
-  uint32 precision = 8;                            // Precision information in metres is an integer between 0 and 1,000.
- 
-  sint64 startTime = 9;                            // TimestampType. Time when the activity starts.
-  sint64 expirationTime = 10;                      // TimestampType. Time when the activity expires. 
-
-  string extraData = 11;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
-}
-
-
 
 //
-// Information about changes in an existing activity data that are to be shared with a neighbor.
+// Full identifier of the activity.
 //
-message SharedActivityChangeItem {
-  uint32 id = 1;                                   // Unique identifier of the activity among all activities of the same owner.
-  bytes ownerNetworkId = 2;                        // Network identifier of the identity that created the activity. 
-
-  bool setLocation = 3;                            // Activity location should be updated. 'latitude' and 'longitude' must contain valid data.
-  bool setPrecision = 4;                           // Activity location's precision should be updated. 'precision' must contain valid data.
-  bool setStartTime = 5;                           // Activity start time should be updated. 'startTime' must contain valid data.
-  bool setExpirationTime = 6;                      // Activity expiration time should be updated. 'expirationTime' must contain valid data.
-  bool setExtraData = 7;                           // Activity extra data should be updated. 'extraData' must contain valid data.
-
-
-  sfixed32 latitude = 8;                           // LocationType. GPS location latitude information.
-  sfixed32 longitude = 9;                          // LocationType. GPS location longitude information.
-  uint32 precision = 10;                           // Precision information in metres is an integer between 0 and 1,000.
- 
-  sint64 startTime = 11;                           // TimestampType. Time when the activity starts. This can be in the past for already running 
-                                                   // or past activities as well as in the future for future activities.
-  sint64 expirationTime = 12;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours from 
-                                                   // the moment the request was sent. It has to be greater than or equal to activity's start time.
-
-  string extraData = 13;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
-}
-
-
-//
-// Information about the removal of an existing activity that is to be shared with a neighbor.
-//
-message SharedActivityDeleteItem {
+message ActivityFullId {
   uint32 id = 1;                                   // Unique identifier of the activity among all activities of the same owner.
   bytes ownerNetworkId = 2;                        // Network identifier of the identity that created the activity. 
 }
