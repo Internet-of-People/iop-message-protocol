@@ -212,7 +212,7 @@ message SingleRequest {
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
     ListHostingPlansRequest listHostingPlans = 4;
-    GetIdentityInformationRequest getIdentityInformation = 5;
+    GetProfileInformationRequest getProfileInformation = 5;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
     ProfileStatsRequest profileStats = 8;
@@ -232,7 +232,7 @@ message SingleResponse {
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
     ListHostingPlansResponse listHostingPlans = 4;
-    GetIdentityInformationResponse getIdentityInformation = 5;
+    GetProfileInformationResponse getProfileInformation = 5;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
     ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
     ProfileStatsResponse profileStats = 8;
@@ -730,34 +730,27 @@ message VerifyIdentityResponse {
 
 //
 // A customer client updates its profile hosted at the profile server.
-// The client must make sure that its profile is complete after processing the request.
-// After sending RegisterHostingRequest, its profile is almost empty - only identity type 
-// and public key are known. This means that the first call of this request 
-// has to contain all required information to make the profile complete. Namely the first 
-// UpdateProfileRequest has to have setVersion, setName, and setLocation set to true.
 //
 // The customer client is required to initialize its profile just after finishing 
 // the RegisterHostingRequest. Until the initialization of the profile is made, the identity 
 // is not considered as being fully initialized and can not be queried or called by other 
 // identities.
 //
+// The 'profile' field value in raw format is signed with a signature in 'ConversationRequest.signature'.
+//
 // Roles: clCustomer
 //
 // Conversation status: Authenticated
 //
 message UpdateProfileRequest {
-  bool setVersion = 1;                             // Profile version should be updated. 'version' must contain valid data.
-  bool setName = 2;                                // Profile name should be updated. 'name' must contain valid data.
-  bool setImage = 3;                               // Profile image should be updated. 'image' must contain valid data.
-  bool setLocation = 4;                            // Profile location should be updated. 'latitude' and 'longitude' must contain valid data.
-  bool setExtraData = 5;                           // Profile extra data should be updated. 'extraData' must contain valid data.
-
-  bytes version = 8;                               // VersionType. Version of the profile structure.
-  string name = 9;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  bytes image = 10;                                // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long, or zero length binary data if the image is about to be erased.
-  sfixed32 latitude = 11;                          // LocationType. GPS location latitude information.
-  sfixed32 longitude = 12;                         // LocationType. GPS location longitude information.
-  string extraData = 13;                           // Semicolon separated 'key=value' list, max 200 bytes long.
+  ProfileInformation profile = 1;
+  bytes profileImage = 2;                          // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long, or zero length binary data if the profile image is about to be erased.
+                                                   // The SHA256 hash of the binary data has to match 'profile.profileImageHash'.
+  bytes thumbnailImage = 3;                        // Thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long, or zero length binary data if the thumbnail image is about to be erased.
+                                                   // The SHA256 hash of the binary data has to match 'profile.thumbnailImageHash'.
+  bool noPropagation = 4;                          // If set to true, the profile server will not propagate the update to the neighborhood.
+                                                   // This is useful for updates of parts of profile's extra data information that do not affect 
+                                                   // other clients who search for this activity.
 }
 
 
@@ -766,19 +759,49 @@ message UpdateProfileRequest {
 //
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - The identity is not a client of the profile server.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'UpdateProfileRequest.profile' in 'ConversationRequest.signature' is not valid.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "setVersion" - 'UpdateProfileRequest.setVersion' is not set during the first request.
-//     * Response.details == "setName" - 'UpdateProfileRequest.setName' is not set during the firts request.
-//     * Response.details == "setLocation" - 'UpdateProfileRequest.setLocation' is not set during the firts request.
-//     * Response.details == "set*" - Nothing was set to be updated.
-//     * Response.details == "version" - 'UpdateProfileRequest.version' does not contain a valid version information.
-//     * Response.details == "name" - 'UpdateProfileRequest.name' does not contain a valid name.
-//     * Response.details == "image" - 'UpdateProfileRequest.image' does not contain a valid PNG or JPEG image.
-//     * Response.details == "latitude" - 'UpdateProfileRequest.latitude' does not contain a valid latitude information.
-//     * Response.details == "longitude" - 'UpdateProfileRequest.longitude' does not contain a valid longitude information.
-//     * Response.details == "extraData" - 'UpdateProfileRequest.extraData' does not contain a valid extra data information.
+//     * Response.details == "profile.version" - 'UpdateProfileRequest.profile.version' does not contain a valid version information.
+//     * Response.details == "profile.publicKey" - 'UpdateProfileRequest.profile.publicKey' is not the client's public key.
+//     * Response.details == "profile.type" - 'UpdateProfileRequest.profile.type' does not match the original identity's profile type.
+//     * Response.details == "profile.name" - 'UpdateProfileRequest.profile.name' does not contain a valid name.
+//     * Response.details == "profile.latitude" - 'UpdateProfileRequest.profile.latitude' does not contain a valid latitude information.
+//     * Response.details == "profile.longitude" - 'UpdateProfileRequest.profile.longitude' does not contain a valid longitude information.
+//     * Response.details == "profile.extraData" - 'UpdateProfileRequest.profile.extraData' does not contain a valid extra data information.
+//     * Response.details == "profile.profileImageHash" - 'UpdateProfileRequest.profile.profileImageHash' is neither a valid SHA256 hash nor empty array.
+//     * Response.details == "profile.thumbnailImageHash" - 'UpdateProfileRequest.profile.thumbnailImageHash' is neither a valid SHA256 hash nor empty array.
+//     * Response.details == "profileImage" - 'UpdateProfileRequest.profileImage' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.profileImageHash' value.
+//     * Response.details == "thumbnailImage" - 'UpdateProfileRequest.thumbnailImage' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.thumbnailImageHash' value.
 //
 message UpdateProfileResponse {
+}
+
+
+//
+// Description of an identity profile.
+//
+message ProfileInformation {
+  bytes version = 1;                               // VersionType. Version of the profile structure.
+  bytes publicKey = 2;                             // Identity public key.
+  string type = 3;                                 // Type of the client's identity. Max 64 bytes long. This information is set up during hosting registration process and can not be changed by update later.
+  string name = 4;                                 // Name of the profile, non-empty string, max 64 bytes long.
+
+  sfixed32 latitude = 5;                           // LocationType. GPS location latitude information.
+  sfixed32 longitude = 6;                          // LocationType. GPS location longitude information.
+  string extraData = 7;                            // Semicolon separated 'key=value' list, max 200 bytes long.
+
+  bytes profileImageHash = 8;                      // SHA256 hash of profile image data, or empty array if no profile image is set, or it is about to be deleted.
+  bytes thumbnailImageHash = 9;                    // SHA256 hash of thumbnail image data, or empty array if no thumbnail image is set, or it is about to be deleted.
+}
+
+
+//
+// Signed description of an identity profile.
+//
+message SignedProfileInformation {
+  ProfileInformation profile = 1;                  // Identity profile information.
+  bytes signature = 2;                             // Signature of 'profile' value in raw format using private key of the identity that owns the profile.
+                                                   // Max 100 bytes long.
 }
 
 
@@ -899,12 +922,12 @@ message ApplicationServiceRemoveResponse {
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
 //      |                                                   |                                                   |  
-//      |  GetIdentityInformationRequest                    |                                                   |
+//      |  GetProfileInformationRequest                     |                                                   |
 //      *-------------------------------------------------> *                                                   |
 //      |  <includeApplicationServices = true>              |                                                   |
 //      |                                                   |                                                   |
 //      |                                                   |                                                   |
-//      |                   GetIdentityInformationResponse  |                                                   |
+//      |                    GetProfileInformationResponse  |                                                   |
 //      * <-------------------------------------------------*                                                   |
 //      |                           <list of supported AS>  |                                                   |
 //      |                                                   |                                                   |
@@ -1033,7 +1056,7 @@ message ApplicationServiceRemoveResponse {
 //
 // Roles: clNonCustomer, clCustomer
 //
-message GetIdentityInformationRequest {
+message GetProfileInformationRequest {
   bytes identityNetworkId = 1;                     // Identity's network identifier.
   bool includeProfileImage = 2;                    // If set to true, the response will include a profile image.
   bool includeThumbnailImage = 3;                  // If set to true, the response will include a thumbnail image.
@@ -1043,32 +1066,29 @@ message GetIdentityInformationRequest {
 
 
 //
-// A response to GetIdentityInformationRequest.
+// A response to GetProfileInformationRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - 'GetIdentityInformationRequest.identityNetworkId' does not identify an identity hosted by the profile server.
+//   * ERROR_NOT_FOUND - 'GetProfileInformationRequest.identityNetworkId' does not identify an identity hosted by the profile server.
 //   * ERROR_UNINITIALIZED - The target identity's profile has not been initialized yet.
 //
-message GetIdentityInformationResponse {
+message GetProfileInformationResponse {
   bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
   bool isTargetProfileServerKnown = 2;             // If 'isHosted' is false then this is true if the identity's new profile server is known to the profile server. In all other cases, this is false.
   bytes targetProfileServerNetworkId = 3;          // If 'isTargetProfileServerKnown' is true then this field contains the identity's new profile server network ID.
 
   // Following fields are valid only if 'isHosted' is true.
   bool isOnline = 4;                               // True if the requested identity is currently online.
-  bytes version = 5;                               // VersionType. Version of the profile.
-  bytes identityPublicKey = 6;                     // The requested identity's public key.
-  string type = 7;                                 // The requested identity's type.
-  string name = 8;                                 // The requested identity's name.
-  sfixed32 latitude = 9;                           // LocationType. The requested identity's GPS location latitude information.
-  sfixed32 longitude = 10;                         // LocationType. The requested identity's GPS location longitude information.
-  string extraData = 11;                           // The requested identity's extra data.
-  bytes profileImage = 12;                         // If 'GetIdentityInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image.
-  bytes thumbnailImage = 13;                       // If 'GetIdentityInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image.
 
-  repeated string applicationServices = 14;        // If 'GetIdentityInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  SignedProfileInformation signedProfile = 5;      // Requested identity signed profile information.
+
+  bytes profileImage = 6;                          // If 'GetProfileInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image or empty array if the profile has no profile image.
+  bytes thumbnailImage = 7;                        // If 'GetProfileInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image or empty array if the profile has no thumbnail image.
+
+  repeated string applicationServices = 8;         // If 'GetProfileInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
+
 
 
 // 
@@ -1325,7 +1345,7 @@ message ProfileSearchResponse {
                                                    // because otherwise there is no guarantee the results actually contain any records from neighborhood profile servers.
 
   // Search results.
-  repeated IdentityNetworkProfileInformation profiles = 4;  // List of results that contains no more than 'maxResponseRecordCount' items.
+  repeated ProfileQueryformation profiles = 4;     // List of results that contains no more than 'maxResponseRecordCount' items.
 }
 
 
@@ -1333,24 +1353,17 @@ message ProfileSearchResponse {
 //
 // Information about a single profile record from a profile search query.
 //
-message IdentityNetworkProfileInformation {
+message ProfileQueryformation {
   bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
   bytes hostingServerNetworkId = 2;                // If 'isHosted' is false, this field contains the network ID of the neighbor profile server that hosts the target profile.
 
   bool isOnline = 3;                               // If 'isHosted' is true, this is true if the requested identity is currently online.
 
-  bytes version = 4;                               // VersionType. Version of the profile.
-  bytes identityPublicKey = 5;                     // The identity's public key.
-  string type = 6;                                 // The identity's type.
-  string name = 7;                                 // The identity's name.
-  sfixed32 latitude = 8;                           // LocationType. The identity's GPS location latitude information.
-  sfixed32 longitude = 9;                          // LocationType. The identity's GPS location longitude information.
-  string extraData = 10;                           // The identity's extra data.
+  SignedProfileInformation signedProfile = 4;      // Requested identity signed profile information.
 
-  bytes thumbnailImage = 11;                       // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image, 
-                                                   // or zero-length byte array if the profile has no image set.
+  bytes thumbnailImage = 5;                        // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image, 
+                                                   // or zero-length byte array if the profile has no thumbnail image set.
 }
-
 
 
 //
@@ -1388,7 +1401,7 @@ message ProfileSearchPartResponse {
   uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.recordCount' value.
 
   // Search results.
-  repeated IdentityNetworkProfileInformation profiles = 3;  // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
+  repeated ProfileQueryformation profiles = 3;      // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
 }
 
 
@@ -1695,24 +1708,30 @@ message NeighborhoodSharedProfileUpdateRequest {
 //                                             index $index. Items with index greater then $index were not processed. The $field specifies which field 
 //                                             was invalid as follows:
 //       * $field == "add" - Number of shared profiles from the requesting profile server exceeds the limit.
-//       * $field == "add.version" - `items[$index].add.version` is not a valid VersionType value.
-//       * $field == "add.identityPublicKey" - `items[$index].add.identityPublicKey` is not a valid public key value or the same identity already exists, 
-//                                             or another update item in the same request referred to this identity.
-//       * $field == "add.name" - `items[$index].add.name` is not a valid profile name.
-//       * $field == "add.type" - `items[$index].add.type` is not a valid identity type.
-//       * $field == "add.thumbnailImage" - `items[$index].add.thumbnailImage` is not a valid thumbnail image.
-//       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
-//       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
-//       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extraData value.
-//       * $field == "change.set*" - `items[$index].change.set*` are all false.
-//       * $field == "change.identityNetworkId" - `items[$index].change.identityNetworkId` does not represent an existing identity, or another update item 
-//                                                in the same request referred to this identity.
-//       * $field == "change.version" - `items[$index].change.version` is not a valid VersionType value.
-//       * $field == "change.name" - `items[$index].change.name` is not a valid profile name.
-//       * $field == "change.thumbnailImage" - `items[$index].change.thumbnailImage` is not a valid thumbnail image.
-//       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
-//       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
-//       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extraData value.
+//       * $field == "add.signedProfile.profile.version" - `items[$index].add.signedProfile.profile.version` does not contain a valid version information.
+//       * $field == "add.signedProfile.profile.publicKey" - `items[$index].add.signedProfile.profile.publicKey` is not a valid public key value or the same identity already exists, 
+//                                                           or another update item in the same request referred to this identity.
+//       * $field == "add.signedProfile.profile.type" - `items[$index].add.signedProfile.profile.type` is not a valid identity type.
+//       * $field == "add.signedProfile.profile.name" - `items[$index].add.signedProfile.profile.name` is not a valid profile name.
+//       * $field == "add.signedProfile.profile.latitude" - `items[$index].add.signedProfile.profile.latitude` is not a valid latitude value.
+//       * $field == "add.signedProfile.profile.longitude" - `items[$index].add.signedProfile.profile.longitude` is not a valid longitude value.
+//       * $field == "add.signedProfile.profile.extraData" - `items[$index].add.signedProfile.profile.extraData` is not a valid extraData value.
+//       * $field == "add.signedProfile.profile.profileImageHash" - `items[$index].add.signedProfile.profile.profileImageHash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "add.signedProfile.profile.thumbnailImageHash" - `items[$index].add.signedProfile.profile.thumbnailImageHash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "add.signedProfile.signature" - `items[$index].add.signedProfile.signature` is not a valid signature or 'items[$index].add.signedProfile.profile'.
+//       * $field == "add.thumbnailImage" - `items[$index].add.thumbnailImage` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].add.signedProfile.profile.thumbnailImageHash` value.
+//       * $field == "change.signedProfile.profile.version" - `items[$index].change.signedProfile.profile.version` does not contain a valid version information.
+//       * $field == "change.signedProfile.profile.publicKey" - `items[$index].change.signedProfile.profile.publicKey` is not a valid public key value or the same identity already exists, 
+//                                                           or another update item in the same request referred to this identity.
+//       * $field == "change.signedProfile.profile.type" - `items[$index].change.signedProfile.profile.type` is not a valid identity type or it does not match the previous value of the type of this profile.
+//       * $field == "change.signedProfile.profile.name" - `items[$index].change.signedProfile.profile.name` is not a valid profile name.
+//       * $field == "change.signedProfile.profile.latitude" - `items[$index].change.signedProfile.profile.latitude` is not a valid latitude value.
+//       * $field == "change.signedProfile.profile.longitude" - `items[$index].change.signedProfile.profile.longitude` is not a valid longitude value.
+//       * $field == "change.signedProfile.profile.extraData" - `items[$index].change.signedProfile.profile.extraData` is not a valid extraData value.
+//       * $field == "change.signedProfile.profile.profileImageHash" - `items[$index].change.signedProfile.profile.profileImageHash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "change.signedProfile.profile.thumbnailImageHash" - `items[$index].change.signedProfile.profile.thumbnailImageHash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "change.signedProfile.signature" - `items[$index].change.signedProfile.signature` is not a valid signature or 'items[$index].change.signedProfile.profile'.
+//       * $field == "change.thumbnailImage" - `items[$index].change.thumbnailImage` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].change.signedProfile.profile.thumbnailImageHash` value.
 //       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity, or another update item 
 //                                                in the same request referred to this identity.
 //       * $field == "actionType" - During the neighborhood initialization process, only `add` is a valid update message type.
@@ -1728,7 +1747,7 @@ message SharedProfileUpdateItem {
   oneof ActionType {                               // Update operation can be:
     SharedProfileAddItem add = 1;                  //  * adding a new profile to the database,
     SharedProfileChangeItem change = 2;            //  * changing an existing profile,
-    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile,
+    SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile, 
     SharedProfileRefreshAllItem refresh = 4;       //  * refresh expiration date of all existing profiles.
   }
 }
@@ -1738,36 +1757,17 @@ message SharedProfileUpdateItem {
 // Information about newly created profile that is to be shared with a neighbor.
 //
 message SharedProfileAddItem {
-  bytes version = 1;                               // VersionType. Version of the profile structure.
-  bytes identityPublicKey = 2;                     // The identity's public key. Max 128 bytes long.
-  string name = 3;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  string type = 4;                                 // The identity's type, non-empty string, max 64 bytes long. 
-  bool setThumbnailImage = 5;                      // If true, 'thumbnailImage' has to contain valid image date. If false, 'thumbnailImage' is ignored.
-  bytes thumbnailImage = 6;                        // If 'setThumbnailImage' is true, this contains profile image in PNG or JPEG format, max 5,120 bytes long.
-  sfixed32 latitude = 7;                           // LocationType. GPS location latitude information.
-  sfixed32 longitude = 8;                          // LocationType. GPS location longitude information.
-  string extraData = 9;                            // Semicolon separated 'key=value' list, max 200 bytes long, or empty string.
+  SignedProfileInformation signedProfile = 1;      // Signed identity profile information.
+  bytes thumbnailImage = 2;                        // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
 }
 
 
 //
-// Information about changes in an existing profile data that are to be shared with a neighbor.
+// Information about change in an existing activity that is to be shared with a neighbor.
 //
 message SharedProfileChangeItem {
-  bytes identityNetworkId = 1;                     // The identity's network identifier.
-
-  bool setVersion = 2;                             // Profile version should be updated. 'version' must contain valid data.
-  bool setName = 3;                                // Profile name should be updated. 'name' must contain valid data.
-  bool setThumbnailImage = 4;                      // Profile image should be updated. 'thumbnailImage' must contain valid data.
-  bool setLocation = 5;                            // Profile location should be updated. 'latitude' and 'longitude' must contain valid data.
-  bool setExtraData = 6;                           // Profile extra data should be updated. 'extraData' must contain valid data.
-
-  bytes version = 7;                               // VersionType. Version of the profile structure.
-  string name = 8;                                 // Name of the profile, non-empty string, max 64 bytes long.
-  bytes thumbnailImage = 9;                        // Profile thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long, or zero length binary data if the image is about to be deleted.
-  sfixed32 latitude = 10;                          // LocationType. GPS location latitude information.
-  sfixed32 longitude = 11;                         // LocationType. GPS location longitude information.
-  string extraData = 12;                           // Semicolon separated 'key=value' list, max 200 bytes long, or empty string.
+  SignedProfileInformation signedProfile = 1;      // Signed identity profile information.
+  bytes thumbnailImage = 2;                        // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
 }
 
 

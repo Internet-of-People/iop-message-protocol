@@ -98,6 +98,7 @@ message SingleRequest {
   oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
+    GetActivityInformationRequest getActivityInformation = 4;
   }
 }
 
@@ -112,6 +113,7 @@ message SingleResponse {
   oneof ResponseType {                             // See 'SingleRequest.RequestType'. Each request has its corresponding response.
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
+    GetActivityInformationResponse getActivityInformation = 4;
   }
 }
 
@@ -295,6 +297,8 @@ message VerifyIdentityResponse {
 // the activity’s location but at the same time all closer servers are on the list of proximity 
 // servers to ignore.
 //
+// The 'activity' field value in raw format is signed with a signature in 'ConversationRequest.signature'.
+//
 // Roles: client
 //
 // Conversation status: Verified
@@ -304,6 +308,33 @@ message CreateActivityRequest {
   repeated bytes ignoreServerIds = 2;              // List of network identifiers of proximity servers to ignore. The list can be empty.
 }
 
+
+//
+// A response to CreateActivityRequest.
+//
+// Specific Error Responses:
+//   * ERROR_ALREADY_EXISTS - The server already has an activity from the client with 'CreateActivityRequest.id' as its identifier.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'CreateActivityRequest.activity' in 'ConversationRequest.signature' is not valid.
+//   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
+//     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "activity.version" - 'CreateActivityRequest.activity.version' does not contain a valid version information.
+//     * Response.details == "activity.id" - 'CreateActivityRequest.activity.id' is not a valid activity identifier.
+//     * Response.details == "activity.ownerPublicKey" - 'CreateActivityRequest.ownerPublicKey.id' is not the public key of the client who sent the request.
+//     * Response.details == "activity.profileServerContact.networkId" - 'CreateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
+//     * Response.details == "activity.profileServerContact.ipAddress" - 'CreateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
+//     * Response.details == "activity.profileServerContact.primaryPort" - 'CreateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "activity.type" - 'CreateActivityRequest.activity.type' is not a valid activity type.
+//     * Response.details == "activity.latitude" - 'CreateActivityRequest.activity.latitude' is not a valid latitude information.
+//     * Response.details == "activity.longitude" - 'CreateActivityRequest.activity.longitude' is not a valid longitude information.
+//     * Response.details == "activity.precision" - 'CreateActivityRequest.activity.precision' must be an integer between 0 and 1,000.
+//     * Response.details == "activity.startTime" - 'CreateActivityRequest.activity.startTime' does not contain a valid start time information.
+//     * Response.details == "activity.expirationTime" - 'CreateActivityRequest.activity.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
+//     * Response.details == "activity.extraData" - 'CreateActivityRequest.activity.extraData' does not contain a valid extra data information.
+//     * Response.details == "ignoreServerIds" - 'CreateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
+//
+message CreateActivityResponse {
+}
 
 
 //
@@ -339,39 +370,23 @@ message ActivityInformation {
 
 
 //
+// Signed description of an activity.
+//
+message SignedActivityInformation {
+  ActivityInformation activity = 1;                // Description of an activity.
+  bytes signature = 2;                             // Signature of 'activity' value in raw format using private key of the identity that owns the profile.
+                                                   // Max 100 bytes long.
+}
+
+
+
+//
 // Network server contact information.
 //
 message ServerContactInfo {
   bytes networkId = 1;                             // Network identifier is a SHA256 hash of the server's public key.
   bytes ipAddress = 2;                             // IPv4 or IPv6 public address of the network interface on which the server operates.
   uint32 primaryPort = 3;                          // Server's primary port.
-}
-
-
-//
-// A response to CreateActivityRequest.
-//
-// Specific Error Responses:
-//   * ERROR_ALREADY_EXISTS - The server already has an activity from the client with 'CreateActivityRequest.id' as its identifier.
-//   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
-//     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
-//   * ERROR_INVALID_VALUE
-//     * Response.details == "activity.version" - 'CreateActivityRequest.activity.version' does not contain a valid version information.
-//     * Response.details == "activity.id" - 'CreateActivityRequest.activity.id' is not a valid activity identifier.
-//     * Response.details == "activity.ownerPublicKey" - 'CreateActivityRequest.ownerPublicKey.id' is not the public key of the client who sent the request.
-//     * Response.details == "activity.profileServerContact.networkId" - 'CreateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
-//     * Response.details == "activity.profileServerContact.ipAddress" - 'CreateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
-//     * Response.details == "activity.profileServerContact.primaryPort" - 'CreateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65,535.
-//     * Response.details == "activity.type" - 'CreateActivityRequest.activity.type' is not a valid activity type.
-//     * Response.details == "activity.latitude" - 'CreateActivityRequest.activity.latitude' is not a valid latitude information.
-//     * Response.details == "activity.longitude" - 'CreateActivityRequest.activity.longitude' is not a valid longitude information.
-//     * Response.details == "activity.precision" - 'CreateActivityRequest.activity.precision' must be an integer between 0 and 1,000.
-//     * Response.details == "activity.startTime" - 'CreateActivityRequest.activity.startTime' does not contain a valid start time information.
-//     * Response.details == "activity.expirationTime" - 'CreateActivityRequest.activity.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
-//     * Response.details == "activity.extraData" - 'CreateActivityRequest.activity.extraData' does not contain a valid extra data information.
-//     * Response.details == "ignoreServerIds" - 'CreateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
-//
-message CreateActivityResponse {
 }
 
 
@@ -386,6 +401,8 @@ message CreateActivityResponse {
 // of the other proximity server (that is closer to the new activity location) and removes the activity from 
 // its database and propagates this information to its neighborhood. The proximity server will not refuse 
 // the update if the suggested new primary proximity server is on the list of proximity servers to ignore.
+//
+// The 'activity' field value in raw format is signed with a signature in 'ConversationRequest.signature'.
 //
 // Roles: client
 //
@@ -408,6 +425,7 @@ message UpdateActivityRequest {
 //
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - Activity of the given ID created by the client was not found.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'UpdateActivityRequest.activity' in 'ConversationRequest.signature' is not valid.
 //   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
 //     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
 //   * ERROR_INVALID_VALUE
@@ -457,6 +475,28 @@ message DeleteActivityResponse {
 
 
 
+// 
+// Obtains information about a single activity that is managed by the proximity server or one of its neighbors.
+//
+// Roles: client
+//
+message GetActivityInformationRequest {
+  uint32 id = 1;                                   // User defined activity identifier.
+  bytes ownerNetworkId = 2;                        // Network identifier of the activity owner.
+}
+
+
+//
+// A response to GetActivityInformationRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'GetActivityInformationRequest.id' together with 'GetActivityInformationRequest.ownerNetworkId' do not specify a known activity.
+//
+message GetActivityInformationResponse {
+  ActivityQueryInformation info = 1;               // Information about the requested activity.
+}
+
+
 
 //
 // Asks a proximity server for a list of all activities that match the search criteria.
@@ -484,9 +524,6 @@ message ActivitySearchRequest {
   uint32 maxTotalRecordCount = 3;                  // Maximal number of total results that the activity server will look for and save. It has to be an integer between 1 and 10,000.
 
   // Search filters.
-  uint32 id = 4;                                   // Identifier of the activity if the client asks for a specific activity, or 0 if the client 
-                                                   // does not know the activity identifier. 
-                                                   // If non-zero, 'ownerNetworkId' has to contain valid network identifier of the owner.
   bytes ownerNetworkId = 5;                        // Optionally, a network identifier of the creator of the activity. If it is set, only activities 
                                                    // created by this identity are allowed. If not used, this should be empty byte array.
 
@@ -537,7 +574,7 @@ message ActivitySearchRequest {
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "maxResponseRecordCount" - 'ActivitySearchRequest.maxResponseRecordCount' is not within the required range.
 //     * Response.details == "maxTotalRecordCount" - 'ActivitySearchRequest.maxTotalRecordCount' is not within the required range.
-//     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier, or this is an empty byte array but 'ActivitySearchRequest.id' is not zero.
+//     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier.
 //     * Response.details == "type" - 'ActivitySearchRequest.type' is too long.
 //     * Response.details == "startNotAfter" - 'ActivitySearchRequest.startNotAfter' does not represent a valid timestamp value.
 //     * Response.details == "expirationNotBefore" - 'ActivitySearchRequest.expirationNotBefore' is non-zero and smaller than 'ActivitySearchRequest.startNotAfter' or it does not represent a valid timestamp value.
@@ -556,7 +593,7 @@ message ActivitySearchResponse {
                                                    // because otherwise there is no guarantee the results actually contain any records from neighborhood proximity servers.
 
   // Search results.
-  repeated ActivityNetworkInformation activities = 4;     // List of results that contains no more than 'maxResponseRecordCount' items.
+  repeated ActivityQueryInformation activities = 4; // List of results that contains no more than 'maxResponseRecordCount' items.
 }
 
 
@@ -564,11 +601,11 @@ message ActivitySearchResponse {
 //
 // Information about a single activity record from an activity search query.
 //
-message ActivityNetworkInformation {
+message ActivityQueryInformation {
   bool isPrimary = 1;                              // True if the activity's primary proximity server is the server being queried.
   ServerContactInfo primaryServer = 2;             // If 'isPrimary' is false, this contains the contact information to the primary proximity server of the activity.
 
-  ActivityInformation activity = 3;                // Description of the activity.
+  SignedActivityInformation activity = 3;          // Signed description of the activity.
 }
 
 
@@ -606,7 +643,7 @@ message ActivitySearchPartResponse {
   uint32 recordCount = 2;                           // Number of results. Copy of 'ActivitySearchPartRequest.recordCount' value.
 
   // Search results.
-  repeated ActivityNetworkInformation activities = 3;  // List of results that contains 'ActivitySearchPartRequest.recordCount' items.
+  repeated ActivityQueryInformation activities = 3;  // List of results that contains 'ActivitySearchPartRequest.recordCount' items.
 }
 
 
@@ -754,34 +791,36 @@ message NeighborhoodSharedActivityUpdateRequest {
 //                                             index $index. Items with index greater then $index were not processed. The $field specifies which field 
 //                                             was invalid as follows:
 //       * $field == "add" - Number of shared activities from the requesting proximity server exceeds the limit.
-//       * $field == "add.version" - `items[$index].add.version` is not a valid activity version.
-//       * $field == "add.id" - `items[$index].add.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
-//                               request referred to this activity.
-//       * $field == "add.ownerPublicKey" - `items[$index].add.ownerPublicKey` is not a valid public key value.
-//       * $field == "add.profileServerContact.networkId" - `items[$index].add.profileServerContact.networkId` is not a valid network identifier.
-//       * $field == "add.profileServerContact.ipAddress" - `items[$index].add.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
-//       * $field == "add.profileServerContact.primaryPort" - `items[$index].add.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
-//       * $field == "add.type" - `items[$index].add.type` is not a valid activity type.
-//       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
-//       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
-//       * $field == "add.precision" - `items[$index].add.precision` must be an integer between 0 and 1,000.
-//       * $field == "add.startTime" - `items[$index].add.startTime` does not contain a valid start time information.
-//       * $field == "add.expirationTime" - `items[$index].add.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].add.startTime'.
-//       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extra data value.
-//       * $field == "change.version" - `items[$index].change.version` is not a valid activity version.
-//       * $field == "change.id" - `items[$index].change.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
-//                                 request referred to this activity.
-//       * $field == "change.ownerPublicKey" - `items[$index].change.ownerPublicKey` is not a valid public key value.
-//       * $field == "change.profileServerContact.networkId" - `items[$index].change.profileServerContact.networkId` is not a valid network identifier.
-//       * $field == "change.profileServerContact.ipAddress" - `items[$index].change.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
-//       * $field == "change.profileServerContact.primaryPort" - `items[$index].change.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
-//       * $field == "change.type" - `items[$index].change.type` is not a valid activity type.
-//       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
-//       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
-//       * $field == "change.precision" - `items[$index].change.precision` must be an integer between 0 and 1,000.
-//       * $field == "change.startTime" - `items[$index].change.startTime` does not contain a valid start time information.
-//       * $field == "change.expirationTime" - `items[$index].change.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].change.startTime'.
-//       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extra data value.
+//       * $field == "add.signedActivity.activity.version" - `items[$index].add.signedActivity.activity.version` is not a valid activity version.
+//       * $field == "add.signedActivity.activity.id" - `items[$index].add.signedActivity.activity.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
+//                                                      request referred to this activity.
+//       * $field == "add.signedActivity.activity.ownerPublicKey" - `items[$index].add.signedActivity.activity.ownerPublicKey` is not a valid public key value.
+//       * $field == "add.signedActivity.activity.profileServerContact.networkId" - `items[$index].add.signedActivity.activity.profileServerContact.networkId` is not a valid network identifier.
+//       * $field == "add.signedActivity.activity.profileServerContact.ipAddress" - `items[$index].add.signedActivity.activity.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
+//       * $field == "add.signedActivity.activity.profileServerContact.primaryPort" - `items[$index].add.signedActivity.activity.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
+//       * $field == "add.signedActivity.activity.type" - `items[$index].add.signedActivity.activity.type` is not a valid activity type.
+//       * $field == "add.signedActivity.activity.latitude" - `items[$index].add.signedActivity.activity.latitude` is not a valid latitude value.
+//       * $field == "add.signedActivity.activity.longitude" - `items[$index].add.signedActivity.activity.longitude` is not a valid longitude value.
+//       * $field == "add.signedActivity.activity.precision" - `items[$index].add.signedActivity.activity.precision` must be an integer between 0 and 1,000.
+//       * $field == "add.signedActivity.activity.startTime" - `items[$index].add.signedActivity.activity.startTime` does not contain a valid start time information.
+//       * $field == "add.signedActivity.activity.expirationTime" - `items[$index].add.signedActivity.activity.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].add.signedActivity.activity.startTime'.
+//       * $field == "add.signedActivity.activity.extraData" - `items[$index].add.signedActivity.activity.extraData` is not a valid extra data value.
+//       * $field == "add.signedActivity.signature" - `items[$index].add.signedActivity.signature` is not a valid signature or 'items[$index].add.signedActivity.activity'.
+//       * $field == "change.signedActivity.activity.version" - `items[$index].change.signedActivity.activity.version` is not a valid activity version.
+//       * $field == "change.signedActivity.activity.id" - `items[$index].change.signedActivity.activity.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
+//                                                         request referred to this activity.
+//       * $field == "change.signedActivity.activity.ownerPublicKey" - `items[$index].change.signedActivity.activity.ownerPublicKey` is not a valid public key value.
+//       * $field == "change.signedActivity.activity.profileServerContact.networkId" - `items[$index].change.signedActivity.activity.profileServerContact.networkId` is not a valid network identifier.
+//       * $field == "change.signedActivity.activity.profileServerContact.ipAddress" - `items[$index].change.signedActivity.activity.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
+//       * $field == "change.signedActivity.activity.profileServerContact.primaryPort" - `items[$index].change.signedActivity.activity.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
+//       * $field == "change.signedActivity.activity.type" - `items[$index].change.signedActivity.activity.type` is not a valid activity type.
+//       * $field == "change.signedActivity.activity.latitude" - `items[$index].change.signedActivity.activity.latitude` is not a valid latitude value.
+//       * $field == "change.signedActivity.activity.longitude" - `items[$index].change.signedActivity.activity.longitude` is not a valid longitude value.
+//       * $field == "change.signedActivity.activity.precision" - `items[$index].change.signedActivity.activity.precision` must be an integer between 0 and 1,000.
+//       * $field == "change.signedActivity.activity.startTime" - `items[$index].change.signedActivity.activity.startTime` does not contain a valid start time information.
+//       * $field == "change.signedActivity.activity.expirationTime" - `items[$index].change.signedActivity.activity.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].change.signedActivity.activity.startTime'.
+//       * $field == "change.signedActivity.activity.extraData" - `items[$index].change.signedActivity.activity.extraData` is not a valid extra data value.
+//       * $field == "change.signedActivity.signature" - `items[$index].change.signedActivity.signature` is not a valid signature or 'items[$index].change.signedActivity.activity'.
 //       * $field == "delete.id" - `items[$index].delete.id` does not represent an existing activity, or another update item in the same request referred to this activity.
 //       * $field == "delete.ownerNetworkId" - `items[$index].delete.identityNetworkId` is not a valid network identifier.
 //       * $field == "actionType" - During the neighborhood initialization process, only `add` is a valid update message type.
@@ -795,22 +834,44 @@ message NeighborhoodSharedActivityUpdateResponse {
 //
 message SharedActivityUpdateItem {
   oneof ActionType {                               // Update operation can be:
-    ActivityInformation add = 1;                   //  * adding a new activity to the database,
-    ActivityInformation change = 2;                //  * changing an existing activity,
-    ActivityFullId delete = 3;                     //  * deleting an existing activity.
+    SharedActivityAddItem add = 1;                   //  * adding a new activity to the database,
+    SharedActivityChangeItem change = 2;                //  * changing an existing activity,
+    SharedActivityDeleteItem delete = 3;                     //  * deleting an existing activity.
   }
 }
 
 
 
 //
-// Full identifier of the activity.
+// Information about newly created activity that is to be shared with a neighbor.
 //
-message ActivityFullId {
+message SharedActivityAddItem {
+  SignedActivityInformation signedActivity = 1;    // Signed description of an activity.
+}
+
+
+//
+// Information about change of an existing activity that is to be shared with a neighbor.
+//
+message SharedActivityChangeItem {
+  SignedActivityInformation signedActivity = 1;    // Signed description of an activity.
+}
+
+
+//
+// Information about the removal of an existing activity that is to be shared with a neighbor.
+//
+message SharedActivityDeleteItem {
   uint32 id = 1;                                   // Unique identifier of the activity among all activities of the same owner.
   bytes ownerNetworkId = 2;                        // Network identifier of the identity that created the activity. 
 }
 
+
+//
+// Request to refresh all existing profiles of the requesting server on the target server.
+//
+message SharedProfileRefreshAllItem {
+}
 
 
 
