@@ -1,0 +1,45 @@
+//
+// Protocol definitions required to work with IoP Content Address Network.
+//
+
+syntax = "proto3";
+
+
+package iop.can;
+
+//
+// IPNS record as defined in https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/pb/namesys.proto
+//
+message CanIpnsEntry {
+  // Type of validity value.
+  enum ValidityType {
+    EOL = 0;                                       // Validity value is specifies a time until which the IPNS record is valid.
+  }
+
+  bytes value = 1;                                 // IPFS path string converted to byte array. The path string has to be "/ipfs/$objectHashEncoded",
+                                                   // where $objectHashEncoded is base58 encoded hash of the CAN object that the client received as `CanStoreDataResponse.hash`.
+                                                   // The base58 encoding must be used without the multibase prefix - for example "/ipfs/QmaRvpLT4RgBDVY6cQKwqQGQNtbM31KSqh8TxvQgFoEUus".
+  bytes signature = 2;                             // Signature of the IPNS record by its owner's private key.
+                                                   // See https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/publisher.go.
+
+  ValidityType validityType = 3;                   // Type of meaning of 'validity' field.
+  bytes validity = 4;                              // RFC3339 UTF-8 string converted to byte array.
+
+  uint64 sequence = 5;                             // Record sequence number that has to be increased on updates.
+
+  uint64 ttl = 6;                                  // Time to live of the IPNS record in cache in nanoseconds.
+}
+
+
+//
+// Representation of a cryptographic key in CAN API.
+//
+message CanCryptoKey {
+  // Type of the key algorithm. 
+  enum KeyType {
+    RSA = 0;
+    Ed25519 = 1;
+  }
+  KeyType type = 1;                                // Type of the key.
+  bytes data = 2;                                  // Key binary data.
+}

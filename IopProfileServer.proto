@@ -144,35 +144,8 @@ syntax = "proto3";
 
 package iop.profileserver;
 
-// Return codes to requests that inform requestor about whether the operation completed successfully or which error occurred.
-enum Status {
-  // General codes that can be returned to any message.
-  STATUS_OK = 0;                                   // The operation completed successfully.
-
-  ERROR_PROTOCOL_VIOLATION = 1;                    // The incoming request does not follow the protocol.
-  ERROR_UNSUPPORTED = 2;                           // The peer does not support the request. This is returned when a peer sends a message with an unsupported protocol version.
-  ERROR_BANNED = 3;                                // The peer will not process the request bacause the requestor is on the blacklist. Information about the blacklist entry expiration is provided in 'Response.timestamp'.
-  ERROR_BUSY = 4;                                  // The peer will not process the request because it is too busy. The requestor can try later.
-
-  ERROR_UNAUTHORIZED = 5;                          // Within conversation, some server roles require authorization of the peer before certain requests are allowed.
-                                                   // For example, the clCustomer role requires clients to authorize themselves before certain requests can be sent.
-                                                   // This means that such requests require authorization and this error code is returned if a peer sends a request without prior authorization.
-
-  ERROR_BAD_ROLE = 6;                              // If a request is sent to a port that does not handle the specific role, this error is returned.
-  ERROR_BAD_CONVERSATION_STATUS = 7;               // The conversation status is different from what the message requires.
-  ERROR_INTERNAL = 8;                              // Internal error occurred while processing the message.
-
-
-  // Return codes specific to a request.
-  ERROR_QUOTA_EXCEEDED = 51;                       // The peer reached or exceeded prescribed limits.
-  ERROR_INVALID_SIGNATURE = 52;                    // The signature provided be the peer does not correspond to the peer's key or the message being signed.
-  ERROR_NOT_FOUND = 53;                            // A referenced object was not found.
-  ERROR_INVALID_VALUE = 54;                        // One of the values provided is invalid.
-  ERROR_ALREADY_EXISTS = 55;                       // An object with the same identifier already exists.
-  ERROR_NOT_AVAILABLE = 56;                        // A request object is not available.
-  ERROR_REJECTED = 57;                             // A third party rejected the requested action.
-  ERROR_UNINITIALIZED = 58;                        // The requested object can not be obtained, queried or used as it is not initialized.
-}
+import "IopShared.proto";
+import "IopCan.proto";
 
 
 // This is complete message as it goes over the wire. It includes the 32-bit header with message length.
@@ -220,7 +193,7 @@ message Request {
 
 // To every request there is a response.
 message Response {
-  Status status = 1;                               // Return code.
+  iop.shared.Status status = 1;                    // Return code.
   sint64 timestamp = 2;                            // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
   string details = 3;                              // In case of an error, this field may contain additional details.
 
@@ -351,7 +324,7 @@ message PingRequest {
 // A response to PingRequest to reassure the connection works fine.
 message PingResponse {
   bytes payload = 1;                               // See 'PingRequest.payload'.
-  sint64 clock = 2;                                // 64-bit signed Unix UTC time on the requestee's machine.
+  sint64 clock = 2;                                // TimestampType. Clock on the requestee's machine.
 }
 
 
@@ -592,7 +565,7 @@ message ListHostingPlansResponse {
 
 // Description of a hosting plan.
 message HostingPlan {
-  bytes planId = 1;                                // Identifier of the plan is an SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
+  bytes planId = 1;                                // Identifier of the plan is a SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
                                                    // with planId initialized to a byte array of 32 zero bytes.
   bytes serverNetworkId = 2;                       // Identifier of the profile server that offers the plan.
   string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
@@ -1274,7 +1247,7 @@ message ProfileStatsItem {
 //
 // The profile server will not save more than 'maxTotalRecordCount' search requests. 
 // The profile server has to allow the client to get additional results at least 1 minute from receiving 
-// ProfileSearchRequest, but it can maintain the result cache for longer than that.
+// ProfileSearchRequest, but it can maintain the results cache for longer than that.
 //
 // Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
 //
@@ -1288,7 +1261,7 @@ message ProfileSearchRequest {
   bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
   uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
-                                                   // this has to be an integer between 1 and 1000. The value must not be greater than 'maxTotalRecordCount'.
+                                                   // this has to be an integer between 1 and 1,000. The value must not be greater than 'maxTotalRecordCount'.
   uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the profile server will look for and save. If 'includeThumbnailImages'
                                                    // is true, this has to be an integer between 1 and 1,000. If 'includeThumbnailImages' is false,
                                                    // this has to be an integer between 1 and 10,000.
@@ -1300,14 +1273,14 @@ message ProfileSearchRequest {
   string name = 6;                                 // WildcardType or empty string. If not empty, the profile server  will only return profiles 
                                                    // with names that match the wildcard string. If empty, all profile names are allowed.
                                                    // Max 64 bytes long.
-  sfixed32 latitude = 7;                           // LocationType. Encoded target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
-                                                   // it is, in combination with 'longitude' and 'radius' a specification of target area, 
+  sfixed32 latitude = 7;                           // LocationType. Target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
+                                                   // it is, in combination with 'longitude' and 'radius', a specification of target area, 
                                                    // where the identity has to be located (according to its profile information) in order to be 
                                                    // included in the search results. If NO_LOCATION, 'longitude' and 'radius' are ignored 
                                                    // and all locations are allowed.
-  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is encoded target GPS location longitude.
+  sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is target GPS location longitude.
   uint32 radius = 9;                               // If 'latitude' is not NO_LOCATION, this is target location radius in metres.
-  string extraData = 10;                           // RegexType or empty string. If not empty, specifies the regular expression that identity
+  string extraData = 10;                           // RegexType or empty string. If not empty, it specifies the regular expression that identity
                                                    // profile's extra data information must match in order to be included in the results. 
                                                    // If empty, no filtering based on extra data information is made.
                                                    // Max 256 bytes long.
@@ -1325,9 +1298,10 @@ message ProfileSearchRequest {
 // 'coveredServers' contains a list of profile servers forming the neighborhood of the profile server 
 // being queried. Neighborhood servers share their profile databases and a query to one server will 
 // thus cover profile servers in its neighborhood. Note that this information is not much relevant 
-// in case the number of result is large and is limited by the protocol. In this case, it is possible 
-// that the profile server returns results from profile databases only from a small subset of its 
-// neighborhood provided in the 'coveredServers' value, or even only from its own database.
+// in case the number of result is large and the number of results is limited by the protocol. 
+// In this case, it is possible that the profile server returns results from profile databases only 
+// from a small subset of its neighborhood provided in the 'coveredServers' value, or even only from 
+// its own database.
 //
 //
 // Specific Error Responses:
@@ -1345,7 +1319,7 @@ message ProfileSearchResponse {
   uint32 totalRecordCount = 1;                     // Total number of profiles that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'profiles' list.
   uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxResponseRecordCount'.
 
-  repeated bytes coveredServers = 3;               // List of network identifiers of profile servers whose profile databases were be used to produce the results, 
+  repeated bytes coveredServers = 3;               // List of network identifiers of profile servers whose profile databases were used to produce the results, 
                                                    // whether or not any of their hosted profiles actually appear in the results.
                                                    // This information is relevant if 'totalRecordCount' is lower than 'ProfileSearchRequest.maxTotalRecordCount',
                                                    // because otherwise there is no guarantee the results actually contain any records from neighborhood profile servers.
@@ -1406,8 +1380,8 @@ message ProfileSearchPartRequest {
 //   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
 //                           in this session, or its results have expired already.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "recordIndex" - 'ProfileSearchRequest.recordIndex' is not a valid index of the result.
-//     * Response.details == "recordCount" - 'ProfileSearchRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchRequest.recordIndex'.
+//     * Response.details == "recordIndex" - 'ProfileSearchPartRequest.recordIndex' is not a valid index of the result.
+//     * Response.details == "recordCount" - 'ProfileSearchPartRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchPartRequest.recordIndex'.
 //
 message ProfileSearchPartResponse {
   uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.recordIndex' value.
@@ -1464,7 +1438,8 @@ message AddRelatedIdentityRequest {
 //     * Response.details == "signedCard.card.type" - 'AddRelatedIdentityRequest.signedCard.card.type' is not a valid card type.
 //     * Response.details == "signedCard.card.issuerPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey' is not a valid public key.
 //     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.recipientPublicKey' is not the public key of the caller.
-//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo'.
+//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo' or it does not represent a valid timestamp value.
+//     * Response.details == "signedCard.card.validTo" - 'AddRelatedIdentityRequest.signedCard.card.validTo' does not represent a valid timestamp value.
 //
 message AddRelatedIdentityResponse {
 }
@@ -1527,7 +1502,7 @@ message SignedRelationshipCard {
 // Description of a relationship card.
 //
 message RelationshipCard {
-  bytes cardId = 1;                                 // Identifier of a relationship card is an SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
+  bytes cardId = 1;                                 // Identifier of a relationship card is a SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
                                                     // with cardId initialized to a byte array of 32 zero bytes.
   bytes version = 2;                                // VersionType. Version of the relationship card structure.
   string type = 3;                                  // Type of the relationship card. This is an application defined value. Max 64 bytes long.
@@ -1637,6 +1612,7 @@ message IdentityRelationship {
 message StartNeighborhoodInitializationRequest {
   uint32 primaryPort = 1;                          // Port of the profile server's Primary Interface.
   uint32 srNeighborPort = 2;                       // Port of the profile server's Neighbors Interface.
+  bytes ipAddress = 3;                             // IPv4 or IPv6 public address of the network interface on which profile server operates.
 }
 
 
@@ -1645,13 +1621,14 @@ message StartNeighborhoodInitializationRequest {
 //
 //
 // General Error Responses:
-//   * ERROR_REJECTED - Profile server already has reached its limit of a number of servers that it shares its profile database with and is not willing to have more.
+//   * ERROR_REJECTED - Profile server has already reached its limit of a number of servers that it shares its profile database with and is not willing to have more.
 //   * ERROR_ALREADY_EXISTS - Neighborhood initialization process has already been done, or the initialization process with the peer is currently in the progress.
 //   * ERROR_BUSY - Profile server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other profile servers.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65535.
-//     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.srNeighborPort' must be an integer between 1 and 65535.
+//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.srNeighborPort' must be an integer between 1 and 65,535.
+//     * Response.details == "ipAddress" - 'StartNeighborhoodInitializationRequest.ipAddress' is not a valid IPv4 or IPv6 address or it is a local network IP address.
 //
 message StartNeighborhoodInitializationResponse {
 }
@@ -1957,7 +1934,7 @@ message CanStoreDataResponse {
 // Conversation status: Authenticated
 //
 message CanPublishIpnsRecordRequest {
-  CanIpnsEntry record = 1;                         // Signed IPNS record. Its expiration date must not exceed the expiration date 
+  iop.can.CanIpnsEntry record = 1;                 // Signed IPNS record. Its expiration date must not exceed the expiration date 
                                                    // of the hosting contract the client has with the profile server.
 }
 
@@ -1976,39 +1953,3 @@ message CanPublishIpnsRecordResponse {
 }
 
 
-//
-// IPNS record as defined in https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/pb/namesys.proto
-//
-message CanIpnsEntry {
-  // Type of validity value.
-  enum ValidityType {
-    EOL = 0;                                       // Validity value is specifies a time until which the IPNS record is valid.
-  }
-
-  bytes value = 1;                                 // IPFS path string converted to byte array. The path string has to be "/ipfs/$objectHashEncoded",
-                                                   // where $objectHashEncoded is base58 encoded hash of the CAN object that the client received as `CanStoreDataResponse.hash`.
-                                                   // The base58 encoding must be used without the multibase prefix - for example "/ipfs/QmaRvpLT4RgBDVY6cQKwqQGQNtbM31KSqh8TxvQgFoEUus".
-  bytes signature = 2;                             // Signature of the IPNS record by its owner's private key.
-                                                   // See https://github.com/DeCentral-Budapest/go-ipfs/blob/master/namesys/publisher.go.
-
-  ValidityType validityType = 3;                   // Type of meaning of 'validity' field.
-  bytes validity = 4;                              // RFC3339 UTF-8 string converted to byte array.
-
-  uint64 sequence = 5;                             // Record sequence number that has to be increased on updates.
-
-  uint64 ttl = 6;                                  // Time to live of the IPNS record in cache in nanoseconds.
-}
-
-
-//
-// Representation of a cryptographic key in CAN API.
-//
-message CanCryptoKey {
-  // Type of the key algorithm. 
-  enum KeyType {
-    RSA = 0;
-    Ed25519 = 1;
-  }
-  KeyType type = 1;                                // Type of the key.
-  bytes data = 2;                                  // Key binary data.
-}

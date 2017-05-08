@@ -1,0 +1,874 @@
+//
+// Definition of IoP Proximity Server network protocol.
+// We strictly use only features that are binary compatible in ProtoBuf v2 and v3.
+// We use no v2 or v3 specific features.
+//
+// An integral part of the protocol are the protocol tests:
+// https://github.com/Internet-of-People/message-protocol/blob/master/TESTS.md
+// The tests must comply with this protocol file, but may add some additional requirements
+// or constraints on the behavior of a compatible software.
+//
+//
+//
+// * Profile Server Network Protocol Inheritance *
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Proximity Server network protocol is created using the same basic principles as Profile Server network protocol.
+// Please see the Roles, Reused Types and Conversations sections of Profile Server network protocol protofile 
+// (https://github.com/Internet-of-People/message-protocol/blob/master/IopProfileServer.proto) for more information 
+// about these common concepts. Also see there descriptions of using ListRolesRequest, StartConversationRequest 
+// and VerifyIdentityRequest requests as these are replicated in the Proximity Server network protocol as well.
+//
+// Proximity Server implements the following server roles:
+//
+//   * Primary Interface = "primary"
+//   * Neighbors Interface = "neighbor"
+//   * Clients Interface = "client"
+//
+
+
+syntax = "proto3";
+
+
+package iop.proximityserver;
+
+import "IopShared.proto";
+
+
+
+// This is complete message as it goes over the wire. It includes the 32-bit header with message length.
+//
+// There is a 1 byte prefix because of Google Protobuf protocol, so the actual binary data for a message
+// with body size 4660 bytes would be:
+//
+//
+//   0D 34 12 00 00
+//
+// where 0x0D means type 'fixed32' (which value is 5) + index of 'header', which is 1 << 3,
+// this is followed be the 4 byte sequence 34 12 00 00, which is little endian of 0x00001234, which is 4,660 decimal.
+// Thus the total number of bytes sent over the wire for this message would be 4,665 bytes.
+//
+message MessageWithHeader {
+  fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
+  Message body = 2;                                // Message itself.
+}
+
+
+
+// Format of a single message.
+message Message {
+  uint32 id = 1;                                   // Requestor defined message ID that the requestee has to return in the response. 
+                                                   // Requestor is responsible for using different ID for every unprocessed message.
+                                                   // If at any point there exist two open requests (i.e. without a response) with the same ID, it is a violation of the protocol and the behavior is undefined.
+
+  oneof MessageType {                              // Message can be either:
+    Request request = 2;                           //  * a new request,
+    Response response = 3;                         //  * or response to a previous request.
+  }
+}
+
+
+// Every conversation starts with a request of a requestor.
+// This can be either a single request, for which it is expected to receive a single response,
+// or this can be part of a longer conversation between the peers.
+message Request {
+  oneof ConversationType {                         // Either a request lives on its own without any session or context, or it is a part of a conversation.
+    SingleRequest singleRequest = 1;               // Single requests are requests that are supposed to be sent without further context.
+    ConversationRequest conversationRequest = 2;   // Conversation requests form a session with a context that has to be maintained by peers in order to correctly interpret the messages.
+  }  
+}
+
+
+// To every request there is a response.
+message Response {
+  iop.shared.Status status = 1;                    // Return code.
+  sint64 timestamp = 2;                            // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
+  string details = 3;                              // In case of an error, this field may contain additional details.
+
+  oneof ConversationType {                         // See 'Request.ConversationType'.
+    SingleResponse singleResponse = 8;             // Responses to single requests are sent as single responses,
+    ConversationResponse conversationResponse = 9; // responses to conversation requests are sent as conversation responses.
+  }
+}
+
+
+// Single requests live on their own without any session or context. 
+// It is always possible to process a single request without any additional informaiton.
+message SingleRequest {
+  bytes version = 1;                               // VersionType. Protocol version specification.
+  oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
+    PingRequest ping = 2;
+    ListRolesRequest listRoles = 3;
+  }
+}
+
+
+
+// Single response is a reaction to single request. 
+message SingleResponse {
+  bytes version = 1;                               // VersionType. See 'SingleRequest.version'. The version of response can be different than the version in request, 
+                                                   // if the requestee does not support the version by the requestor.
+                                                   // If the requestor is able to process the message using the version of protocol, the version value is the same as in the request.
+
+  oneof ResponseType {                             // See 'SingleRequest.RequestType'. Each request has its corresponding response.
+    PingResponse ping = 2;
+    ListRolesResponse listRoles = 3;
+  }
+}
+
+
+
+// Conversation requests live in a session with a context that is important for the interpretation of the requests.
+// Unlike single requests, the order of messages is very important as each message may change the session context.
+message ConversationRequest {
+  bytes signature = 1;                             // Optional (request specific) signature that signs the Protobuf binary form of the included request body or its part.
+
+  oneof RequestType {                              // There are many different requests that can be sent in the conversation.
+    // Request body.
+    StartConversationRequest start = 2;
+    VerifyIdentityRequest verifyIdentity = 3;
+    CreateActivityRequest createActivity = 4;
+    UpdateActivityRequest updateActivity = 5;
+    DeleteActivityRequest deleteActivity = 6;
+    ActivitySearchRequest activitySearch = 7;
+    ActivitySearchPartRequest activitySearchPart = 8;
+    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 9;
+    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 10;
+    NeighborhoodSharedActivityUpdateRequest neighborhoodSharedActivityUpdate = 11;
+    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 12;
+  }
+}
+
+
+// Conversation response is a reaction to a conversation request.
+message ConversationResponse {
+  bytes signature = 1;                             // Optional (response specific) signature that signs the Protobuf binary form of the included response body or its part.
+
+  oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
+    // Response body.
+    StartConversationResponse start = 2;
+    VerifyIdentityResponse verifyIdentity = 3;
+    CreateActivityResponse createActivity = 4;
+    UpdateActivityResponse updateActivity = 5;
+    DeleteActivityResponse deleteActivity = 6;
+    ActivitySearchResponse activitySearch = 7;
+    ActivitySearchPartResponse activitySearchPart = 8;
+    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 9;
+    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 10;
+    NeighborhoodSharedActivityUpdateResponse neighborhoodSharedActivityUpdate = 11;
+    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 12;
+  }
+}
+
+
+
+
+
+//
+// An administrative message to test whether the peer is there and responds to requests.
+//
+// Each identity client is required to send a message not more than 60 seconds after the connection 
+// was established, or after the last message has been send over the connection. For server clients,
+// this limit is 300 seconds. Clients should use PingRequest if they have nothing else to send
+// and want to keep the connection open.
+//
+//
+// Roles: any
+//
+message PingRequest {
+  bytes payload = 1;                               // At most 64 bytes of arbitrary data that will be sent back by the peer.
+}
+
+// A response to PingRequest to reassure the connection works fine.
+message PingResponse {
+  bytes payload = 1;                               // See 'PingRequest.payload'.
+  sint64 clock = 2;                                // TimestampType. Clock on the requestee's machine.
+}
+
+
+
+//
+// Request server to provide a mapping between ports and roles.
+//
+// Roles: primary
+//
+message ListRolesRequest {
+}
+
+// A response to ListRolesRequest with a list of all open ports and associated roles.
+message ListRolesResponse {
+  repeated ServerRole roles = 1;                   // List of server roles.
+}
+
+
+// Known server roles.
+enum ServerRoleType {
+  PRIMARY = 0;                                     // Primary Interface server role.
+  NEIGHBOR = 1;                                    // Neighbors Interface server role.
+  CLIENT = 2;                                      // Clients Interface server role.
+}
+
+
+// Description of a single server role.
+message ServerRole {
+  ServerRoleType role = 1;                         // Server role type.
+  uint32 port = 2;                                 // On which port is this server role provided.
+  bool isTcp = 3;                                  // true if the port is TCP port, false means UDP.
+  bool isTls = 4;                                  // true if the port is TLS encrypted, false otherwise.
+}
+
+
+
+
+
+//
+// Every conversation starts with this request, in which the requestor sends a list of protocol versions 
+// it supports and its public key that identifies it.
+//
+// Roles: any
+//
+// Conversation status: NoConversation
+//
+message StartConversationRequest {
+  repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
+  bytes publicKey = 2;                             // Public key of the requestor. Max 128 bytes.
+
+  bytes clientChallenge = 3;                       // 32 byte challenge data (random bytes generated by the requestor) that is used for authentication purposes.
+}
+
+
+//
+// A response to StartConversationRequest in case the requestee found at least one protocol version that 
+// both peers are willing to use. 
+// 
+// The 'clientChallenge' field value in raw format is signed with a signature in 'ConversationResponse.signature'.
+// 
+//
+// After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "publicKey" - 'StartConversationRequest.publicKey' is not a valid public key value. 
+//     * Response.details == "clientChallenge" - 'StartConversationRequest.clientChallenge' is not 32 byte long. 
+//
+message StartConversationResponse {
+  bytes version = 1;                               // VersionType. The version that the requestee selected from the offered set.
+  bytes publicKey = 2;                             // Public key of the requestee.
+
+  bytes challenge = 3;                             // 32 byte challenge data (random bytes generated by the requestee) that is used for later authentication purposes.
+  bytes clientChallenge = 4;                       // Copy of 'StartConversationRequest.clientChallenge' that is signed by the requestee. 
+                                                   // The requestor can then verify the signature in order to check the requestee's claimed identity.
+}
+
+
+
+// 
+// A client verifies its public key by signing the challenge. The client has to provide a signature in 'ConversationRequest.signature'.
+//
+// Roles: neighbor, client
+//
+// Conversation status: ConversationStarted
+//
+message VerifyIdentityRequest {
+  bytes challenge = 1;                             // The exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
+}
+
+//
+// A response to VerifyIdentityRequest. If no error occurs, the conversation status is upgraded to Verified.
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the challenge is not valid.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "challenge" - 'VerifyIdentityRequest.challenge' is not the exact copy of 'StartConversationResponse.challenge' from the start of the conversation.
+//
+message VerifyIdentityResponse {
+}
+
+
+
+//
+// A client creates a new activity with the target proximity server as the primary proximity 
+// server of the activity. The server checks whether it really is the closest proximity server 
+// for the new activity’s location and if so, it becomes the activity’s primary proximity server. 
+// The server propagates the activity to its neighbors.
+//
+// The proximity server will not refuse the update if it is not the closest proximity server to 
+// the activity’s location but at the same time all closer servers are on the list of proximity 
+// servers to ignore.
+//
+// Roles: client
+//
+// Conversation status: Verified
+//
+message CreateActivityRequest {
+  ActivityInformation activity = 1;                // Description of the activity.
+  repeated bytes ignoreServerIds = 2;              // List of network identifiers of proximity servers to ignore. The list can be empty.
+}
+
+
+
+//
+// Decription of an activity.
+//
+message ActivityInformation {
+  bytes version = 1;                               // VersionType. Version of the activity structure.
+  uint32 id = 2;                                   // Unique identifier of the client’s activity. The globally unique identification of an activity 
+                                                   // is this activity ID combined with the user’s network identifier. It is client’s responsibility 
+                                                   // not to present two activities with the same activity ID to the proximity network.
+                                                   // 0 is not a valid activity identifier.
+  bytes ownerPublicKey = 3;                        // Public key of the identity that created the activity. Max 128 bytes long.
+  ServerContactInfo profileServerContact = 4;      // Contact information to the owner's profile server.
+  string type = 5;                                 // Type of activity in human readable form, non-empty string, max 64 bytes long.
+
+  sfixed32 latitude = 6;                           // LocationType. GPS location latitude information. Together with 'longitude' and 'precision' this provides information 
+                                                   // the activity location. On non-primary proximity servers, this is not the latest reported location of the activity, 
+                                                   // but rather the last known location to the server being queried, which will often be the original location of the activity.
+                                                   // On primary proximity servers, the location information is current.
+  sfixed32 longitude = 7;                          // LocationType. GPS location longitude information.
+  uint32 precision = 8;                            // Precision information in metres is an integer between 0 and 1,000.
+ 
+  sint64 startTime = 9;                            // TimestampType. Time when the activity starts. This can be in the past for already running 
+                                                   // or past activities as well as in the future for future activities.
+  sint64 expirationTime = 10;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours 
+                                                   // from the moment the request was sent. It has to be greater than or equal to 'startTime'.
+                                                   // On non-primary proximity servers, this may not be the accurate expiration time of the activity, 
+                                                   // but rather the last known expiration time, which will often be the expiration time, with which was 
+                                                   // the activity originally created.
+
+  string extraData = 11;                           // Semicolon separated 'key=value' list or empty string, max 2048 bytes long.
+}
+
+
+//
+// Network server contact information.
+//
+message ServerContactInfo {
+  bytes networkId = 1;                             // Network identifier is a SHA256 hash of the server's public key.
+  bytes ipAddress = 2;                             // IPv4 or IPv6 public address of the network interface on which the server operates.
+  uint32 primaryPort = 3;                          // Server's primary port.
+}
+
+
+//
+// A response to CreateActivityRequest.
+//
+// Specific Error Responses:
+//   * ERROR_ALREADY_EXISTS - The server already has an activity from the client with 'CreateActivityRequest.id' as its identifier.
+//   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
+//     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "activity.version" - 'CreateActivityRequest.activity.version' does not contain a valid version information.
+//     * Response.details == "activity.id" - 'CreateActivityRequest.activity.id' is not a valid activity identifier.
+//     * Response.details == "activity.ownerPublicKey" - 'CreateActivityRequest.ownerPublicKey.id' is not the public key of the client who sent the request.
+//     * Response.details == "activity.profileServerContact.networkId" - 'CreateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
+//     * Response.details == "activity.profileServerContact.ipAddress" - 'CreateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
+//     * Response.details == "activity.profileServerContact.primaryPort" - 'CreateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "activity.type" - 'CreateActivityRequest.activity.type' is not a valid activity type.
+//     * Response.details == "activity.latitude" - 'CreateActivityRequest.activity.latitude' is not a valid latitude information.
+//     * Response.details == "activity.longitude" - 'CreateActivityRequest.activity.longitude' is not a valid longitude information.
+//     * Response.details == "activity.precision" - 'CreateActivityRequest.activity.precision' must be an integer between 0 and 1,000.
+//     * Response.details == "activity.startTime" - 'CreateActivityRequest.activity.startTime' does not contain a valid start time information.
+//     * Response.details == "activity.expirationTime" - 'CreateActivityRequest.activity.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
+//     * Response.details == "activity.extraData" - 'CreateActivityRequest.activity.extraData' does not contain a valid extra data information.
+//     * Response.details == "ignoreServerIds" - 'CreateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
+//
+message CreateActivityResponse {
+}
+
+
+
+//
+// A client updates information about existing activity on its primary proximity server. Based on which 
+// parts of the activity are modified and client signalling, the server may or may not propagate the changes 
+// to its neighbors.
+//
+// The proximity server may refuse the update if the new location of the activity suggests that it should 
+// be submitted to a new primary proximity server. In such a case, the server provides the contact information 
+// of the other proximity server (that is closer to the new activity location) and removes the activity from 
+// its database and propagates this information to its neighborhood. The proximity server will not refuse 
+// the update if the suggested new primary proximity server is on the list of proximity servers to ignore.
+//
+// Roles: client
+//
+// Conversation status: Verified
+//
+message UpdateActivityRequest {
+  ActivityInformation activity = 1;                // Description of the activity.
+  bool noPropagation = 2;                          // If set to true, the proximity server will not propagate the update to the neighborhood.
+                                                   // This is useful for updates of parts of activity's extra data information that do not affect 
+                                                   // other clients who search for this activity.
+
+  repeated bytes ignoreServerIds = 3;              // List of network identifiers of proximity servers to ignore. The list can be empty.
+}
+
+
+
+
+//
+// A response to UpdateActivityRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - Activity of the given ID created by the client was not found.
+//   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
+//     * Response.details - Set to hexadecimally encoded network identifier of the proximity server that is closer to the activity location than the target server.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "activity.version" - 'UpdateActivityRequest.activity.version' does not contain a valid version information.
+//     * Response.details == "activity.id" - 'UpdateActivityRequest.activity.id' is not a valid activity identifier.
+//     * Response.details == "activity.ownerPublicKey" - 'UpdateActivityRequest.ownerPublicKey.id' is not the public key of the client who sent the request.
+//     * Response.details == "activity.profileServerContact.networkId" - 'UpdateActivityRequest.profileServerContact.networkId' is not a valid network identifier.
+//     * Response.details == "activity.profileServerContact.ipAddress" - 'UpdateActivityRequest.profileServerContact.ipAddress' is not a valid IP address or it is a local network address.
+//     * Response.details == "activity.profileServerContact.primaryPort" - 'UpdateActivityRequest.profileServerContact.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "activity.type" - 'UpdateActivityRequest.activity.type' is not a valid activity type.
+//     * Response.details == "activity.latitude" - 'UpdateActivityRequest.activity.latitude' is not a valid latitude information.
+//     * Response.details == "activity.longitude" - 'UpdateActivityRequest.activity.longitude' is not a valid longitude information.
+//     * Response.details == "activity.precision" - 'UpdateActivityRequest.activity.precision' must be an integer between 0 and 1,000.
+//     * Response.details == "activity.startTime" - 'UpdateActivityRequest.activity.startTime' does not contain a valid start time information.
+//     * Response.details == "activity.expirationTime" - 'UpdateActivityRequest.activity.expirationTime' does not contain a valid expiration time information or its value is smaller than 'CreateActivityRequest.startTime'.
+//     * Response.details == "activity.extraData" - 'UpdateActivityRequest.activity.extraData' does not contain a valid extra data information.
+//     * Response.details == "ignoreServerIds" - 'UpdateActivityRequest.ignoreServerIds' does not contain a valid list of network identifiers.
+//
+message UpdateActivityResponse {
+}
+
+
+
+
+//
+// A client deletes activity from its primary proximity server.
+//
+// Information about activity removal is propagated to the server's neighborhood.
+//
+// Roles: client
+//
+// Conversation status: Verified
+//
+message DeleteActivityRequest {
+  uint32 id = 1;                                   // Unique identifier of the client’s activity. 
+}
+
+
+//
+// A response to DeleteActivityRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - Activity of the given ID created by the client was not found.
+//
+message DeleteActivityResponse {
+}
+
+
+
+
+//
+// Asks a proximity server for a list of all activities that match the search criteria.
+//
+// Each search request only produces a limited number of results. The maximal size of the first set of results 
+// is provided by 'maxResponseRecordCount' field. The response to this message contains up to 'maxResponseRecordCount' 
+// results. If there are more results available, they are saved to the conversation context, which enables the client 
+// to obtain more results with subsequent ActivitySearchPartRequest messages.
+//
+// The proximity server will not save more than 'maxTotalRecordCount' search requests. 
+// The proximity server has to allow the client to get additional results at least 1 minute from receiving 
+// ActivitySearchRequest, but it can maintain the results cache for longer than that.
+//
+// Once the client sends another ActivitySearchRequest, or if it disconnects, the old search results are discarded.
+//
+// Roles: client
+//
+// Conversation status: ConversationStarted, Verified
+//
+message ActivitySearchRequest {
+  bool includePrimaryOnly = 1;                     // If set to true, the proximity server only returns activities for which the server is the primary proximity server.
+                                                   // If set to false, activities from the server's neighborhood can be included in the result.
+  uint32 maxResponseRecordCount = 2;               // Maximal number of results to be delivered in the response. It has to be an integer between 1 and 1,000. 
+                                                   // The value must not be greater than 'maxTotalRecordCount'.
+  uint32 maxTotalRecordCount = 3;                  // Maximal number of total results that the activity server will look for and save. It has to be an integer between 1 and 10,000.
+
+  // Search filters.
+  uint32 id = 4;                                   // Identifier of the activity if the client asks for a specific activity, or 0 if the client 
+                                                   // does not know the activity identifier. 
+                                                   // If non-zero, 'ownerNetworkId' has to contain valid network identifier of the owner.
+  bytes ownerNetworkId = 5;                        // Optionally, a network identifier of the creator of the activity. If it is set, only activities 
+                                                   // created by this identity are allowed. If not used, this should be empty byte array.
+
+  string type = 6;                                 // WildcardType or empty string. If not empty, the proximity server will only return activities
+                                                   // of activity types that match the wildcard string. If empty, all activity types are allowed.
+                                                   // Max 64 bytes long.
+  sint64 startNotAfter = 7;                        // TimestampType or 0. If non-zero, only activities with start time less than or equal to this value are allowed.
+  sint64 expirationNotBefore = 8;                  // TimestampType or 0. If non-zero, only activities with expiration time greater than or equal to this value are allowed.
+  sfixed32 latitude = 9;                           // LocationType. Target GPS location latitude or NO_LOCATION. If not NO_LOCATION, 
+                                                   // it is, in combination with 'longitude' and 'radius', a specification of target area, 
+                                                   // where the activity has to be located (according to its information) in order to be 
+                                                   // included in the search results. If NO_LOCATION, 'longitude' and 'radius' are ignored 
+                                                   // and all locations are allowed. 
+                                                   // Note that the current activity location information outside its primary proximity server may be inaccurate 
+                                                   // as its current location is only updated on its primary proximity server.
+  sfixed32 longitude = 10;                         // LocationType. If 'latitude' is not NO_LOCATION, this is target GPS location longitude.
+  uint32 radius = 11;                              // If 'latitude' is not NO_LOCATION, this is target location radius in metres. 
+                                                   // Note that due to use of precision information, the exact location of the activity is not precisely known 
+                                                   // and therefore the activity is assumed to be anywhere within its precision radius. The activity does match 
+                                                   // the search query if the query’s location and radius has non-empty intersection, which is when the distance 
+                                                   // between the query’s location and the activity location is less than or equal to the sum of query radius 
+                                                   // and location precision.
+  string extraData = 12;                           // RegexType or empty string. If not empty, it specifies the regular expression that activity's
+                                                   // extra data information must match in order to be included in the results. 
+                                                   // If empty, no filtering based on extra data information is made.
+                                                   // Max 256 bytes long.
+}
+
+
+//
+// A response to ActivitySearchRequest.
+//
+// If 'maxResponseRecordCount' is lower than 'totalRecordCount', the client is allowed to send 
+// ActivitySearchPartRequest messages to obtain more results.
+//
+// If a client is looking for a small set of activities within a large area, it might need to perform 
+// multiple search queries across several proximity servers in the target area in order to "cover" it. 
+// 'coveredServers' contains a list of proximity servers forming the neighborhood of the proximity server 
+// being queried. Neighborhood servers share their activity databases and a query to one server will 
+// thus cover proximity servers in its neighborhood. Note that this information is not much relevant 
+// in case the number of result is large and the number of results is limited by the protocol. 
+// In this case, it is possible that the proximity server returns results from activity databases only 
+// from a small subset of its neighborhood provided in the 'coveredServers' value, or even only from 
+// its own database.
+//
+//
+// Specific Error Responses:
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "maxResponseRecordCount" - 'ActivitySearchRequest.maxResponseRecordCount' is not within the required range.
+//     * Response.details == "maxTotalRecordCount" - 'ActivitySearchRequest.maxTotalRecordCount' is not within the required range.
+//     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier, or this is an empty byte array but 'ActivitySearchRequest.id' is not zero.
+//     * Response.details == "type" - 'ActivitySearchRequest.type' is too long.
+//     * Response.details == "startNotAfter" - 'ActivitySearchRequest.startNotAfter' does not represent a valid timestamp value.
+//     * Response.details == "expirationNotBefore" - 'ActivitySearchRequest.expirationNotBefore' is non-zero and smaller than 'ActivitySearchRequest.startNotAfter' or it does not represent a valid timestamp value.
+//     * Response.details == "latitude" - 'ActivitySearchRequest.latitude' is not a valid location latitude.
+//     * Response.details == "longitude" - 'ActivitySearchRequest.longitude' is not a valid location longitude.
+//     * Response.details == "radius" - 'ActivitySearchRequest.radius' is not a valid radius value.
+//     * Response.details == "extraData" - 'ActivitySearchRequest.extraData' is too long or it is not a valid value of RegexType.
+//
+message ActivitySearchResponse {
+  uint32 totalRecordCount = 1;                     // Total number of activities that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'activities' list.
+  uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ActivitySearchRequest.maxResponseRecordCount'.
+
+  repeated bytes coveredServers = 3;               // List of network identifiers of proximity servers whose activity databases were used to produce the results, 
+                                                   // whether or not any of their activities actually appear in the results.
+                                                   // This information is relevant if 'totalRecordCount' is lower than 'ActivitySearchRequest.maxTotalRecordCount',
+                                                   // because otherwise there is no guarantee the results actually contain any records from neighborhood proximity servers.
+
+  // Search results.
+  repeated ActivityNetworkInformation activities = 4;     // List of results that contains no more than 'maxResponseRecordCount' items.
+}
+
+
+
+//
+// Information about a single activity record from an activity search query.
+//
+message ActivityNetworkInformation {
+  bool isPrimary = 1;                              // True if the activity's primary proximity server is the server being queried.
+  ServerContactInfo primaryServer = 2;             // If 'isPrimary' is false, this contains the contact information to the primary proximity server of the activity.
+
+  ActivityInformation activity = 3;                // Description of the activity.
+}
+
+
+//
+// Request to get another part from the search query.
+//
+// This request only makes sense only if the client previously sent ActivitySearchRequest to 
+// the proximity server and the search result contained more records than the server provided 
+// in the ActivitySearchResponse, and the search results have not expired yet.
+//
+//
+// Roles: client
+//
+// Conversation status: ConversationStarted, Verified
+//
+message ActivitySearchPartRequest {
+  uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ActivitySearchResponse.totalRecordCount' - 1.
+  uint32 recordCount = 2;                           // Number of results to obtain. 'recordIndex' + 'recordCount' must not be greater than 'ActivitySearchResponse.totalRecordCount'.
+                                                    // It has to be an integer between 1 and 1,000.
+}
+
+
+//
+// A response to ActivitySearchPartRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ActivitySearchRequest previously
+//                           in this session, or its results have expired already.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "recordIndex" - 'ActivitySearchPartRequest.recordIndex' is not a valid index of the result.
+//     * Response.details == "recordCount" - 'ActivitySearchPartRequest.recordCount' is not a valid number of results to obtain in combination with 'ActivitySearchPartRequest.recordIndex'.
+//
+message ActivitySearchPartResponse {
+  uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ActivitySearchPartRequest.recordIndex' value.
+  uint32 recordCount = 2;                           // Number of results. Copy of 'ActivitySearchPartRequest.recordCount' value.
+
+  // Search results.
+  repeated ActivityNetworkInformation activities = 3;  // List of results that contains 'ActivitySearchPartRequest.recordCount' items.
+}
+
+
+
+
+
+
+
+
+//
+// Initiates sharing of the activity database with a neighbor proximity server.
+//
+// Proximity server joining the network needs to contact its neighbors and ask them to share their 
+// activity databases, so that it can include their activities into its own search queries.
+// Similarly, proximity servers that detect a new neighbor in their neighborhood need to contact 
+// it and ask it to share its activity database with them.
+//
+// Sharing the activity list always goes from one proximity server S (who acts as the server in 
+// the session) to the requesting proximity server C (who acts as a client in the session). It is C 
+// who connects to S and sends a request asking S to share its database. If the server C wants 
+// to share its activity database with the server S, it has to wait for the request from S, which 
+// will ask it to share its database. This request will come if S considers C its neighbor.
+//
+// The process starts with the server C sending StartNeighborhoodInitializationRequest message to S.
+// If S accepts the request, it replies with StartNeighborhoodInitializationResponse and then 
+// it starts sending NeighborhoodSharedActivityUpdateRequest messages until a full database is sent 
+// to C. With each update message, C has to check the validity of the data and if it accepts 
+// the batch it replies with NeighborhoodSharedActivityUpdateResponse. Once all of the activties are 
+// sent to C, S sends FinishNeighborhoodInitializationRequest and if C replies with successful 
+// message FinishNeighborhoodInitializationResponse, the process is completed. 
+//
+// If S is not the primary proximity server for any activities yet, it may send 
+// FinishNeighborhoodInitializationRequest message without sending any 
+// NeighborhoodSharedActivityUpdateRequest messages.
+//
+// Once C replies with FinishNeighborhoodInitializationResponse, the initialization process is 
+// finished and C can consider the activities hosted on S in its search queries. If a connection 
+// is terminated or the process is disrupted in any other way, C can not consider the process 
+// as finished and must not include the activities of S in its searches.
+//
+// The proximity server S has the responsibility of keeping the information on C up to date. With 
+// each change of an activity, for which S is the primary proximity server, except for changes that 
+// do not require neighborhood updates, it has to contact C and inform it about the change. 
+// This is done using NeighborhoodSharedActivityUpdateRequest messages that are sent outside 
+// the initialization process (i.e. without sending StartNeighborhoodInitializationRequest message 
+// first).
+//
+// If StartNeighborhoodInitializationRequest message is processed successfully, the initialization 
+// of the neighbor relationship is started on the opened session and the initialization process has 
+// to be finished with FinishNeighborhoodInitializationRequest or it will fail when the connection 
+// is terminated. 
+//
+// All activities received from a neighbor have expiration time after which the proximity server can 
+// delete them from its database. Activities of a neighbor proximity server can also be deleted if 
+// the proximity server no longer considers the neighbor as its neighbor.
+//
+//
+// Roles: neighbor
+//
+// Conversation status: Verified
+//
+message StartNeighborhoodInitializationRequest {
+  uint32 primaryPort = 1;                          // Port of the proximity server's Primary Interface.
+  uint32 neighborPort = 2;                         // Port of the proximity  server's Neighbors Interface.
+  bytes ipAddress = 3;                             // IPv4 or IPv6 public address of the network interface on which proximity server operates.
+}
+
+
+//
+// A response to StartNeighborhoodInitializationRequest.
+//
+//
+// General Error Responses:
+//   * ERROR_REJECTED - Proximity server has already reached its limit of a number of servers that it shares its activity database with and is not willing to have more.
+//   * ERROR_ALREADY_EXISTS - Neighborhood initialization process has already been done, or the initialization process with the peer is currently in the progress.
+//   * ERROR_BUSY - Proximity server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
+//                  with the neighborhood initialization process with one or more other proximity servers.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65,535.
+//     * Response.details == "neighborPort" - 'StartNeighborhoodInitializationRequest.neighborPort' must be an integer between 1 and 65,535.
+//     * Response.details == "ipAddress" - 'StartNeighborhoodInitializationRequest.ipAddress' is not a valid IPv4 or IPv6 address or it is a local network IP address.
+//
+message StartNeighborhoodInitializationResponse {
+}
+
+
+//
+// Proximity server that was requested to share its activity database with its neighbor using 
+// StartNeighborhoodInitializationRequest uses this request to finish the initialization process. 
+// Sending this message means that all activities were successfully shared.
+//
+//
+// Roles: neighbor
+//
+// Conversation status: Verified
+//
+message FinishNeighborhoodInitializationRequest {
+}
+
+
+//
+// A response to FinishNeighborhoodInitializationRequest. 
+//
+// Sending this response means that the sender will now consider the shared activities from 
+// the other server in its search queries.
+//
+// Specific Error Responses:
+//   * ERROR_REJECTED - No neighborhood initialization process was started on this session using StartNeighborhoodInitializationRequest.
+//
+message FinishNeighborhoodInitializationResponse {
+}
+
+
+//
+// This request is sent by a proximity server to announce a change in one or more of the activities 
+// for which it acts as the primary proximity server. This request is also used during the neighborhood 
+// initialization to send the proximity server's activity database to the requesting server. If the request 
+// is sent outside the neighborhood initialization process, it is considered as a standalone request.
+//
+// During the neighborhood initialization process, only items with `SharedActivityUpdateItem.ActionType` 
+// of `add` can be sent.
+//
+//
+// Roles: neighbor
+//
+// Conversation status: Verified
+//
+message NeighborhoodSharedActivityUpdateRequest {
+  repeated SharedActivityUpdateItem items = 1;     // List of activity update items. Within the request, the activities added/changed/deleted must be unique.
+                                                   // It is thus not allowed to send two update items that refer to the same activity.
+}
+
+
+//
+// A response to NeighborhoodSharedActivityUpdateRequest.
+//
+// Specific Error Responses:
+//   * ERROR_REJECTED - Neighborhood initialization process has not been done or finished yet, or proximity server is no longer interested in receiving updates 
+//                      from the requesting proximity server. This should have the same effect as if the proximity server sent StopNeighborhoodUpdatesRequest to 
+//                      the requesting proximity server. If the requesting proximity server wants to share its database, it has to go through neighborhood 
+//                      initialization process from start.
+//   * ERROR_INVALID_VALUE
+//     * Response.details == "$index.$field" - All items up to 'NeighborhoodSharedActivityUpdateRequest.items[$index]' (exclusive) were processed correctly
+//                                             (and the peer must not send them again) and an error occurred while processing the item with zero-based 
+//                                             index $index. Items with index greater then $index were not processed. The $field specifies which field 
+//                                             was invalid as follows:
+//       * $field == "add" - Number of shared activities from the requesting proximity server exceeds the limit.
+//       * $field == "add.version" - `items[$index].add.version` is not a valid activity version.
+//       * $field == "add.id" - `items[$index].add.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
+//                               request referred to this activity.
+//       * $field == "add.ownerPublicKey" - `items[$index].add.ownerPublicKey` is not a valid public key value.
+//       * $field == "add.profileServerContact.networkId" - `items[$index].add.profileServerContact.networkId` is not a valid network identifier.
+//       * $field == "add.profileServerContact.ipAddress" - `items[$index].add.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
+//       * $field == "add.profileServerContact.primaryPort" - `items[$index].add.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
+//       * $field == "add.type" - `items[$index].add.type` is not a valid activity type.
+//       * $field == "add.latitude" - `items[$index].add.latitude` is not a valid latitude value.
+//       * $field == "add.longitude" - `items[$index].add.longitude` is not a valid longitude value.
+//       * $field == "add.precision" - `items[$index].add.precision` must be an integer between 0 and 1,000.
+//       * $field == "add.startTime" - `items[$index].add.startTime` does not contain a valid start time information.
+//       * $field == "add.expirationTime" - `items[$index].add.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].add.startTime'.
+//       * $field == "add.extraData" - `items[$index].add.extraData` is not a valid extra data value.
+//       * $field == "change.version" - `items[$index].change.version` is not a valid activity version.
+//       * $field == "change.id" - `items[$index].change.id` is not a valid activity identifier or the same activity already exists or another update item in the same 
+//                                 request referred to this activity.
+//       * $field == "change.ownerPublicKey" - `items[$index].change.ownerPublicKey` is not a valid public key value.
+//       * $field == "change.profileServerContact.networkId" - `items[$index].change.profileServerContact.networkId` is not a valid network identifier.
+//       * $field == "change.profileServerContact.ipAddress" - `items[$index].change.profileServerContact.ipAddress` is not a valid IP address or it is a local network address.
+//       * $field == "change.profileServerContact.primaryPort" - `items[$index].change.profileServerContact.primaryPort` must be an integer between 1 and 65,535.
+//       * $field == "change.type" - `items[$index].change.type` is not a valid activity type.
+//       * $field == "change.latitude" - `items[$index].change.latitude` is not a valid latitude value.
+//       * $field == "change.longitude" - `items[$index].change.longitude` is not a valid longitude value.
+//       * $field == "change.precision" - `items[$index].change.precision` must be an integer between 0 and 1,000.
+//       * $field == "change.startTime" - `items[$index].change.startTime` does not contain a valid start time information.
+//       * $field == "change.expirationTime" - `items[$index].change.expirationTime` does not contain a valid expiration time information or its value is smaller than 'items[$index].change.startTime'.
+//       * $field == "change.extraData" - `items[$index].change.extraData` is not a valid extra data value.
+//       * $field == "delete.id" - `items[$index].delete.id` does not represent an existing activity, or another update item in the same request referred to this activity.
+//       * $field == "delete.ownerNetworkId" - `items[$index].delete.identityNetworkId` is not a valid network identifier.
+//       * $field == "actionType" - During the neighborhood initialization process, only `add` is a valid update message type.
+//
+message NeighborhoodSharedActivityUpdateResponse {
+}
+
+
+//
+// Information about update of a neighborhood activity.
+//
+message SharedActivityUpdateItem {
+  oneof ActionType {                               // Update operation can be:
+    ActivityInformation add = 1;                   //  * adding a new activity to the database,
+    ActivityInformation change = 2;                //  * changing an existing activity,
+    ActivityFullId delete = 3;                     //  * deleting an existing activity.
+  }
+}
+
+
+
+//
+// Full identifier of the activity.
+//
+message ActivityFullId {
+  uint32 id = 1;                                   // Unique identifier of the activity among all activities of the same owner.
+  bytes ownerNetworkId = 2;                        // Network identifier of the identity that created the activity. 
+}
+
+
+
+
+//
+// Asks a (former) neighbor to stop sending updates of its database to the proximity server.
+//
+//
+// Roles: neighbor
+//
+// Conversation status: Verified
+//
+message StopNeighborhoodUpdatesRequest {
+}
+
+
+//
+// A response to StopNeighborhoodUpdatesRequest. 
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - The target server does not recognize the proximity server as its neighbor.
+//
+message StopNeighborhoodUpdatesResponse {
+}
+
+
+
+
+
+//
+// CAN Integration
+//
+// CAN provides globally accessible distribute storage that is used for multiple purposes in IoP. From proximity 
+// server's point of view, the most important use case is implementation of indexing that allows IoP users 
+// to find other proximity servers only using their network identifier. 
+//
+// A proximity server publishes its contact information in CAN when it is started for the first time. It also 
+// creates a so called IPNS record that maps the proximity server network ID to this contact information record 
+// and thus allows anyone to find the contact information known just the network ID of the proximity server.
+//
+// CAN data objects are immutable. The proximity server is responsible for deleting the old object from CAN when 
+// it wants to replace it by a new object. When the proximity server's contact information changes, the proximity 
+// server asks CAN to delete the old contact information object and publishes a new contact information object.
+// Then it has to submit a new IPNS to point to the new object.
+//
+// IPNS records expire in time and must be refreshed. This is done by creating a new IPNS record by the IPNS 
+// record owner and replacing the old version of the record with the new one. If an IPNS record expires, it 
+// becomes invalid and will be discarded by CAN network.
+//
+// IPNS records has to be signed by the private key of its owner, otherwise they are invalid. This requirement 
+// prevents malicious manipulations of IPNS records.
+//
+
+
+//
+// Proximity server contact information.
+//
+message CanProximityServerContact {
+  bytes publicKey = 1;                             // Proximity server's public key.
+  bytes ipAddress = 2;                             // IPv4 or IPv6 public address of the network interface on which proximity server operates.
+  uint32 primaryPort = 3;                          // TCP port of proximity server's primary interface.
+}

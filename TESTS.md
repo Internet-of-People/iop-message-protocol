@@ -24,3 +24,10 @@ The tests in this section are intended for testing of IoP Profile Server softwar
   * [PS08xxx - Neighborhood Related Functionality Tests](./tests/PS08.md)
   * [PS09xxx - CAN Integration Related Functionality Tests](./tests/PS09.md)
 
+
+## Proximity Server Tests
+
+The tests in this section are intended for testing of IoP Proximity Server software. 
+
+  * [PX00xxx - General Protocol Tests](./tests/PX00.md)
+  * [PX01xxx - Primary Port Functionality Tests](./tests/PX01.md)
