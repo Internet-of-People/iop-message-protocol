@@ -751,6 +751,7 @@ message UpdateProfileRequest {
   bool noPropagation = 4;                          // If set to true, the profile server will not propagate the update to the neighborhood.
                                                    // This is useful for updates of parts of profile's extra data information that do not affect 
                                                    // other clients who search for this activity.
+                                                   // This has to be false during the first update of the profile.
 }
 
 
@@ -772,6 +773,7 @@ message UpdateProfileRequest {
 //     * Response.details == "profile.thumbnailImageHash" - 'UpdateProfileRequest.profile.thumbnailImageHash' is neither a valid SHA256 hash nor empty array.
 //     * Response.details == "profileImage" - 'UpdateProfileRequest.profileImage' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.profileImageHash' value.
 //     * Response.details == "thumbnailImage" - 'UpdateProfileRequest.thumbnailImage' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.thumbnailImageHash' value.
+//     * Response.details == "noPropagation" - 'UpdateProfileRequest.noPropagation' must be false during the first update of the profile.
 //
 message UpdateProfileResponse {
 }
@@ -1078,14 +1080,14 @@ message GetProfileInformationResponse {
   bytes targetProfileServerNetworkId = 3;          // If 'isTargetProfileServerKnown' is true then this field contains the identity's new profile server network ID.
 
   // Following fields are valid only if 'isHosted' is true.
-  bool isOnline = 4;                               // True if the requested identity is currently online.
+  bool isOnline = 4;                               // If 'isHosted' is true, then this is true if the requested identity is currently online.
 
-  SignedProfileInformation signedProfile = 5;      // Requested identity signed profile information.
+  SignedProfileInformation signedProfile = 5;      // If 'isHosted' is true, this is requested identity signed profile information.
 
-  bytes profileImage = 6;                          // If 'GetProfileInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image or empty array if the profile has no profile image.
-  bytes thumbnailImage = 7;                        // If 'GetProfileInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image or empty array if the profile has no thumbnail image.
+  bytes profileImage = 6;                          // If 'isHosted' is true and if 'GetProfileInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image or empty array if the profile has no profile image.
+  bytes thumbnailImage = 7;                        // If 'isHosted' is true and if 'GetProfileInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image or empty array if the profile has no thumbnail image.
 
-  repeated string applicationServices = 8;         // If 'GetProfileInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string applicationServices = 8;         // If 'isHosted' is true and if 'GetProfileInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
@@ -1363,6 +1365,9 @@ message ProfileQueryformation {
 
   bytes thumbnailImage = 5;                        // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image, 
                                                    // or zero-length byte array if the profile has no thumbnail image set.
+                                                   // Note that the profile server is allowed to return empty array here if it is unable to deliver
+                                                   // the image due to an error. The client is able to recognize that the image is missing if 'signedProfile.profile.thumbnailImageHash' 
+                                                   // is a valid image hash but 'thumbnailImage' is empty.
 }
 
 
@@ -1721,8 +1726,8 @@ message NeighborhoodSharedProfileUpdateRequest {
 //       * $field == "add.signedProfile.signature" - `items[$index].add.signedProfile.signature` is not a valid signature or 'items[$index].add.signedProfile.profile'.
 //       * $field == "add.thumbnailImage" - `items[$index].add.thumbnailImage` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].add.signedProfile.profile.thumbnailImageHash` value.
 //       * $field == "change.signedProfile.profile.version" - `items[$index].change.signedProfile.profile.version` does not contain a valid version information.
-//       * $field == "change.signedProfile.profile.publicKey" - `items[$index].change.signedProfile.profile.publicKey` is not a valid public key value or the same identity already exists, 
-//                                                           or another update item in the same request referred to this identity.
+//       * $field == "change.signedProfile.profile.publicKey" - `items[$index].change.signedProfile.profile.publicKey` is not a valid public key value or the identity with this public key does not exist, 
+//                                                              or another update item in the same request referred to this identity.
 //       * $field == "change.signedProfile.profile.type" - `items[$index].change.signedProfile.profile.type` is not a valid identity type or it does not match the previous value of the type of this profile.
 //       * $field == "change.signedProfile.profile.name" - `items[$index].change.signedProfile.profile.name` is not a valid profile name.
 //       * $field == "change.signedProfile.profile.latitude" - `items[$index].change.signedProfile.profile.latitude` is not a valid latitude value.
@@ -1759,6 +1764,7 @@ message SharedProfileUpdateItem {
 message SharedProfileAddItem {
   SignedProfileInformation signedProfile = 1;      // Signed identity profile information.
   bytes thumbnailImage = 2;                        // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
+                                                   // The SHA256 hash of the binary data has to match 'signedProfile.profile.thumbnailImageHash'.
 }
 
 
@@ -1768,6 +1774,7 @@ message SharedProfileAddItem {
 message SharedProfileChangeItem {
   SignedProfileInformation signedProfile = 1;      // Signed identity profile information.
   bytes thumbnailImage = 2;                        // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
+                                                   // The SHA256 hash of the binary data has to match 'signedProfile.profile.thumbnailImageHash'.
 }
 
 
