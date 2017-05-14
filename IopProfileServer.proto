@@ -544,16 +544,19 @@ message ServerRole {
 //
 // A client asks server for its hosting plans that match the given criteria.
 //
+// VERSION NOTE: This message is not implemented by current version of profile server.
+//
 // Roles: clNonCustomer
 //
 message ListHostingPlansRequest {
   string identityType = 1;                         // A specific identity type, for which the client searches the plan.
-  // Other criteria TBD.
 }
 
 
 //
 // A response to ListHostingPlansRequest that contains a list of matching plans.
+//
+// VERSION NOTE: This message is not implemented by current version of profile server.
 //
 // Specific Error Responses: 
 //   * ERROR_QUOTA_EXCEEDED - A server uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
@@ -628,7 +631,7 @@ message StartConversationResponse {
 
 //
 // A client asks profile server to host its profile by sending RegisterHostingRequest
-// with a signed contract. The signature is provided in 'ConversationRequest.signature'.
+// with a signed contract. The signature of 'contract' field is provided in 'ConversationRequest.signature'.
 //
 // Roles: clNonCustomer
 //
@@ -636,15 +639,12 @@ message StartConversationResponse {
 //
 message RegisterHostingRequest {
   HostingPlanContract contract = 1;                // Description of the contract that the client wants to have with the profile server.
-                                                   // The 'contract.plan' has to be the exact copy of the server's offer, no field can be changed, otherwise the server will refuse it.
-                                                   // The 'contract.startTime' field has to be set either to the future, or to a time that is not 
-                                                   // more than 1 hour in past from the current profile server's time.
 }
 
 
 //
 // A response to RegisterHostingRequest in case the profile server wants to accept the request.
-// The response body is signed with a signature in 'ConversationResponse.signature'.
+// The server signes the contract. The signature of 'contract' field is provided in 'ConversationResponse.signature'.
 //
 // Specific Error Responses:
 //   * ERROR_QUOTA_EXCEEDED - A server uses this error code in case it wants to express that it will not accept any new clients because it has no free slots.
@@ -652,9 +652,9 @@ message RegisterHostingRequest {
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
 //   * ERROR_ALREADY_EXISTS - The identity is hosted by the server already.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "contract.startTime" - 'RegisterHostingRequest.contract.startTime' is more than 1 hour in the past. 
+//     * Response.details == "contract.startTime" - 'RegisterHostingRequest.contract.startTime' is more than 1 hour in the past or is not a valid timestamp value. 
 //     * Response.details == "contract.identityPublicKey" - 'RegisterHostingRequest.contract.identityPublicKey' does not match identity's public key.
-//     * Response.details == "contract.identityType" - 'RegisterHostingRequest.contract.identityType' does not match the hosting plan.
+//     * Response.details == "contract.identityType" - 'RegisterHostingRequest.contract.identityType' does not match the hosting plan or is invalid.
 //
 message RegisterHostingResponse {
   HostingPlanContract contract = 1;                // Description of the contract that the client wants to have with the server and the server accepted it.
@@ -665,12 +665,16 @@ message RegisterHostingResponse {
 // A description of the contract between a client and a profile server.
 message HostingPlanContract {
   bytes planId = 1;                                // Identifier of the profile server's hosting plan.
+                                                   // Note that the current version ignores this value.
   bytes identityPublicKey = 2;                     // Public key of the client's identity.
-  sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract.
+  sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract. This has to be set either to the future, or to a time that is not 
+                                                   // more than 1 hour in past from the current profile server's time.
   string identityType = 4;                         // Type of the client's identity. It has to match the 'HostingPlan.identityType' filter in the selected plan.
                                                    // For example, if 'HostingPlan.identityType' is "Taxi *" then 'identityType' can be "Taxi Driver",
                                                    // but not "Bus Driver". Also 'identityType' can not contain '*' wildcard character, so "Taxi *" is not a valid value
-                                                   // for 'identityType' here even if 'HostingPlan.identityType' is "Taxi *". Max 64 bytes long.
+                                                   // for 'identityType' here even if 'HostingPlan.identityType' is "Taxi *". 
+                                                   // Non-empty stirng, max 64 bytes long.
+                                                   // VERSION NOTE: Note that in current version, the hosting plans are not supported and the client should set 'identityType' to whatever type it needs.
 }
 
 
@@ -1347,7 +1351,7 @@ message ProfileSearchResponse {
                                                    // because otherwise there is no guarantee the results actually contain any records from neighborhood profile servers.
 
   // Search results.
-  repeated ProfileQueryformation profiles = 4;     // List of results that contains no more than 'maxResponseRecordCount' items.
+  repeated ProfileQueryInformation profiles = 4;   // List of results that contains no more than 'maxResponseRecordCount' items.
 }
 
 
@@ -1355,7 +1359,7 @@ message ProfileSearchResponse {
 //
 // Information about a single profile record from a profile search query.
 //
-message ProfileQueryformation {
+message ProfileQueryInformation {
   bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
   bytes hostingServerNetworkId = 2;                // If 'isHosted' is false, this field contains the network ID of the neighbor profile server that hosts the target profile.
 
@@ -1406,7 +1410,7 @@ message ProfileSearchPartResponse {
   uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.recordCount' value.
 
   // Search results.
-  repeated ProfileQueryformation profiles = 3;      // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
+  repeated ProfileQueryInformation profiles = 3;    // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
 }
 
 
