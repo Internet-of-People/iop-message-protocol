@@ -148,10 +148,11 @@ import "IopShared.proto";
 import "IopCan.proto";
 
 
+//
 // This is complete message as it goes over the wire. It includes the 32-bit header with message length.
 //
 // There is a 1 byte prefix because of Google Protobuf protocol, so the actual binary data for a message
-// with body size 4660 bytes would be:
+// with body size 4,660 bytes would be:
 //
 //
 //   0D 34 12 00 00
@@ -162,6 +163,7 @@ import "IopCan.proto";
 //
 message MessageWithHeader {
   fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
+                                                   // Maximum size of the whole message is 1,048,576 bytes, which means the maximal value in the header is 1,048,571.
   Message body = 2;                                // Message itself.
 }
 
