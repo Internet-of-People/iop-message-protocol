@@ -605,7 +605,7 @@ message ActivityQueryInformation {
   bool isPrimary = 1;                              // True if the activity's primary proximity server is the server being queried.
   ServerContactInfo primaryServer = 2;             // If 'isPrimary' is false, this contains the contact information to the primary proximity server of the activity.
 
-  SignedActivityInformation activity = 3;          // Signed description of the activity.
+  SignedActivityInformation signedActivity = 3;    // Signed description of the activity.
 }
 
 
