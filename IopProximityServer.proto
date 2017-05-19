@@ -49,6 +49,7 @@ import "IopShared.proto";
 //
 message MessageWithHeader {
   fixed32 header = 1;                              // Message length (without the size of the header) as a little-endian 32-bit unsigned integer.
+                                                   // Maximum size of the whole message is 1,048,576 bytes, which means the maximal value in the header is 1,048,571.
   Message body = 2;                                // Message itself.
 }
 
@@ -834,9 +835,10 @@ message NeighborhoodSharedActivityUpdateResponse {
 //
 message SharedActivityUpdateItem {
   oneof ActionType {                               // Update operation can be:
-    SharedActivityAddItem add = 1;                   //  * adding a new activity to the database,
-    SharedActivityChangeItem change = 2;                //  * changing an existing activity,
-    SharedActivityDeleteItem delete = 3;                     //  * deleting an existing activity.
+    SharedActivityAddItem add = 1;                 //  * adding a new activity to the database,
+    SharedActivityChangeItem change = 2;           //  * changing an existing activity,
+    SharedActivityDeleteItem delete = 3;           //  * deleting an existing activity,
+    SharedActivityRefreshItem refresh = 4;         //  * refresh neighbor's expiration time.
   }
 }
 
@@ -868,11 +870,10 @@ message SharedActivityDeleteItem {
 
 
 //
-// Request to refresh all existing profiles of the requesting server on the target server.
+// Request to refresh the neighbor status of the requesting server on the target server.
 //
-message SharedProfileRefreshAllItem {
+message SharedActivityRefreshItem {
 }
-
 
 
 //

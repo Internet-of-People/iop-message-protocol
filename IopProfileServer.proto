@@ -1759,7 +1759,7 @@ message SharedProfileUpdateItem {
     SharedProfileAddItem add = 1;                  //  * adding a new profile to the database,
     SharedProfileChangeItem change = 2;            //  * changing an existing profile,
     SharedProfileDeleteItem delete = 3;            //  * deleting an existing profile, 
-    SharedProfileRefreshAllItem refresh = 4;       //  * refresh expiration date of all existing profiles.
+    SharedProfileRefreshAllItem refresh = 4;       //  * refresh neighbor's expiration time.
   }
 }
 
@@ -1793,7 +1793,7 @@ message SharedProfileDeleteItem {
 
 
 //
-// Request to refresh all existing profiles of the requesting server on the target server.
+// Request to refresh the neighbor status of the requesting server on the target server.
 //
 message SharedProfileRefreshAllItem {
 }
