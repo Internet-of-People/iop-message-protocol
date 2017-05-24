@@ -314,6 +314,7 @@ message CreateActivityRequest {
 // A response to CreateActivityRequest.
 //
 // Specific Error Responses:
+//   * ERROR_QUOTA_EXCEEDED - A server uses this error code in case it wants to express that it will not accept any new activities because it has no free slots.
 //   * ERROR_ALREADY_EXISTS - The server already has an activity from the client with 'CreateActivityRequest.id' as its identifier.
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the 'CreateActivityRequest.activity' in 'ConversationRequest.signature' is not valid.
 //   * ERROR_REJECTED - The server knows a proximity server that is closer to the location of the activity and its ID is not on the list of ignored servers.
