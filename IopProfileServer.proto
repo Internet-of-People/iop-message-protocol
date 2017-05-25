@@ -215,10 +215,12 @@ message SingleRequest {
     ListRolesRequest listRoles = 3;
     ListHostingPlansRequest listHostingPlans = 4;
     GetProfileInformationRequest getProfileInformation = 5;
-    ApplicationServiceSendMessageRequest applicationServiceSendMessage = 6;
-    ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 7;
-    ProfileStatsRequest profileStats = 8;
-    GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 9;
+    ProfileSearchRequest profileSearch = 6;
+    ProfileSearchPartRequest profileSearchPart = 7;
+    ApplicationServiceSendMessageRequest applicationServiceSendMessage = 8;
+    ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 9;
+    ProfileStatsRequest profileStats = 10;
+    GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 11;
   }
 }
 
@@ -235,10 +237,12 @@ message SingleResponse {
     ListRolesResponse listRoles = 3;
     ListHostingPlansResponse listHostingPlans = 4;
     GetProfileInformationResponse getProfileInformation = 5;
-    ApplicationServiceSendMessageResponse applicationServiceSendMessage = 6;
-    ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 7;
-    ProfileStatsResponse profileStats = 8;
-    GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 9;
+    ProfileSearchResponse profileSearch = 6;
+    ProfileSearchPartResponse profileSearchPart = 7;
+    ApplicationServiceSendMessageResponse applicationServiceSendMessage = 8;
+    ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 9;
+    ProfileStatsResponse profileStats = 10;
+    GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 11;
   }
 }
 
@@ -261,16 +265,14 @@ message ConversationRequest {
     ApplicationServiceRemoveRequest applicationServiceRemove = 9;
     CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
     IncomingCallNotificationRequest incomingCallNotification = 11;
-    ProfileSearchRequest profileSearch = 12;
-    ProfileSearchPartRequest profileSearchPart = 13;
-    AddRelatedIdentityRequest addRelatedIdentity = 14;
-    RemoveRelatedIdentityRequest removeRelatedIdentity = 15;
-    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 16;
-    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 17;
-    NeighborhoodSharedProfileUpdateRequest neighborhoodSharedProfileUpdate = 18;
-    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 19;
-    CanStoreDataRequest canStoreData = 20;
-    CanPublishIpnsRecordRequest canPublishIpnsRecord = 21;
+    AddRelatedIdentityRequest addRelatedIdentity = 12;
+    RemoveRelatedIdentityRequest removeRelatedIdentity = 13;
+    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 14;
+    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 15;
+    NeighborhoodSharedProfileUpdateRequest neighborhoodSharedProfileUpdate = 16;
+    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 17;
+    CanStoreDataRequest canStoreData = 18;
+    CanPublishIpnsRecordRequest canPublishIpnsRecord = 19;
   }
 }
 
@@ -291,16 +293,14 @@ message ConversationResponse {
     ApplicationServiceRemoveResponse applicationServiceRemove = 9;
     CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
     IncomingCallNotificationResponse incomingCallNotification = 11;
-    ProfileSearchResponse profileSearch = 12;
-    ProfileSearchPartResponse profileSearchPart = 13;
-    AddRelatedIdentityResponse addRelatedIdentity = 14;
-    RemoveRelatedIdentityResponse removeRelatedIdentity = 15;
-    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 16;
-    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 17;
-    NeighborhoodSharedProfileUpdateResponse neighborhoodSharedProfileUpdate = 18;
-    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 19;
-    CanStoreDataResponse canStoreData = 20;
-    CanPublishIpnsRecordResponse canPublishIpnsRecord = 21;
+    AddRelatedIdentityResponse addRelatedIdentity = 12;
+    RemoveRelatedIdentityResponse removeRelatedIdentity = 13;
+    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 14;
+    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 15;
+    NeighborhoodSharedProfileUpdateResponse neighborhoodSharedProfileUpdate = 16;
+    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 17;
+    CanStoreDataResponse canStoreData = 18;
+    CanPublishIpnsRecordResponse canPublishIpnsRecord = 19;
   }
 }
 
@@ -1270,7 +1270,7 @@ message ProfileStatsItem {
 //
 // Each search request only produces a limited number of results. The maximal size of the first set of results 
 // is provided by 'maxResponseRecordCount' field. The response to this message contains up to 'maxResponseRecordCount' 
-// results. If there are more results available, they are saved to the conversation context, which enables the client 
+// results. If there are more results available, they are saved to the server's cache, which enables the client 
 // to obtain more results with subsequent ProfileSearchPartRequest messages.
 //
 // The profile server will not save more than 'maxTotalRecordCount' search requests. 
@@ -1279,9 +1279,8 @@ message ProfileStatsItem {
 //
 // Once the client sends another ProfileSearchRequest, or if it disconnects, the old search results are discarded.
 //
-// Roles: clNonCustomer, clCustomer
 //
-// Conversation status: ConversationStarted, Verified, Authenticated
+// Roles: clNonCustomer, clCustomer
 //
 message ProfileSearchRequest {
   bool includeHostedOnly = 1;                      // If set to true, the profile server only returns profiles of its own customers.
@@ -1386,8 +1385,6 @@ message ProfileQueryInformation {
 //
 //
 // Roles: clNonCustomer, clCustomer
-//
-// Conversation status: ConversationStarted, Verified, Authenticated
 //
 message ProfileSearchPartRequest {
   uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ProfileSearchResponse.totalRecordCount' - 1.

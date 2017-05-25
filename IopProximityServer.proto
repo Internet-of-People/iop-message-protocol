@@ -100,6 +100,8 @@ message SingleRequest {
     PingRequest ping = 2;
     ListRolesRequest listRoles = 3;
     GetActivityInformationRequest getActivityInformation = 4;
+    ActivitySearchRequest activitySearch = 5;
+    ActivitySearchPartRequest activitySearchPart = 6;
   }
 }
 
@@ -115,6 +117,8 @@ message SingleResponse {
     PingResponse ping = 2;
     ListRolesResponse listRoles = 3;
     GetActivityInformationResponse getActivityInformation = 4;
+    ActivitySearchResponse activitySearch = 5;
+    ActivitySearchPartResponse activitySearchPart = 6;
   }
 }
 
@@ -132,8 +136,6 @@ message ConversationRequest {
     CreateActivityRequest createActivity = 4;
     UpdateActivityRequest updateActivity = 5;
     DeleteActivityRequest deleteActivity = 6;
-    ActivitySearchRequest activitySearch = 7;
-    ActivitySearchPartRequest activitySearchPart = 8;
     StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 9;
     FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 10;
     NeighborhoodSharedActivityUpdateRequest neighborhoodSharedActivityUpdate = 11;
@@ -153,12 +155,10 @@ message ConversationResponse {
     CreateActivityResponse createActivity = 4;
     UpdateActivityResponse updateActivity = 5;
     DeleteActivityResponse deleteActivity = 6;
-    ActivitySearchResponse activitySearch = 7;
-    ActivitySearchPartResponse activitySearchPart = 8;
-    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 9;
-    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 10;
-    NeighborhoodSharedActivityUpdateResponse neighborhoodSharedActivityUpdate = 11;
-    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 12;
+    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 7;
+    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 8;
+    NeighborhoodSharedActivityUpdateResponse neighborhoodSharedActivityUpdate = 9;
+    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 10;
   }
 }
 
@@ -505,7 +505,7 @@ message GetActivityInformationResponse {
 //
 // Each search request only produces a limited number of results. The maximal size of the first set of results 
 // is provided by 'maxResponseRecordCount' field. The response to this message contains up to 'maxResponseRecordCount' 
-// results. If there are more results available, they are saved to the conversation context, which enables the client 
+// results. If there are more results available, they are saved to the server's cache, which enables the client 
 // to obtain more results with subsequent ActivitySearchPartRequest messages.
 //
 // The proximity server will not save more than 'maxTotalRecordCount' search requests. 
