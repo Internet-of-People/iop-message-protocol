@@ -136,10 +136,10 @@ message ConversationRequest {
     CreateActivityRequest createActivity = 4;
     UpdateActivityRequest updateActivity = 5;
     DeleteActivityRequest deleteActivity = 6;
-    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 9;
-    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 10;
-    NeighborhoodSharedActivityUpdateRequest neighborhoodSharedActivityUpdate = 11;
-    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 12;
+    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 7;
+    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 8;
+    NeighborhoodSharedActivityUpdateRequest neighborhoodSharedActivityUpdate = 9;
+    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 10;
   }
 }
 
@@ -353,12 +353,13 @@ message ActivityInformation {
   string type = 5;                                 // Type of activity in human readable form, non-empty string, max 64 bytes long.
 
   sfixed32 latitude = 6;                           // LocationType. GPS location latitude information. Together with 'longitude' and 'precision' this provides information 
-                                                   // the activity location. On non-primary proximity servers, this is not the latest reported location of the activity, 
+                                                   // the activity location. On non-primary proximity servers, this might not be the latest reported location of the activity, 
                                                    // but rather the last known location to the server being queried, which will often be the original location of the activity.
                                                    // On primary proximity servers, the location information is current.
   sfixed32 longitude = 7;                          // LocationType. GPS location longitude information.
   uint32 precision = 8;                            // Precision information in metres is an integer between 0 and 1,000.
- 
+                                                   // On non-primary proximity servers, this might not be the latest reported precision information
+                                                   // but rather the last known to the server being queried. On primary proximity servers, the precision information is current. 
   sint64 startTime = 9;                            // TimestampType. Time when the activity starts. This can be in the past for already running 
                                                    // or past activities as well as in the future for future activities.
   sint64 expirationTime = 10;                      // TimestampType. Time when the activity expires. This can be no further in the future than 24 hours 
