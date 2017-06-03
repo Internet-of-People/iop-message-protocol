@@ -33,3 +33,4 @@ The tests in this section are intended for testing of IoP Proximity Server softw
   * [PX01xxx - Primary Port Functionality Tests](./tests/PX01.md)
   * [PX02xxx - Client Port Basic Functionality Tests](./tests/PX02.md)
   * [PX03xxx - Activity Management Functionality Tests](./tests/PX03.md)
+  * [PX04xxx - Activity Search Related Functionality Tests](./tests/PX04.md)

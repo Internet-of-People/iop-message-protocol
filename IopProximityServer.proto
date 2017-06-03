@@ -12,9 +12,9 @@
 //
 // * Profile Server Network Protocol Inheritance *
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Proximity Server network protocol is created using the same basic principles as Profile Server network protocol.
-// Please see the Roles, Reused Types and Conversations sections of Profile Server network protocol protofile 
-// (https://github.com/Internet-of-People/message-protocol/blob/master/IopProfileServer.proto) for more information 
+// Proximity Server network protocol is created using the same basic principles as Profile Server network protocol. Please 
+// see the Roles, Identities and Network Identifiers, Reused Types and Conversations sections of Profile Server network protocol 
+// protofile  (https://github.com/Internet-of-People/message-protocol/blob/master/IopProfileServer.proto) for more information 
 // about these common concepts. Also see there descriptions of using ListRolesRequest, StartConversationRequest 
 // and VerifyIdentityRequest requests as these are replicated in the Proximity Server network protocol as well.
 //
@@ -517,14 +517,12 @@ message GetActivityInformationResponse {
 //
 // Roles: client
 //
-// Conversation status: ConversationStarted, Verified
-//
 message ActivitySearchRequest {
   bool includePrimaryOnly = 1;                     // If set to true, the proximity server only returns activities for which the server is the primary proximity server.
                                                    // If set to false, activities from the server's neighborhood can be included in the result.
   uint32 maxResponseRecordCount = 2;               // Maximal number of results to be delivered in the response. It has to be an integer between 1 and 1,000. 
-                                                   // The value must not be greater than 'maxTotalRecordCount'.
   uint32 maxTotalRecordCount = 3;                  // Maximal number of total results that the activity server will look for and save. It has to be an integer between 1 and 10,000.
+                                                   // The value must be greater than or equal to 'maxTotalRecordCount'.
 
   // Search filters.
   bytes ownerNetworkId = 5;                        // Optionally, a network identifier of the creator of the activity. If it is set, only activities 
@@ -576,7 +574,7 @@ message ActivitySearchRequest {
 // Specific Error Responses:
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "maxResponseRecordCount" - 'ActivitySearchRequest.maxResponseRecordCount' is not within the required range.
-//     * Response.details == "maxTotalRecordCount" - 'ActivitySearchRequest.maxTotalRecordCount' is not within the required range.
+//     * Response.details == "maxTotalRecordCount" - 'ActivitySearchRequest.maxTotalRecordCount' is not within the required range or the value is less than 'ActivitySearchRequest.maxResponseRecordCount'.
 //     * Response.details == "ownerNetworkId" - 'ActivitySearchRequest.ownerNetworkId' is not a valid identity network identifier.
 //     * Response.details == "type" - 'ActivitySearchRequest.type' is too long.
 //     * Response.details == "startNotAfter" - 'ActivitySearchRequest.startNotAfter' does not represent a valid timestamp value.
@@ -621,8 +619,6 @@ message ActivityQueryInformation {
 //
 //
 // Roles: client
-//
-// Conversation status: ConversationStarted, Verified
 //
 message ActivitySearchPartRequest {
   uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ActivitySearchResponse.totalRecordCount' - 1.
