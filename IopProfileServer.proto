@@ -32,6 +32,14 @@
 //
 //
 //
+// * Identities and Network Identifiers *
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// Each identity in the IoP network is represented by a single Ed25519 key pair. 
+// A network identifier of an identity is then a SHA256 hash of its public key.
+//
+//
+//
 // * Reused Types *
 // ~~~~~~~~~~~~~~~~
 //
