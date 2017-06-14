@@ -317,6 +317,7 @@ message ClientRequest {
     GetNodeInfoRequest getNodeInfo = 1;
     GetNeighbourNodesByDistanceClientRequest getNeighbourNodes = 2;
     GetClosestNodesByDistanceRequest getClosestNodes = 3;
+    RouteToLocationRequest route = 4;
   }
 }
 
@@ -325,6 +326,7 @@ message ClientResponse {
     GetNodeInfoResponse getNodeInfo = 1;
     GetNeighbourNodesByDistanceResponse getNeighbourNodes = 2;
     GetClosestNodesByDistanceResponse getClosestNodes = 3;
+    RouteToLocationResponse route = 4;
   }
 }
 
@@ -342,5 +344,14 @@ message GetNodeInfoResponse {
 // It's a different request type only because clients are not allowed
 // to keep the connection alive and wait for neighbourhood notication changes.
 message GetNeighbourNodesByDistanceClientRequest {
+}
+
+
+message RouteToLocationRequest {
+  GpsLocation location = 1;
+}
+
+message RouteToLocationResponse {
+  NodeInfo closestNode = 1;
 }
 
