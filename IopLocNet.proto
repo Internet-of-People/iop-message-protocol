@@ -317,7 +317,7 @@ message ClientRequest {
     GetNodeInfoRequest getNodeInfo = 1;
     GetNeighbourNodesByDistanceClientRequest getNeighbourNodes = 2;
     GetClosestNodesByDistanceRequest getClosestNodes = 3;
-    RouteToLocationRequest route = 4;
+    ExploreNetworkNodesByDistanceRequest exploreNodes = 4;
   }
 }
 
@@ -326,7 +326,7 @@ message ClientResponse {
     GetNodeInfoResponse getNodeInfo = 1;
     GetNeighbourNodesByDistanceResponse getNeighbourNodes = 2;
     GetClosestNodesByDistanceResponse getClosestNodes = 3;
-    RouteToLocationResponse route = 4;
+    ExploreNetworkNodesByDistanceResponse exploreNodes = 4;
   }
 }
 
@@ -347,11 +347,17 @@ message GetNeighbourNodesByDistanceClientRequest {
 }
 
 
-message RouteToLocationRequest {
+// Explore the closest nodes around the specified location.
+// While GetClosestNodesByDistanceResponse queries information only from this single node,
+// this call requests the node to contact also other nodes which might know the location better
+// so as the mobile client doesn't have to drain too much battery for such network communication.
+message ExploreNetworkNodesByDistanceRequest {
   GpsLocation location = 1;
+  uint32 targetNodeCount = 2;
+  uint32 maxNodeHops = 3;
 }
 
-message RouteToLocationResponse {
-  NodeInfo closestNode = 1;
+message ExploreNetworkNodesByDistanceResponse {
+  repeated NodeInfo closestNodes = 1;
 }
 
