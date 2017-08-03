@@ -17,8 +17,6 @@ install:
 
 # run main process
 script:
-  # generate C++ source code
-  - $HOME/protoc/bin/protoc *.proto --cpp_out=.
   # check .proto files for style violations
   - $HOME/protoc/bin/protoc --lint_out=. *.proto
   
