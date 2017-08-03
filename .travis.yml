@@ -17,6 +17,6 @@ install:
 
 # run main process
 script:
-  # check .proto files for style violations
+  # lint checking for all .proto files
   - $HOME/protoc/bin/protoc --lint_out=. *.proto
   
