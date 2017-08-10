@@ -1,15 +1,17 @@
-# Testing IoP Message Protocol
+# IoP Message Protocol
+
+## Testing
 
 In order to create a software that is compatible with IoP Message Protocol specification, we define the set of tests that the software must pass. 
 If a software passes the given set of tests, it might be compatible with the protocol. If it does not pass all the tests, it is not compatible.
 
-## Notation
+### Notation
 
   * `[X,Y,Z]` is an ordered array of three elements X, Y, and Z. Thus `[X,Y,Z] != [Y,Z,X]`.
   * `(X,Y,Z)` is a set of of three elements X, Y, and Z. Thus `(X,Y,Z) == (Y,Z,X)`.
 
 
-## Profile Server Tests
+### Profile Server Tests
 
 The tests in this section are intended for testing of IoP Profile Server software. 
 
@@ -25,7 +27,7 @@ The tests in this section are intended for testing of IoP Profile Server softwar
   * [PS09xxx - CAN Integration Related Functionality Tests](./tests/PS09.md)
 
 
-## Proximity Server Tests
+### Proximity Server Tests
 
 The tests in this section are intended for testing of IoP Proximity Server software. 
 
