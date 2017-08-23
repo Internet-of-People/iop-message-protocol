@@ -226,7 +226,7 @@ message SingleRequest {
     ProfileSearchRequest profileSearch = 6;
     ProfileSearchPartRequest profileSearchPart = 7;
     ApplicationServiceSendMessageRequest applicationServiceSendMessage = 8;
-    ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 9;
+    ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 9 [deprecated=true];
     ProfileStatsRequest profileStats = 10;
     GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 11;
   }
@@ -248,7 +248,7 @@ message SingleResponse {
     ProfileSearchResponse profileSearch = 6;
     ProfileSearchPartResponse profileSearchPart = 7;
     ApplicationServiceSendMessageResponse applicationServiceSendMessage = 8;
-    ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 9;
+    ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 9 [deprecated=true];
     ProfileStatsResponse profileStats = 10;
     GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 11;
   }
@@ -359,7 +359,7 @@ enum ServerRoleType {
   SR_NEIGHBOR = 2;                                 // Neighbors Interface server role.
   CL_NON_CUSTOMER = 6;                             // Customer Clients Interface server role.
   CL_CUSTOMER = 7;                                 // Non Customer Clients Interface server role.
-  CL_APP_SERVICE = 9;                              // Application Service Interface server role.
+  CL_APP_SERVICE = 9 [deprecated=true];            // Application Service Interface server role.
 }
 
 
