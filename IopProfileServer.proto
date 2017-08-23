@@ -4,7 +4,7 @@
 // We use no v2 or v3 specific features.
 //
 // An integral part of the protocol are the protocol tests:
-// https://github.com/Internet-of-People/message-protocol/blob/master/TESTS.md
+// https://github.com/Internet-of-People/iop-message-protocol/blob/master/TESTS.md
 // The tests must comply with this protocol file, but may add some additional requirements
 // or constraints on the behavior of a compatible software.
 //
@@ -23,7 +23,6 @@
 //   * Neighbors Interface = "srNeighbor"
 //   * Customer Clients Interface = "clCustomer"
 //   * Non Customer Clients Interface = "clNonCustomer"
-//   * Application Service Interface = "clAppService"
 //
 //
 // We mark each request with a list of roles that can serve that request.
@@ -195,21 +194,21 @@ message Message {
 // or this can be part of a longer conversation between the peers.
 message Request {
   oneof ConversationType {                         // Either a request lives on its own without any session or context, or it is a part of a conversation.
-    SingleRequest singleRequest = 1;               // Single requests are requests that are supposed to be sent without further context.
-    ConversationRequest conversationRequest = 2;   // Conversation requests form a session with a context that has to be maintained by peers in order to correctly interpret the messages.
+    SingleRequest single_request = 1;              // Single requests are requests that are supposed to be sent without further context.
+    ConversationRequest conversation_request = 2;  // Conversation requests form a session with a context that has to be maintained by peers in order to correctly interpret the messages.
   }  
 }
 
 
 // To every request there is a response.
 message Response {
-  iop.shared.Status status = 1;                    // Return code.
-  sint64 timestamp = 2;                            // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
-  string details = 3;                              // In case of an error, this field may contain additional details.
+  iop.shared.Status status = 1;                     // Return code.
+  sint64 timestamp = 2;                             // TimestampType. If status is ERROR_BANNED, this field specifies when the blacklist entry expires.
+  string details = 3;                               // In case of an error, this field may contain additional details.
 
-  oneof ConversationType {                         // See 'Request.ConversationType'.
-    SingleResponse singleResponse = 8;             // Responses to single requests are sent as single responses,
-    ConversationResponse conversationResponse = 9; // responses to conversation requests are sent as conversation responses.
+  oneof ConversationType {                          // See 'Request.ConversationType'.
+    SingleResponse single_response = 8;             // Responses to single requests are sent as single responses,
+    ConversationResponse conversation_response = 9; // responses to conversation requests are sent as conversation responses.
   }
 }
 
@@ -220,15 +219,16 @@ message SingleRequest {
   bytes version = 1;                               // VersionType. Protocol version specification.
   oneof RequestType {                              // There are many different standalone requests that can be sent by the requestor.
     PingRequest ping = 2;
-    ListRolesRequest listRoles = 3;
-    ListHostingPlansRequest listHostingPlans = 4;
-    GetProfileInformationRequest getProfileInformation = 5;
-    ProfileSearchRequest profileSearch = 6;
-    ProfileSearchPartRequest profileSearchPart = 7;
-    ApplicationServiceSendMessageRequest applicationServiceSendMessage = 8;
-    ApplicationServiceReceiveMessageNotificationRequest applicationServiceReceiveMessageNotification = 9 [deprecated=true];
-    ProfileStatsRequest profileStats = 10;
-    GetIdentityRelationshipsInformationRequest getIdentityRelationshipsInformation = 11;
+    ListRolesRequest list_roles = 3;
+    ListHostingPlansRequest list_hosting_plans = 4;
+    GetProfileInformationRequest get_profile_information = 5;
+    ProfileSearchRequest profile_search = 6;
+    ProfileSearchPartRequest profile_search_part = 7;
+    ApplicationServiceSendMessageRequest application_service_send_message = 8;
+    ApplicationServiceReceiveMessageNotificationRequest application_service_receive_message_notification = 9 [deprecated=true];
+    ProfileStatsRequest profile_stats = 10;
+    GetIdentityRelationshipsInformationRequest get_identity_relationships_information = 11;
+    CloseCallRequest close_call = 12;
   }
 }
 
@@ -242,15 +242,16 @@ message SingleResponse {
 
   oneof ResponseType {                             // See 'SingleRequest.RequestType'. Each request has its corresponding response.
     PingResponse ping = 2;
-    ListRolesResponse listRoles = 3;
-    ListHostingPlansResponse listHostingPlans = 4;
-    GetProfileInformationResponse getProfileInformation = 5;
-    ProfileSearchResponse profileSearch = 6;
-    ProfileSearchPartResponse profileSearchPart = 7;
-    ApplicationServiceSendMessageResponse applicationServiceSendMessage = 8;
-    ApplicationServiceReceiveMessageNotificationResponse applicationServiceReceiveMessageNotification = 9 [deprecated=true];
-    ProfileStatsResponse profileStats = 10;
-    GetIdentityRelationshipsInformationResponse getIdentityRelationshipsInformation = 11;
+    ListRolesResponse list_roles = 3;
+    ListHostingPlansResponse list_hosting_plans = 4;
+    GetProfileInformationResponse get_profile_information = 5;
+    ProfileSearchResponse profile_search = 6;
+    ProfileSearchPartResponse profile_search_part = 7;
+    ApplicationServiceSendMessageResponse application_service_send_message = 8;
+    ApplicationServiceReceiveMessageNotificationResponse application_service_receive_message_notification = 9 [deprecated=true];
+    ProfileStatsResponse profile_stats = 10;
+    GetIdentityRelationshipsInformationResponse get_identity_relationships_information = 11;
+    CloseCallResponse close_call = 12;
   }
 }
 
@@ -1199,7 +1200,7 @@ message IncomingCallNotificationResponse {
 // another message while having 20 pending messages, the profile server destroys the call channel.
 //
 //
-// Roles: clAppService
+// Roles: clNonCustomer, clCustomer
 //
 message ApplicationServiceSendMessageRequest {
   bytes token = 1;                                 // Client's token to identify the session.
@@ -1208,38 +1209,56 @@ message ApplicationServiceSendMessageRequest {
 
 
 //
-// A response to ApplicationServiceSendMessageRequest. This is sent by the profile server to the client to 
-// confirm that it sent the message to the other client and the other client confirmed its arrival.
-// 
-// If the connection to one of the clients is terminated, the profile server closes the connection to the 
-// other client.
+// A response to ApplicationServiceSendMessageRequest. This confirms that a single message was processed in the session.
 //
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - 'ApplicationServiceSendMessageRequest.token' is not a valid token. This can have many causes.
 //                       The token itself can have invalid format, or no such token was ever issued by the server. 
-//                       However, it can also be the case that the token was valid in the past but the call channel 
-//                       was closed by the server for any reason and thus the token is no longer valid. 
+//                       However, it can also be the case that the token was valid in the past but the session
+//                       was destroyed by the server for any reason and thus the token is no longer valid.
 //
 message ApplicationServiceSendMessageResponse {
+  bytes token = 1;                                 // Client's token to identify the session.
 }
 
+//
+// This request is sent by a client to the profile server in order to finish the session to an application service
+// that was initiated by an CallIdentityApplicationServiceRequest call. Also, the same message is relayed to the
+// other peer of the session by the profile server so the peer can also free up resources consumed by the session.
+//
+// Both peers of a session can initiate closing the session. Also, profile server will inform clients with this message
+// in case it destroys the session for any reason (e.g. a peer lost network connection for too long)
+//
+// Roles: clNonCustomer, clCustomer
+//
+message CloseCallRequest {
+  bytes token = 1;                                 // Client's token to identify the session.
+}
 
+//
+// A response to CloseCallRequest.
+//
+// Specific Error Responses:
+//   * ERROR_NOT_FOUND - 'ApplicationServiceSendMessageRequest.token' is not a valid token.
+//
+message CloseCallResponse {
+  bytes token = 1;                                 // Client's token to identify the session.
+}
 
 // 
-// This request is sent by a profile server after it received ApplicationServiceSendMessageRequest from 
-// one of the clients. This forwards the message to its intended recipient.
-//
-// Roles: clAppService
+// Obsolete, use ApplicationServiceSendMessageRequest
 //
 message ApplicationServiceReceiveMessageNotificationRequest {
-  bytes message = 1;                               // Message that was sent to the intended recipient - a copy of 'ApplicationServiceSendMessageRequest.message'.
+  option deprecated=true;
+  bytes message = 1;
 }
 
 
 //
-// A response to ApplicationServiceReceiveMessageNotificationRequest.
+// Obsolete, use ApplicationServiceSendMessageResponse
 // 
 message ApplicationServiceReceiveMessageNotificationResponse {
+  option deprecated=true;
 }
 
 
