@@ -265,23 +265,23 @@ message ConversationRequest {
   oneof RequestType {                              // There are many different requests that can be sent in the conversation.
     // Request body.
     StartConversationRequest start = 2;
-    RegisterHostingRequest registerHosting = 3;
-    CheckInRequest checkIn = 4;
-    VerifyIdentityRequest verifyIdentity = 5;
-    UpdateProfileRequest updateProfile = 6;
-    CancelHostingAgreementRequest cancelHostingAgreement = 7;
-    ApplicationServiceAddRequest applicationServiceAdd = 8;
-    ApplicationServiceRemoveRequest applicationServiceRemove = 9;
-    CallIdentityApplicationServiceRequest callIdentityApplicationService = 10;
-    IncomingCallNotificationRequest incomingCallNotification = 11;
-    AddRelatedIdentityRequest addRelatedIdentity = 12;
-    RemoveRelatedIdentityRequest removeRelatedIdentity = 13;
-    StartNeighborhoodInitializationRequest startNeighborhoodInitialization = 14;
-    FinishNeighborhoodInitializationRequest finishNeighborhoodInitialization = 15;
-    NeighborhoodSharedProfileUpdateRequest neighborhoodSharedProfileUpdate = 16;
-    StopNeighborhoodUpdatesRequest stopNeighborhoodUpdates = 17;
-    CanStoreDataRequest canStoreData = 18;
-    CanPublishIpnsRecordRequest canPublishIpnsRecord = 19;
+    RegisterHostingRequest register_hosting = 3;
+    CheckInRequest check_in = 4;
+    VerifyIdentityRequest verify_identity = 5;
+    UpdateProfileRequest update_profile = 6;
+    CancelHostingAgreementRequest cancel_hosting_agreement = 7;
+    ApplicationServiceAddRequest application_service_add = 8;
+    ApplicationServiceRemoveRequest application_service_remove = 9;
+    CallIdentityApplicationServiceRequest call_identity_application_service = 10;
+    IncomingCallNotificationRequest incoming_call_notification = 11;
+    AddRelatedIdentityRequest add_related_identity = 12;
+    RemoveRelatedIdentityRequest remove_related_identity = 13;
+    StartNeighborhoodInitializationRequest start_neighborhood_initialization = 14;
+    FinishNeighborhoodInitializationRequest finish_neighborhood_initialization = 15;
+    NeighborhoodSharedProfileUpdateRequest neighborhood_shared_profile_update = 16;
+    StopNeighborhoodUpdatesRequest stop_neighborhood_updates = 17;
+    CanStoreDataRequest can_store_data = 18;
+    CanPublishIpnsRecordRequest can_publish_ipns_record = 19;
   }
 }
 
@@ -293,23 +293,23 @@ message ConversationResponse {
   oneof ResponseType {                             // There are many different requests that can be sent in the conversation.
     // Response body.
     StartConversationResponse start = 2;
-    RegisterHostingResponse registerHosting = 3;
-    CheckInResponse checkIn = 4;
-    VerifyIdentityResponse verifyIdentity = 5;
-    UpdateProfileResponse updateProfile = 6;
-    CancelHostingAgreementResponse cancelHostingAgreement = 7;
-    ApplicationServiceAddResponse applicationServiceAdd = 8;
-    ApplicationServiceRemoveResponse applicationServiceRemove = 9;
-    CallIdentityApplicationServiceResponse callIdentityApplicationService = 10;
-    IncomingCallNotificationResponse incomingCallNotification = 11;
-    AddRelatedIdentityResponse addRelatedIdentity = 12;
-    RemoveRelatedIdentityResponse removeRelatedIdentity = 13;
-    StartNeighborhoodInitializationResponse startNeighborhoodInitialization = 14;
-    FinishNeighborhoodInitializationResponse finishNeighborhoodInitialization = 15;
-    NeighborhoodSharedProfileUpdateResponse neighborhoodSharedProfileUpdate = 16;
-    StopNeighborhoodUpdatesResponse stopNeighborhoodUpdates = 17;
-    CanStoreDataResponse canStoreData = 18;
-    CanPublishIpnsRecordResponse canPublishIpnsRecord = 19;
+    RegisterHostingResponse register_hosting = 3;
+    CheckInResponse check_in = 4;
+    VerifyIdentityResponse verify_identity = 5;
+    UpdateProfileResponse update_profile = 6;
+    CancelHostingAgreementResponse cancel_hosting_agreement = 7;
+    ApplicationServiceAddResponse application_service_add = 8;
+    ApplicationServiceRemoveResponse application_service_remove = 9;
+    CallIdentityApplicationServiceResponse call_identity_application_service = 10;
+    IncomingCallNotificationResponse incoming_call_notification = 11;
+    AddRelatedIdentityResponse add_related_identity = 12;
+    RemoveRelatedIdentityResponse remove_related_identity = 13;
+    StartNeighborhoodInitializationResponse start_neighborhood_initialization = 14;
+    FinishNeighborhoodInitializationResponse finish_neighborhood_initialization = 15;
+    NeighborhoodSharedProfileUpdateResponse neighborhood_shared_profile_update = 16;
+    StopNeighborhoodUpdatesResponse stop_neighborhood_updates = 17;
+    CanStoreDataResponse can_store_data = 18;
+    CanPublishIpnsRecordResponse can_publish_ipns_record = 19;
   }
 }
 
@@ -368,8 +368,8 @@ enum ServerRoleType {
 message ServerRole {
   ServerRoleType role = 1;                         // Server role type.
   uint32 port = 2;                                 // On which port is this server role provided.
-  bool isTcp = 3;                                  // true if the port is TCP port, false means UDP.
-  bool isTls = 4;                                  // true if the port is TLS encrypted, false otherwise.
+  bool is_tcp = 3;                                  // true if the port is TCP port, false means UDP.
+  bool is_tls = 4;                                  // true if the port is TLS encrypted, false otherwise.
 }
 
 
@@ -560,7 +560,7 @@ message ServerRole {
 // Roles: clNonCustomer
 //
 message ListHostingPlansRequest {
-  string identityType = 1;                         // A specific identity type, for which the client searches the plan.
+  string identity_type = 1;                         // A specific identity type, for which the client searches the plan.
 }
 
 
@@ -579,17 +579,17 @@ message ListHostingPlansResponse {
 
 // Description of a hosting plan.
 message HostingPlan {
-  bytes planId = 1;                                // Identifier of the plan is a SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
-                                                   // with planId initialized to a byte array of 32 zero bytes.
-  bytes serverNetworkId = 2;                       // Identifier of the profile server that offers the plan.
-  string identityType = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
-                                                   // at the end of the type to support multiple types to be served with a single plan. 
-                                                   // For example, the value "*" would mean that any identity type is supported,
-                                                   // and the value "Taxi *" would mean that any identity type that starts with "Taxi *"
-                                                   // would match this plan.
-  uint64 fee = 4;                                  // TokenAmountType. Price of the plan per billing period.
-  uint32 billingPeriodSeconds = 5;                 // Length of the billing period in seconds.
-  repeated NameStringValuePair planParameters = 9; // List of additional service parameters that define the plan.
+  bytes plan_id = 1;                                // Identifier of the plan is a SHA256 hash of the HostingPlan structure in Google Protobuf v3 encoding 
+                                                    // with plan_id initialized to a byte array of 32 zero bytes.
+  bytes server_network_id = 2;                       // Identifier of the profile server that offers the plan.
+  string identity_type = 3;                         // Type of identity this plan is created for. This can include "*" as a wildcard character
+                                                    // at the end of the type to support multiple types to be served with a single plan. 
+                                                    // For example, the value "*" would mean that any identity type is supported,
+                                                    // and the value "Taxi *" would mean that any identity type that starts with "Taxi *"
+                                                    // would match this plan.
+  uint64 fee = 4;                                   // TokenAmountType. Price of the plan per billing period.
+  uint32 billing_period_seconds = 5;                // Length of the billing period in seconds.
+  repeated NameStringValuePair plan_parameters = 9; // List of additional service parameters that define the plan.
 }
 
 // Description of name-value structure with string values.
@@ -609,10 +609,10 @@ message NameStringValuePair {
 // Conversation status: NoConversation
 //
 message StartConversationRequest {
-  repeated bytes supportedVersions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
-  bytes publicKey = 2;                             // Public key of the requestor. Max 128 bytes.
+  repeated bytes supported_versions = 1;            // List of VersionType items. Ordered by requestor's preference. See 'SingleRequest.version'.
+  bytes public_key = 2;                             // Public key of the requestor. Max 128 bytes.
 
-  bytes clientChallenge = 3;                       // 32 byte challenge data (random bytes generated by the requestor) that is used for authentication purposes.
+  bytes client_challenge = 3;                       // 32 byte challenge data (random bytes generated by the requestor) that is used for authentication purposes.
 }
 
 
@@ -620,22 +620,22 @@ message StartConversationRequest {
 // A response to StartConversationRequest in case the requestee found at least one protocol version that 
 // both peers are willing to use. 
 // 
-// The 'clientChallenge' field value in raw format is signed with a signature in 'ConversationResponse.signature'.
+// The 'client_challenge' field value in raw format is signed with a signature in 'ConversationResponse.signature'.
 // 
 //
 // After StartConversationResponse is sent, the conversation context includes version and keys of both peers.
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "publicKey" - 'StartConversationRequest.publicKey' is not a valid public key value. 
-//     * Response.details == "clientChallenge" - 'StartConversationRequest.clientChallenge' is not 32 byte long. 
+//     * Response.details == "publicKey" - 'StartConversationRequest.public_key' is not a valid public key value. 
+//     * Response.details == "clientChallenge" - 'StartConversationRequest.client_challenge' is not 32 byte long. 
 //
 message StartConversationResponse {
   bytes version = 1;                               // VersionType. The version that the requestee selected from the offered set.
-  bytes publicKey = 2;                             // Public key of the requestee.
+  bytes public_key = 2;                             // Public key of the requestee.
 
   bytes challenge = 3;                             // 32 byte challenge data (random bytes generated by the requestee) that is used for later authentication purposes.
-  bytes clientChallenge = 4;                       // Copy of 'StartConversationRequest.clientChallenge' that is signed by the requestee. 
+  bytes client_challenge = 4;                       // Copy of 'StartConversationRequest.client_challenge' that is signed by the requestee. 
                                                    // The requestor can then verify the signature in order to check the requestee's claimed identity.
 }
 
@@ -663,9 +663,9 @@ message RegisterHostingRequest {
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the contract is not valid.
 //   * ERROR_ALREADY_EXISTS - The identity is hosted by the server already.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "contract.startTime" - 'RegisterHostingRequest.contract.startTime' is more than 1 hour in the past or is not a valid timestamp value. 
-//     * Response.details == "contract.identityPublicKey" - 'RegisterHostingRequest.contract.identityPublicKey' does not match identity's public key.
-//     * Response.details == "contract.identityType" - 'RegisterHostingRequest.contract.identityType' does not match the hosting plan or is invalid.
+//     * Response.details == "contract.startTime" - 'RegisterHostingRequest.contract.start_time' is more than 1 hour in the past or is not a valid timestamp value. 
+//     * Response.details == "contract.identityPublicKey" - 'RegisterHostingRequest.contract.identity_public_key' does not match identity's public key.
+//     * Response.details == "contract.identityType" - 'RegisterHostingRequest.contract.identity_type' does not match the hosting plan or is invalid.
 //
 message RegisterHostingResponse {
   HostingPlanContract contract = 1;                // Description of the contract that the client wants to have with the server and the server accepted it.
@@ -675,15 +675,15 @@ message RegisterHostingResponse {
 
 // A description of the contract between a client and a profile server.
 message HostingPlanContract {
-  bytes planId = 1;                                // Identifier of the profile server's hosting plan.
+  bytes plan_id = 1;                               // Identifier of the profile server's hosting plan.
                                                    // Note that the current version ignores this value.
-  bytes identityPublicKey = 2;                     // Public key of the client's identity.
-  sint64 startTime = 3;                            // TimestampType. Specifies the start time of the contract. This has to be set either to the future, or to a time that is not 
+  bytes identity_public_key = 2;                   // Public key of the client's identity.
+  sint64 start_time = 3;                           // TimestampType. Specifies the start time of the contract. This has to be set either to the future, or to a time that is not 
                                                    // more than 1 hour in past from the current profile server's time.
-  string identityType = 4;                         // Type of the client's identity. It has to match the 'HostingPlan.identityType' filter in the selected plan.
-                                                   // For example, if 'HostingPlan.identityType' is "Taxi *" then 'identityType' can be "Taxi Driver",
-                                                   // but not "Bus Driver". Also 'identityType' can not contain '*' wildcard character, so "Taxi *" is not a valid value
-                                                   // for 'identityType' here even if 'HostingPlan.identityType' is "Taxi *". 
+  string identity_type = 4;                        // Type of the client's identity. It has to match the 'HostingPlan.identity_Type' filter in the selected plan.
+                                                   // For example, if 'HostingPlan.identity_Type' is "Taxi *" then 'identity_Type' can be "Taxi Driver",
+                                                   // but not "Bus Driver". Also 'identity_Type' can not contain '*' wildcard character, so "Taxi *" is not a valid value
+                                                   // for 'identity_Type' here even if 'HostingPlan.identity_Type' is "Taxi *". 
                                                    // Non-empty stirng, max 64 bytes long.
                                                    // VERSION NOTE: Note that in current version, the hosting plans are not supported and the client should set 'identityType' to whatever type it needs.
 }
@@ -759,11 +759,11 @@ message VerifyIdentityResponse {
 //
 message UpdateProfileRequest {
   ProfileInformation profile = 1;
-  bytes profileImage = 2;                          // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long, or zero length binary data if the profile image is about to be erased.
-                                                   // The SHA256 hash of the binary data has to match 'profile.profileImageHash'.
-  bytes thumbnailImage = 3;                        // Thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long, or zero length binary data if the thumbnail image is about to be erased.
-                                                   // The SHA256 hash of the binary data has to match 'profile.thumbnailImageHash'.
-  bool noPropagation = 4;                          // If set to true, the profile server will not propagate the update to the neighborhood.
+  bytes profile_image = 2;                         // Profile image in PNG or JPEG format, non-empty binary data, max 20,480 bytes long, or zero length binary data if the profile image is about to be erased.
+                                                   // The SHA256 hash of the binary data has to match 'profile.profile_imageHash'.
+  bytes thumbnail_image = 3;                       // Thumbnail image in PNG or JPEG format, non-empty binary data, max 5,120 bytes long, or zero length binary data if the thumbnail image is about to be erased.
+                                                   // The SHA256 hash of the binary data has to match 'profile.thumbnail_image_hash'.
+  bool no_propagation = 4;                         // If set to true, the profile server will not propagate the update to the neighborhood.
                                                    // This is useful for updates of parts of profile's extra data information that do not affect 
                                                    // other clients who search for this activity.
                                                    // This has to be false during the first update of the profile.
@@ -778,17 +778,17 @@ message UpdateProfileRequest {
 //   * ERROR_INVALID_SIGNATURE - The client's signature of the 'UpdateProfileRequest.profile' in 'ConversationRequest.signature' is not valid.
 //   * ERROR_INVALID_VALUE
 //     * Response.details == "profile.version" - 'UpdateProfileRequest.profile.version' does not contain a valid version information.
-//     * Response.details == "profile.publicKey" - 'UpdateProfileRequest.profile.publicKey' is not the client's public key.
+//     * Response.details == "profile.publicKey" - 'UpdateProfileRequest.profile.public_key' is not the client's public key.
 //     * Response.details == "profile.type" - 'UpdateProfileRequest.profile.type' does not match the original identity's profile type.
 //     * Response.details == "profile.name" - 'UpdateProfileRequest.profile.name' does not contain a valid name.
 //     * Response.details == "profile.latitude" - 'UpdateProfileRequest.profile.latitude' does not contain a valid latitude information.
 //     * Response.details == "profile.longitude" - 'UpdateProfileRequest.profile.longitude' does not contain a valid longitude information.
-//     * Response.details == "profile.extraData" - 'UpdateProfileRequest.profile.extraData' does not contain a valid extra data information.
-//     * Response.details == "profile.profileImageHash" - 'UpdateProfileRequest.profile.profileImageHash' is neither a valid SHA256 hash nor empty array.
-//     * Response.details == "profile.thumbnailImageHash" - 'UpdateProfileRequest.profile.thumbnailImageHash' is neither a valid SHA256 hash nor empty array.
-//     * Response.details == "profileImage" - 'UpdateProfileRequest.profileImage' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.profileImageHash' value.
-//     * Response.details == "thumbnailImage" - 'UpdateProfileRequest.thumbnailImage' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.thumbnailImageHash' value.
-//     * Response.details == "noPropagation" - 'UpdateProfileRequest.noPropagation' must be false during the first update of the profile.
+//     * Response.details == "profile.extraData" - 'UpdateProfileRequest.profile.extra_data' does not contain a valid extra data information.
+//     * Response.details == "profile.profileImageHash" - 'UpdateProfileRequest.profile.profile_image_hash' is neither a valid SHA256 hash nor empty array.
+//     * Response.details == "profile.thumbnailImageHash" - 'UpdateProfileRequest.profile.thumbnail_image_hash' is neither a valid SHA256 hash nor empty array.
+//     * Response.details == "profileImage" - 'UpdateProfileRequest.profile_image' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.profile_image_hash' value.
+//     * Response.details == "thumbnailImage" - 'UpdateProfileRequest.thumbnail_image' is not a valid PNG or JPEG image data or it exceeds the size limit or it does not correspond to the 'UpdateProfileRequest.profile.thumbnail_image_hash' value.
+//     * Response.details == "noPropagation" - 'UpdateProfileRequest.no_propagation' must be false during the first update of the profile.
 //
 message UpdateProfileResponse {
 }
@@ -799,16 +799,16 @@ message UpdateProfileResponse {
 //
 message ProfileInformation {
   bytes version = 1;                               // VersionType. Version of the profile structure.
-  bytes publicKey = 2;                             // Identity public key.
+  bytes public_key = 2;                            // Identity public key.
   string type = 3;                                 // Type of the client's identity. Max 64 bytes long. This information is set up during hosting registration process and can not be changed by update later.
   string name = 4;                                 // Name of the profile, non-empty string, max 64 bytes long.
 
   sfixed32 latitude = 5;                           // LocationType. GPS location latitude information.
   sfixed32 longitude = 6;                          // LocationType. GPS location longitude information.
-  string extraData = 7;                            // Semicolon separated 'key=value' list, max 200 bytes long.
+  string extra_data = 7;                           // Semicolon separated 'key=value' list, max 200 bytes long.
 
-  bytes profileImageHash = 8;                      // SHA256 hash of profile image data, or empty array if no profile image is set, or it is about to be deleted.
-  bytes thumbnailImageHash = 9;                    // SHA256 hash of thumbnail image data, or empty array if no thumbnail image is set, or it is about to be deleted.
+  bytes profile_image_hash = 8;                    // SHA256 hash of profile image data, or empty array if no profile image is set, or it is about to be deleted.
+  bytes thumbnail_image_hash = 9;                  // SHA256 hash of thumbnail image data, or empty array if no thumbnail image is set, or it is about to be deleted.
 }
 
 
@@ -833,8 +833,8 @@ message SignedProfileInformation {
 // Conversation status: Authenticated
 //
 message CancelHostingAgreementRequest {
-  bool redirectToNewProfileServer = 1;             // true, if the client wants to inform the profile server about its new profile server location, false otherwise.
-  bytes newProfileServerNetworkId = 2;             // If 'redirectToNewProfileServer' is true, an identifier of the new profile server.
+  bool redirect_to_new_profile_server = 1;         // true, if the client wants to inform the profile server about its new profile server location, false otherwise.
+  bytes new_profile_server_network_id = 2;         // If 'redirect_to_new_profile_server' is true, an identifier of the new profile server.
 }
 
 //
@@ -843,7 +843,7 @@ message CancelHostingAgreementRequest {
 // Specific Error Responses:
 //   * ERROR_NOT_FOUND - The identity is not a client of the profile server.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "newProfileServerNetworkId" - 'CancelHostingAgreementRequest.newProfileServerNetworkId' is not a valid profile server network identifier.
+//     * Response.details == "newProfileServerNetworkId" - 'CancelHostingAgreementRequest.new_profile_server_network_id' is not a valid profile server network identifier.
 //
 message CancelHostingAgreementResponse {
 }
@@ -859,7 +859,7 @@ message CancelHostingAgreementResponse {
 // Conversation status: Authenticated
 //
 message ApplicationServiceAddRequest {
-  repeated string serviceNames = 1;                // List of application service names to add to the list. If a service name is already 
+  repeated string service_names = 1;               // List of application service names to add to the list. If a service name is already 
                                                    // in the list, it will remain in the list and no error is reported.
                                                    // Each service name has to be a non-empty string, max 32 bytes long.
                                                    // Each customer client can have up to 50 application services enabled.
@@ -870,7 +870,7 @@ message ApplicationServiceAddRequest {
 //
 //   * ERROR_QUOTA_EXCEEDED - The given set of application services can not be added because the client would have more than the maximum number of enabled services.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.serviceNames[i]' is not a valid service name, where 'i' is a zero-based index.
+//     * Response.details == "serviceNames[i]" - 'ApplicationServiceAddRequest.service_Names[i]' is not a valid service name, where 'i' is a zero-based index.
 //
 message ApplicationServiceAddResponse {
 }
@@ -886,7 +886,7 @@ message ApplicationServiceAddResponse {
 // Conversation status: Authenticated
 //
 message ApplicationServiceRemoveRequest {
-  string serviceName = 1;                          // Name of the application service to remove. The service must be in the customer client's list.
+  string service_name = 1;                          // Name of the application service to remove. The service must be in the customer client's list.
 }
 
 //
@@ -1074,10 +1074,10 @@ message ApplicationServiceRemoveResponse {
 // Roles: clNonCustomer, clCustomer
 //
 message GetProfileInformationRequest {
-  bytes identityNetworkId = 1;                     // Identity's network identifier.
-  bool includeProfileImage = 2;                    // If set to true, the response will include a profile image.
-  bool includeThumbnailImage = 3;                  // If set to true, the response will include a thumbnail image.
-  bool includeApplicationServices = 4;             // If set to true and the given identity is online, the response will include 
+  bytes identity_network_id = 1;                   // Identity's network identifier.
+  bool include_profile_image = 2;                  // If set to true, the response will include a profile image.
+  bool include_thumbnail_image = 3;                // If set to true, the response will include a thumbnail image.
+  bool include_application_services = 4;           // If set to true and the given identity is online, the response will include 
                                                    // a list of application services that the identity supports in the currently active session.
 }
 
@@ -1086,23 +1086,23 @@ message GetProfileInformationRequest {
 // A response to GetProfileInformationRequest.
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - 'GetProfileInformationRequest.identityNetworkId' does not identify an identity hosted by the profile server.
+//   * ERROR_NOT_FOUND - 'GetProfileInformationRequest.identity_network_id' does not identify an identity hosted by the profile server.
 //   * ERROR_UNINITIALIZED - The target identity's profile has not been initialized yet.
 //
 message GetProfileInformationResponse {
-  bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
-  bool isTargetProfileServerKnown = 2;             // If 'isHosted' is false then this is true if the identity's new profile server is known to the profile server. In all other cases, this is false.
-  bytes targetProfileServerNetworkId = 3;          // If 'isTargetProfileServerKnown' is true then this field contains the identity's new profile server network ID.
+  bool is_hosted = 1;                              // True if the requested identity is a customer of the profile server.
+  bool is_target_profile_server_known = 2;         // If 'is_hosted' is false then this is true if the identity's new profile server is known to the profile server. In all other cases, this is false.
+  bytes target_profile_server_network_id = 3;      // If 'is_target_profile_server_known' is true then this field contains the identity's new profile server network ID.
 
-  // Following fields are valid only if 'isHosted' is true.
-  bool isOnline = 4;                               // If 'isHosted' is true, then this is true if the requested identity is currently online.
+  // Following fields are valid only if 'is_hosted' is true.
+  bool is_online = 4;                              // If 'is_hosted' is true, then this is true if the requested identity is currently online.
 
-  SignedProfileInformation signedProfile = 5;      // If 'isHosted' is true, this is requested identity signed profile information.
+  SignedProfileInformation signed_profile = 5;     // If 'is_hosted' is true, this is requested identity signed profile information.
 
-  bytes profileImage = 6;                          // If 'isHosted' is true and if 'GetProfileInformationRequest.includeProfileImage' was set, this contains the requested identity's profile image or empty array if the profile has no profile image.
-  bytes thumbnailImage = 7;                        // If 'isHosted' is true and if 'GetProfileInformationRequest.includeThumbnailImage' was set, this contains the requested identity's thumbnail image or empty array if the profile has no thumbnail image.
+  bytes profile_image = 6;                         // If 'is_hosted' is true and if 'GetProfileInformationRequest.include_profile_image' was set, this contains the requested identity's profile image or empty array if the profile has no profile image.
+  bytes thumbnail_image = 7;                       // If 'is_hosted' is true and if 'GetProfileInformationRequest.include_thumbnail_image' was set, this contains the requested identity's thumbnail image or empty array if the profile has no thumbnail image.
 
-  repeated string applicationServices = 8;         // If 'isHosted' is true and if 'GetProfileInformationRequest.includeApplicationServices' was set and if 'isOnline' is true, this contains 
+  repeated string application_services = 8;        // If 'is_hosted' is true and if 'GetProfileInformationRequest.include_application_services' was set and if 'is_online' is true, this contains
                                                    // the list of application services that the requested identity supports in the currently active session.                                                   
 }
 
@@ -1125,8 +1125,8 @@ message GetProfileInformationResponse {
 // Conversation status: Verified
 //
 message CallIdentityApplicationServiceRequest {
-  bytes identityNetworkId = 1;                     // Network identifier of the identity to call.
-  string serviceName = 2;                          // Name of the application service to use.
+  bytes identity_network_id = 1;                   // Network identifier of the identity to call.
+  string service_name = 2;                         // Name of the application service to use.
 }
 
 
@@ -1138,11 +1138,11 @@ message CallIdentityApplicationServiceRequest {
 //   * ERROR_REJECTED - The callee rejected the call.
 //   * ERROR_UNINITIALIZED - The callee's profile has not been initialized yet.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "identityNetworkId" - 'CallIdentityApplicationServiceRequest.identityNetworkId' does not identify an identity hosted by the profile server.
-//     * Response.details == "serviceName" - 'CallIdentityApplicationServiceRequest.serviceName' is not an application service supported by the callee in the current session.
+//     * Response.details == "identityNetworkId" - 'CallIdentityApplicationServiceRequest.identity_network_id' does not identify an identity hosted by the profile server.
+//     * Response.details == "serviceName" - 'CallIdentityApplicationServiceRequest.service_name' is not an application service supported by the callee in the current session.
 //
 message CallIdentityApplicationServiceResponse {
-  bytes callerToken = 1;                           // Token for the caller to identify the session on the Application Service Interface.
+  bytes caller_token = 1;                           // Token for the caller to identify the session on the Application Service Interface.
 }
 
 
@@ -1157,9 +1157,9 @@ message CallIdentityApplicationServiceResponse {
 // Conversation status: Authenticated
 //
 message IncomingCallNotificationRequest {
-  bytes callerPublicKey = 1;                       // Public key of the caller.
-  string serviceName = 2;                          // Name of the application service the caller wants to use.
-  bytes calleeToken = 3;                           // Token for the callee to identify the session on the Application Service Interface.
+  bytes caller_public_key = 1;                     // Public key of the caller.
+  string service_name = 2;                         // Name of the application service the caller wants to use.
+  bytes callee_token = 3;                          // Token for the callee to identify the session on the Application Service Interface.
 }
 
 
@@ -1285,7 +1285,7 @@ message ProfileStatsResponse {
 // Statistical information on identities of a specific type.
 //
 message ProfileStatsItem {
-  string identityType = 1;                         // Type of identity. 
+  string identity_type = 1;                         // Type of identity. 
   uint32 count = 2;                                // Number of profiles hosted on the profile server of the specific type of identity.
 }
 
@@ -1310,16 +1310,16 @@ message ProfileStatsItem {
 // Roles: clNonCustomer, clCustomer
 //
 message ProfileSearchRequest {
-  bool includeHostedOnly = 1;                      // If set to true, the profile server only returns profiles of its own customers.
+  bool include_hosted_only = 1;                    // If set to true, the profile server only returns profiles of its own customers.
                                                    // If set to false, profiles from the server's neighborhood can be included in the result.
-  bool includeThumbnailImages = 2;                 // If set to true, the response will include a thumbnail image of each profile.
-  uint32 maxResponseRecordCount = 3;               // Maximal number of results to be delivered in the response. If 'includeThumbnailImages'
-                                                   // is true, this has to be an integer between 1 and 100. If 'includeThumbnailImages' is false,
+  bool include_thumbnail_images = 2;               // If set to true, the response will include a thumbnail image of each profile.
+  uint32 max_response_record_count = 3;            // Maximal number of results to be delivered in the response. If 'include_thumbnail_images'
+                                                   // is true, this has to be an integer between 1 and 100. If 'include_thumbnail_images' is false,
                                                    // this has to be an integer between 1 and 1,000. 
-  uint32 maxTotalRecordCount = 4;                  // Maximal number of total results that the profile server will look for and save. If 'includeThumbnailImages'
-                                                   // is true, this has to be an integer between 1 and 1,000. If 'includeThumbnailImages' is false,
+  uint32 max_total_record_count = 4;               // Maximal number of total results that the profile server will look for and save. If 'include_thumbnail_images'
+                                                   // is true, this has to be an integer between 1 and 1,000. If 'include_thumbnail_images' is false,
                                                    // this has to be an integer between 1 and 10,000.
-                                                   // The value must be greater than or equal to 'maxTotalRecordCount'.
+                                                   // The value must be greater than or equal to 'max_total_record_count'.
 
   // Search filters.
   string type = 5;                                 // WildcardType or empty string. If not empty, the profile server will only return profiles 
@@ -1335,7 +1335,7 @@ message ProfileSearchRequest {
                                                    // and all locations are allowed.
   sfixed32 longitude = 8;                          // LocationType. If 'latitude' is not NO_LOCATION, this is target GPS location longitude.
   uint32 radius = 9;                               // If 'latitude' is not NO_LOCATION, this is target location radius in metres.
-  string extraData = 10;                           // RegexType or empty string. If not empty, it specifies the regular expression that identity
+  string extra_data = 10;                          // RegexType or empty string. If not empty, it specifies the regular expression that identity
                                                    // profile's extra data information must match in order to be included in the results. 
                                                    // If empty, no filtering based on extra data information is made.
                                                    // Max 256 bytes long.
@@ -1345,42 +1345,42 @@ message ProfileSearchRequest {
 //
 // A response to ProfileSearchRequest.
 //
-// If 'maxResponseRecordCount' is lower than 'totalRecordCount', the client is allowed to send 
+// If 'max_response_record_count' is lower than 'total_record_count', the client is allowed to send 
 // ProfileSearchPartRequest messages to obtain more results.
 //
 // If a client is looking for a small set of profiles within a large area, it might need to perform 
 // multiple search queries across several profile servers in the target area in order to "cover" it. 
-// 'coveredServers' contains a list of profile servers forming the neighborhood of the profile server 
+// 'covered_servers' contains a list of profile servers forming the neighborhood of the profile server 
 // being queried. Neighborhood servers share their profile databases and a query to one server will 
 // thus cover profile servers in its neighborhood. Note that this information is not much relevant 
 // in case the number of result is large and the number of results is limited by the protocol. 
 // In this case, it is possible that the profile server returns results from profile databases only 
-// from a small subset of its neighborhood provided in the 'coveredServers' value, or even only from 
+// from a small subset of its neighborhood provided in the 'covered_servers' value, or even only from 
 // its own database.
 //
 //
 // Specific Error Responses:
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "maxResponseRecordCount" - 'ProfileSearchRequest.maxResponseRecordCount' is not within the required range.
-//     * Response.details == "maxTotalRecordCount" - 'ProfileSearchRequest.maxTotalRecordCount' is not within the required range or the value is less than 'ProfileSearchRequest.maxResponseRecordCount'.
+//     * Response.details == "maxResponseRecordCount" - 'ProfileSearchRequest.max_response_record_count' is not within the required range.
+//     * Response.details == "maxTotalRecordCount" - 'ProfileSearchRequest.max_total_record_count' is not within the required range or the value is less than 'ProfileSearchRequest.max_response_record_count'.
 //     * Response.details == "type" - 'ProfileSearchRequest.type' is too long.
 //     * Response.details == "name" - 'ProfileSearchRequest.name' is too long.
 //     * Response.details == "latitude" - 'ProfileSearchRequest.latitude' is not a valid location latitude.
 //     * Response.details == "longitude" - 'ProfileSearchRequest.longitude' is not a valid location longitude.
 //     * Response.details == "radius" - 'ProfileSearchRequest.radius' is not a valid radius value.
-//     * Response.details == "extraData" - 'ProfileSearchRequest.extraData' is too long or it is not a valid value of RegexType.
+//     * Response.details == "extraData" - 'ProfileSearchRequest.extra_data' is too long or it is not a valid value of RegexType.
 //
 message ProfileSearchResponse {
-  uint32 totalRecordCount = 1;                     // Total number of profiles that matched the search criteria. Up to 'maxResponseRecordCount' of them are in 'profiles' list.
-  uint32 maxResponseRecordCount = 2;               // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.maxResponseRecordCount'.
+  uint32 total_record_count = 1;                   // Total number of profiles that matched the search criteria. Up to 'max_response_record_count' of them are in 'profiles' list.
+  uint32 max_response_record_count = 2;            // Limit of the number of results provided. This is equal to 'ProfileSearchRequest.max_response_record_count'.
 
-  repeated bytes coveredServers = 3;               // List of network identifiers of profile servers whose profile databases were used to produce the results, 
+  repeated bytes covered_servers = 3;              // List of network identifiers of profile servers whose profile databases were used to produce the results, 
                                                    // whether or not any of their hosted profiles actually appear in the results.
-                                                   // This information is relevant if 'totalRecordCount' is lower than 'ProfileSearchRequest.maxTotalRecordCount',
+                                                   // This information is relevant if 'total_record_count' is lower than 'ProfileSearchRequest.max_total_record_count',
                                                    // because otherwise there is no guarantee the results actually contain any records from neighborhood profile servers.
 
   // Search results.
-  repeated ProfileQueryInformation profiles = 4;   // List of results that contains no more than 'maxResponseRecordCount' items.
+  repeated ProfileQueryInformation profiles = 4;   // List of results that contains no more than 'max_response_record_count' items.
 }
 
 
@@ -1389,18 +1389,18 @@ message ProfileSearchResponse {
 // Information about a single profile record from a profile search query.
 //
 message ProfileQueryInformation {
-  bool isHosted = 1;                               // True if the requested identity is a customer of the profile server.
-  bytes hostingServerNetworkId = 2;                // If 'isHosted' is false, this field contains the network ID of the neighbor profile server that hosts the target profile.
+  bool is_hosted = 1;                              // True if the requested identity is a customer of the profile server.
+  bytes hosting_server_network_id = 2;             // If 'is_hosted' is false, this field contains the network ID of the neighbor profile server that hosts the target profile.
 
-  bool isOnline = 3;                               // If 'isHosted' is true, this is true if the requested identity is currently online.
+  bool is_online = 3;                              // If 'is_hosted' is true, this is true if the requested identity is currently online.
 
-  SignedProfileInformation signedProfile = 4;      // Requested identity signed profile information.
+  SignedProfileInformation signed_profile = 4;     // Requested identity signed profile information.
 
-  bytes thumbnailImage = 5;                        // If 'ProfileSearchRequest.includeThumbnailImages' was set, this contains the identity's thumbnail image, 
+  bytes thumbnail_image = 5;                       // If 'ProfileSearchRequest.include_thumbnail_images' was set, this contains the identity's thumbnail image, 
                                                    // or zero-length byte array if the profile has no thumbnail image set.
                                                    // Note that the profile server is allowed to return empty array here if it is unable to deliver
-                                                   // the image due to an error. The client is able to recognize that the image is missing if 'signedProfile.profile.thumbnailImageHash' 
-                                                   // is a valid image hash but 'thumbnailImage' is empty.
+                                                   // the image due to an error. The client is able to recognize that the image is missing if 'signed_profile.profile.thumbnail_image_hash'
+                                                   // is a valid image hash but 'thumbnail_image' is empty.
 }
 
 
@@ -1415,9 +1415,9 @@ message ProfileQueryInformation {
 // Roles: clNonCustomer, clCustomer
 //
 message ProfileSearchPartRequest {
-  uint32 recordIndex = 1;                           // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ProfileSearchResponse.totalRecordCount' - 1.
-  uint32 recordCount = 2;                           // Number of results to obtain. 'recordIndex' + 'recordCount' must not be greater than 'ProfileSearchResponse.totalRecordCount'.
-                                                    // If 'ProfileSearchResponse.includeThumbnailImages' was set, this has to be an integer between 1 and 100,
+  uint32 record_index = 1;                          // Zero-based record index of the first result to retrieve. It has to be an integer between 0 and 'ProfileSearchResponse.total_record_count' - 1.
+  uint32 record_count = 2;                          // Number of results to obtain. 'record_index' + 'record_count' must not be greater than 'ProfileSearchResponse.total_record_count'.
+                                                    // If 'ProfileSearchResponse.include_thumbnail_images' was set, this has to be an integer between 1 and 100,
                                                     // otherwise it has to be an integer between 1 and 1,000.
 }
 
@@ -1429,15 +1429,15 @@ message ProfileSearchPartRequest {
 //   * ERROR_NOT_AVAILABLE - No cached search results are available. Either the client did not send ProfileSearchRequest previously
 //                           in this session, or its results have expired already.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "recordIndex" - 'ProfileSearchPartRequest.recordIndex' is not a valid index of the result.
-//     * Response.details == "recordCount" - 'ProfileSearchPartRequest.recordCount' is not a valid number of results to obtain in combination with 'ProfileSearchPartRequest.recordIndex'.
+//     * Response.details == "record_index" - 'ProfileSearchPartRequest.record_index' is not a valid index of the result.
+//     * Response.details == "record_count" - 'ProfileSearchPartRequest.record_count' is not a valid number of results to obtain in combination with 'ProfileSearchPartRequest.record_index'.
 //
 message ProfileSearchPartResponse {
-  uint32 recordIndex = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.recordIndex' value.
-  uint32 recordCount = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.recordCount' value.
+  uint32 record_index = 1;                           // Index of the first result. Copy of 'ProfileSearchPartRequest.record_index' value.
+  uint32 record_count = 2;                           // Number of results. Copy of 'ProfileSearchPartRequest.record_count' value.
 
   // Search results.
-  repeated ProfileQueryInformation profiles = 3;    // List of results that contains 'ProfileSearchPartRequest.recordCount' items.
+  repeated ProfileQueryInformation profiles = 3;    // List of results that contains 'ProfileSearchPartRequest.record_count' items.
 }
 
 
@@ -1445,7 +1445,7 @@ message ProfileSearchPartResponse {
 // A customer client announces a relation between its identity and another identity using 
 // a relationship card.
 //
-// The 'cardApplication' field is signed with a signature in 'ConversationRequest.signature'. 
+// The 'card_application' field is signed with a signature in 'ConversationRequest.signature'. 
 // This signature can be used to prove that the card recipient wanted to use the card for 
 // the given purpose. The signature on the card of the card's issuer then can be used to prove 
 // that the issuer issued the card for the recipient. The customer's public key has to be equal 
@@ -1461,9 +1461,9 @@ message ProfileSearchPartResponse {
 // Conversation status: Authenticated
 //
 message AddRelatedIdentityRequest {
-  CardApplicationInformation cardApplication = 1;   // Description of the relationship, which must correspond to the given 'card' - i.e. 'cardApplication.cardId' 
-                                                    // has to match 'signedCard.card.cardId'.
-  SignedRelationshipCard signedCard = 2;            // Signed relationship card. 'signedCard.card.recipientPublicKey' has to be the public key of the customer
+  CardApplicationInformation card_application = 1;   // Description of the relationship, which must correspond to the given 'card' - i.e. 'card_application.card_id' 
+                                                    // has to match 'signed_card.card.card_id'.
+  SignedRelationshipCard signed_card = 2;            // Signed relationship card. 'signed_card.card.recipient_public_key' has to be the public key of the customer
                                                     // that sends AddRelatedIdentityRequest to the profile server.
 }
 
@@ -1475,20 +1475,20 @@ message AddRelatedIdentityRequest {
 //
 // Specific Error Responses:
 //   * ERROR_QUOTA_EXCEEDED - The caller has reached its limit for a number of related identities on its profile.
-//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'AddRelatedIdentityRequest.cardApplication' in 'ConversationRequest.signature' is not valid.
-//   * ERROR_ALREADY_EXISTS - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationId' already exists.
+//   * ERROR_INVALID_SIGNATURE - The client's signature of the 'AddRelatedIdentityRequest.card_application' in 'ConversationRequest.signature' is not valid.
+//   * ERROR_ALREADY_EXISTS - A relationship with application identifier equal to 'AddRelatedIdentityRequest.card_application.application_id' already exists.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "cardApplication.cardId" - 'AddRelatedIdentityRequest.cardApplication.cardId' does not match 'AddRelatedIdentityRequest.signedCard.card.cardId'.
-//     * Response.details == "cardApplication.applicationId" - 'AddRelatedIdentityRequest.cardApplication.applicationId' is not a valid application identifier.
-//     * Response.details == "signedCard.issuerSignature" - 'AddRelatedIdentityRequest.signedCard.issuerSignature' is not a valid signature of 'AddRelatedIdentityRequest.signedCard.card' structure
-//                                                          using private key of the issuer whose public key is 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey'.
-//     * Response.details == "signedCard.card.cardId" - 'AddRelatedIdentityRequest.signedCard.card.cardId' is not a valid SHA256 hash of 'AddRelatedIdentityRequest.signedCard.card' structure.
-//     * Response.details == "signedCard.card.version" - 'AddRelatedIdentityRequest.signedCard.card.version' is not a valid card version.
-//     * Response.details == "signedCard.card.type" - 'AddRelatedIdentityRequest.signedCard.card.type' is not a valid card type.
-//     * Response.details == "signedCard.card.issuerPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.issuerPublicKey' is not a valid public key.
-//     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signedCard.card.recipientPublicKey' is not the public key of the caller.
-//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signedCard.card.validFrom' is greater than 'AddRelatedIdentityRequest.signedCard.card.validTo' or it does not represent a valid timestamp value.
-//     * Response.details == "signedCard.card.validTo" - 'AddRelatedIdentityRequest.signedCard.card.validTo' does not represent a valid timestamp value.
+//     * Response.details == "cardApplication.cardId" - 'AddRelatedIdentityRequest.card_application.card_id' does not match 'AddRelatedIdentityRequest.signed_card.card.card_id'.
+//     * Response.details == "cardApplication.applicationId" - 'AddRelatedIdentityRequest.card_application.application_id' is not a valid application identifier.
+//     * Response.details == "signedCard.issuerSignature" - 'AddRelatedIdentityRequest.signed_card.issuer_signature' is not a valid signature of 'AddRelatedIdentityRequest.signed_card.card' structure
+//                                                          using private key of the issuer whose public key is 'AddRelatedIdentityRequest.signed_card.card.issuer_publicKey'.
+//     * Response.details == "signedCard.card.cardId" - 'AddRelatedIdentityRequest.signed_card.card.card_id' is not a valid SHA256 hash of 'AddRelatedIdentityRequest.signed_card.card' structure.
+//     * Response.details == "signedCard.card.version" - 'AddRelatedIdentityRequest.signed_card.card.version' is not a valid card version.
+//     * Response.details == "signedCard.card.type" - 'AddRelatedIdentityRequest.signed_card.card.type' is not a valid card type.
+//     * Response.details == "signedCard.card.issuerPublicKey" - 'AddRelatedIdentityRequest.signed_card.card.issuer_public_key' is not a valid public key.
+//     * Response.details == "signedCard.card.recipientPublicKey" - 'AddRelatedIdentityRequest.signed_card.card.recipient_public_key' is not the public key of the caller.
+//     * Response.details == "signedCard.card.validFrom" - 'AddRelatedIdentityRequest.signed_card.card.valid_from' is greater than 'AddRelatedIdentityRequest.signed_card.card.valid_to' or it does not represent a valid timestamp value.
+//     * Response.details == "signedCard.card.validTo" - 'AddRelatedIdentityRequest.signed_card.card.valid_to' does not represent a valid timestamp value.
 //
 message AddRelatedIdentityResponse {
 }
@@ -1504,7 +1504,7 @@ message AddRelatedIdentityResponse {
 // Conversation status: Authenticated
 //
 message RemoveRelatedIdentityRequest {
-  bytes applicationId = 1;                          // Identifier of the card application to remove. 
+  bytes application_id = 1;                          // Identifier of the card application to remove. 
 }
 
 
@@ -1514,7 +1514,7 @@ message RemoveRelatedIdentityRequest {
 //
 //
 // Specific Error Responses:
-//   * ERROR_NOT_FOUND - A relationship with application identifier equal to 'AddRelatedIdentityRequest.cardApplication.applicationId' was not found.
+//   * ERROR_NOT_FOUND - A relationship with application identifier equal to 'AddRelatedIdentityRequest.card_application.application_id' was not found.
 //
 message RemoveRelatedIdentityResponse {
 }
@@ -1523,14 +1523,14 @@ message RemoveRelatedIdentityResponse {
 
 //
 // Description of a relationship card application. It consists of a card identifier, which is a hash 
-// of the card data and the 'applicationId', which binds the use of the card with some other object, 
+// of the card data and the 'application_id', which binds the use of the card with some other object, 
 // transaction, or action, which is specific for the given use of the card.
 //
 message CardApplicationInformation {
-  bytes cardId = 1;                                 // Identifier of a relationship card. See 'RelationshipCard.cardId'.
-  bytes applicationId = 2;                          // Unique identifier of the action that represents using the card. This is used to bind the application of the card 
+  bytes card_id = 1;                                 // Identifier of a relationship card. See 'RelationshipCard.card_id'.
+  bytes application_id = 2;                          // Unique identifier of the action that represents using the card. This is used to bind the application of the card 
                                                     // with a specific transaction or action. If no transaction or action identifier exists, the recipient should 
-                                                    // generate a new GUID. If the given card is guaranteed to be used only once, this can be equal to 'cardId'.
+                                                    // generate a new GUID. If the given card is guaranteed to be used only once, this can be equal to 'card_id'.
                                                     // Max 32 bytes long. Must not be empty.
 }
 
@@ -1542,7 +1542,7 @@ message CardApplicationInformation {
 //
 message SignedRelationshipCard {
   RelationshipCard card = 1;                        // Description of the relationship card.
-  bytes issuerSignature = 2;                        // Signature of 'card.cardId' value in raw format using private key of the issuer of the card.
+  bytes issuer_signature = 2;                        // Signature of 'card.card_id' value in raw format using private key of the issuer of the card.
                                                     // Max 100 bytes long.
 }
 
@@ -1551,14 +1551,14 @@ message SignedRelationshipCard {
 // Description of a relationship card.
 //
 message RelationshipCard {
-  bytes cardId = 1;                                 // Identifier of a relationship card is a SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
-                                                    // with cardId initialized to a byte array of 32 zero bytes.
+  bytes card_id = 1;                                // Identifier of a relationship card is a SHA256 hash of the RelationshipCard structure in Google Protobuf v3 encoding 
+                                                    // with card_id initialized to a byte array of 32 zero bytes.
   bytes version = 2;                                // VersionType. Version of the relationship card structure.
   string type = 3;                                  // Type of the relationship card. This is an application defined value. Max 64 bytes long.
-  sint64 validFrom = 4;                             // TimestampType. Time from which the card is valid. It must not be greater than 'validTo'.
-  sint64 validTo = 5;                               // TimestampType. Time after which the card is not valid.
-  bytes issuerPublicKey = 6;                        // Public key of the issuer of the card. Max 128 bytes long.
-  bytes recipientPublicKey = 7;                     // Public key of the recipient of the card. Max 128 bytes long.
+  sint64 valid_from = 4;                            // TimestampType. Time from which the card is valid. It must not be greater than 'valid_to'.
+  sint64 valid_to = 5;                              // TimestampType. Time after which the card is not valid.
+  bytes issuer_public_key = 6;                      // Public key of the issuer of the card. Max 128 bytes long.
+  bytes recipient_public_key = 7;                   // Public key of the recipient of the card. Max 128 bytes long.
 }
 
 
@@ -1570,15 +1570,15 @@ message RelationshipCard {
 // Roles: clNonCustomer, clCustomer
 //
 message GetIdentityRelationshipsInformationRequest {
-  bytes identityNetworkId = 1;                     // Identity's network identifier.
-  bool includeInvalid = 2;                         // If set to true, the response may include relationships which cards are no longer valid or not yet valid.
+  bytes identity_network_id = 1;                     // Identity's network identifier.
+  bool include_invalid = 2;                         // If set to true, the response may include relationships which cards are no longer valid or not yet valid.
   
   string type = 3;                                 // WildcardType or empty string. If not empty, the server will only return relationships which card types 
                                                    // match the wildcard string. If empty, all card types are allowed.
                                                    // Max 64 bytes long.
 
-  bool specificIssuer = 4;                         // If set to true, the response will only include relationships which cards were issued by issuer with network identifier equal to 'issuerNetworkId'.
-  bytes issuerNetworkId = 5;                       // If 'specificIssuer' is true, this is the network identifier of the card issuer whose relationships with the target identity are being queried.
+  bool specific_issuer = 4;                         // If set to true, the response will only include relationships which cards were issued by issuer with network identifier equal to 'issuerNetworkId'.
+  bytes issuer_network_id = 5;                       // If 'specific_issuer' is true, this is the network identifier of the card issuer whose relationships with the target identity are being queried.
 }
 
 
@@ -1599,8 +1599,8 @@ message GetIdentityRelationshipsInformationResponse {
 // Description of a relationship between two identities together with signature proofs.
 //
 message IdentityRelationship {
-  CardApplicationInformation cardApplication = 1;  // Relationship card application.
-  bytes cardApplicationSignature = 2;              // Relationship card recipient's signature of 'cardApplication' structure.
+  CardApplicationInformation card_application = 1;  // Relationship card application.
+  bytes card_application_signature = 2;              // Relationship card recipient's signature of 'card_application' structure.
   SignedRelationshipCard card = 3;                 // Relationship card signed by its issuer.
 }
 
@@ -1659,9 +1659,9 @@ message IdentityRelationship {
 // Conversation status: Verified
 //
 message StartNeighborhoodInitializationRequest {
-  uint32 primaryPort = 1;                          // Port of the profile server's Primary Interface.
-  uint32 srNeighborPort = 2;                       // Port of the profile server's Neighbors Interface.
-  bytes ipAddress = 3;                             // IPv4 or IPv6 public address of the network interface on which profile server operates.
+  uint32 primary_port = 1;                          // Port of the profile server's Primary Interface.
+  uint32 sr_neighbor_port = 2;                      // Port of the profile server's Neighbors Interface.
+  bytes ip_address = 3;                             // IPv4 or IPv6 public address of the network interface on which profile server operates.
 }
 
 
@@ -1675,9 +1675,9 @@ message StartNeighborhoodInitializationRequest {
 //   * ERROR_BUSY - Profile server can use this error code during the start of the neighborhood initialization process to express that it is currently busy 
 //                  with the neighborhood initialization process with one or more other profile servers.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primaryPort' must be an integer between 1 and 65,535.
-//     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.srNeighborPort' must be an integer between 1 and 65,535.
-//     * Response.details == "ipAddress" - 'StartNeighborhoodInitializationRequest.ipAddress' is not a valid IPv4 or IPv6 address or it is a local network IP address.
+//     * Response.details == "primaryPort" - 'StartNeighborhoodInitializationRequest.primary_port' must be an integer between 1 and 65,535.
+//     * Response.details == "srNeighborPort" - 'StartNeighborhoodInitializationRequest.sr_neighbor_port' must be an integer between 1 and 65,535.
+//     * Response.details == "ipAddress" - 'StartNeighborhoodInitializationRequest.ip_address' is not a valid IPv4 or IPv6 address or it is a local network IP address.
 //
 message StartNeighborhoodInitializationResponse {
 }
@@ -1744,31 +1744,31 @@ message NeighborhoodSharedProfileUpdateRequest {
 //                                             index $index. Items with index greater then $index were not processed. The $field specifies which field 
 //                                             was invalid as follows:
 //       * $field == "add" - Number of shared profiles from the requesting profile server exceeds the limit.
-//       * $field == "add.signedProfile.profile.version" - `items[$index].add.signedProfile.profile.version` does not contain a valid version information.
-//       * $field == "add.signedProfile.profile.publicKey" - `items[$index].add.signedProfile.profile.publicKey` is not a valid public key value or the same identity already exists, 
+//       * $field == "add.signedProfile.profile.version" - `items[$index].add.signed_profile.profile.version` does not contain a valid version information.
+//       * $field == "add.signedProfile.profile.publicKey" - `items[$index].add.signed_profile.profile.public_key` is not a valid public key value or the same identity already exists, 
 //                                                           or another update item in the same request referred to this identity.
-//       * $field == "add.signedProfile.profile.type" - `items[$index].add.signedProfile.profile.type` is not a valid identity type.
-//       * $field == "add.signedProfile.profile.name" - `items[$index].add.signedProfile.profile.name` is not a valid profile name.
-//       * $field == "add.signedProfile.profile.latitude" - `items[$index].add.signedProfile.profile.latitude` is not a valid latitude value.
-//       * $field == "add.signedProfile.profile.longitude" - `items[$index].add.signedProfile.profile.longitude` is not a valid longitude value.
-//       * $field == "add.signedProfile.profile.extraData" - `items[$index].add.signedProfile.profile.extraData` is not a valid extraData value.
-//       * $field == "add.signedProfile.profile.profileImageHash" - `items[$index].add.signedProfile.profile.profileImageHash` is neither a valid SHA256 hash nor empty array.
-//       * $field == "add.signedProfile.profile.thumbnailImageHash" - `items[$index].add.signedProfile.profile.thumbnailImageHash` is neither a valid SHA256 hash nor empty array.
-//       * $field == "add.signedProfile.signature" - `items[$index].add.signedProfile.signature` is not a valid signature or 'items[$index].add.signedProfile.profile'.
-//       * $field == "add.thumbnailImage" - `items[$index].add.thumbnailImage` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].add.signedProfile.profile.thumbnailImageHash` value.
-//       * $field == "change.signedProfile.profile.version" - `items[$index].change.signedProfile.profile.version` does not contain a valid version information.
-//       * $field == "change.signedProfile.profile.publicKey" - `items[$index].change.signedProfile.profile.publicKey` is not a valid public key value or the identity with this public key does not exist, 
+//       * $field == "add.signedProfile.profile.type" - `items[$index].add.signed_profile.profile.type` is not a valid identity type.
+//       * $field == "add.signedProfile.profile.name" - `items[$index].add.signed_profile.profile.name` is not a valid profile name.
+//       * $field == "add.signedProfile.profile.latitude" - `items[$index].add.signed_profile.profile.latitude` is not a valid latitude value.
+//       * $field == "add.signedProfile.profile.longitude" - `items[$index].add.signed_profile.profile.longitude` is not a valid longitude value.
+//       * $field == "add.signedProfile.profile.extraData" - `items[$index].add.signed_profile.profile.extra_data` is not a valid extra_data value.
+//       * $field == "add.signedProfile.profile.profileImageHash" - `items[$index].add.signed_profile.profile.profile_image_hash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "add.signedProfile.profile.thumbnailImageHash" - `items[$index].add.signed_profile.profile.thumbnail_image_hash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "add.signedProfile.signature" - `items[$index].add.signed_profile.signature` is not a valid signature or 'items[$index].add.signed_profile.profile'.
+//       * $field == "add.thumbnailImage" - `items[$index].add.thumbnail_image` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].add.signed_profile.profile.thumbnail_image_hash` value.
+//       * $field == "change.signedProfile.profile.version" - `items[$index].change.signed_profile.profile.version` does not contain a valid version information.
+//       * $field == "change.signedProfile.profile.publicKey" - `items[$index].change.signed_profile.profile.public_key` is not a valid public key value or the identity with this public key does not exist, 
 //                                                              or another update item in the same request referred to this identity.
-//       * $field == "change.signedProfile.profile.type" - `items[$index].change.signedProfile.profile.type` is not a valid identity type or it does not match the previous value of the type of this profile.
-//       * $field == "change.signedProfile.profile.name" - `items[$index].change.signedProfile.profile.name` is not a valid profile name.
-//       * $field == "change.signedProfile.profile.latitude" - `items[$index].change.signedProfile.profile.latitude` is not a valid latitude value.
-//       * $field == "change.signedProfile.profile.longitude" - `items[$index].change.signedProfile.profile.longitude` is not a valid longitude value.
-//       * $field == "change.signedProfile.profile.extraData" - `items[$index].change.signedProfile.profile.extraData` is not a valid extraData value.
-//       * $field == "change.signedProfile.profile.profileImageHash" - `items[$index].change.signedProfile.profile.profileImageHash` is neither a valid SHA256 hash nor empty array.
-//       * $field == "change.signedProfile.profile.thumbnailImageHash" - `items[$index].change.signedProfile.profile.thumbnailImageHash` is neither a valid SHA256 hash nor empty array.
-//       * $field == "change.signedProfile.signature" - `items[$index].change.signedProfile.signature` is not a valid signature or 'items[$index].change.signedProfile.profile'.
-//       * $field == "change.thumbnailImage" - `items[$index].change.thumbnailImage` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].change.signedProfile.profile.thumbnailImageHash` value.
-//       * $field == "delete.identityNetworkId" - `items[$index].delete.identityNetworkId` does not represent an existing identity, or another update item 
+//       * $field == "change.signedProfile.profile.type" - `items[$index].change.signed_profile.profile.type` is not a valid identity type or it does not match the previous value of the type of this profile.
+//       * $field == "change.signedProfile.profile.name" - `items[$index].change.signed_profile.profile.name` is not a valid profile name.
+//       * $field == "change.signedProfile.profile.latitude" - `items[$index].change.signed_profile.profile.latitude` is not a valid latitude value.
+//       * $field == "change.signedProfile.profile.longitude" - `items[$index].change.signed_profile.profile.longitude` is not a valid longitude value.
+//       * $field == "change.signedProfile.profile.extraData" - `items[$index].change.signed_profile.profile.extra_Data` is not a valid extra_Data value.
+//       * $field == "change.signedProfile.profile.profileImageHash" - `items[$index].change.signed_profile.profile.profile_image_hash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "change.signedProfile.profile.thumbnailImageHash" - `items[$index].change.signed_profile.profile.thumbnail_image_hash` is neither a valid SHA256 hash nor empty array.
+//       * $field == "change.signedProfile.signature" - `items[$index].change.signed_profile.signature` is not a valid signature or 'items[$index].change.signed_profile.profile'.
+//       * $field == "change.thumbnailImage" - `items[$index].change.thumbnail_Image` is neither a valid SHA256 hash nor empty array or it does not correspond to the `items[$index].change.signed_profile.profile.thumbnail_image_hash` value.
+//       * $field == "delete.identityNetworkId" - `items[$index].delete.identity_network_id` does not represent an existing identity, or another update item 
 //                                                in the same request referred to this identity.
 //       * $field == "actionType" - During the neighborhood initialization process, only `add` is a valid update message type.
 //
@@ -1793,9 +1793,9 @@ message SharedProfileUpdateItem {
 // Information about newly created profile that is to be shared with a neighbor.
 //
 message SharedProfileAddItem {
-  SignedProfileInformation signedProfile = 1;      // Signed identity profile information.
-  bytes thumbnailImage = 2;                        // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
-                                                   // The SHA256 hash of the binary data has to match 'signedProfile.profile.thumbnailImageHash'.
+  SignedProfileInformation signed_profile = 1;     // Signed identity profile information.
+  bytes thumbnail_image = 2;                       // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
+                                                   // The SHA256 hash of the binary data has to match 'signed_profile.profile.thumbnail_image_hash'.
 }
 
 
@@ -1803,9 +1803,9 @@ message SharedProfileAddItem {
 // Information about change in an existing activity that is to be shared with a neighbor.
 //
 message SharedProfileChangeItem {
-  SignedProfileInformation signedProfile = 1;      // Signed identity profile information.
-  bytes thumbnailImage = 2;                        // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
-                                                   // The SHA256 hash of the binary data has to match 'signedProfile.profile.thumbnailImageHash'.
+  SignedProfileInformation signed_profile = 1;     // Signed identity profile information.
+  bytes thumbnail_image = 2;                       // Thumbnail image of the profile or empty array if the profile has no thumbnail image.
+                                                   // The SHA256 hash of the binary data has to match 'signed_profile.profile.thumbnail_image_hash'.
 }
 
 
@@ -1813,7 +1813,7 @@ message SharedProfileChangeItem {
 // Information about the removal of an existing profile that is to be shared with a neighbor.
 //
 message SharedProfileDeleteItem {
-  bytes identityNetworkId = 1;                     // The identity's network identifier.
+  bytes identity_network_id = 1;                     // The identity's network identifier.
 }
 
 
@@ -1892,9 +1892,9 @@ message StopNeighborhoodUpdatesResponse {
 // Profile server contact information.
 //
 message CanProfileServerContact {
-  bytes publicKey = 1;                             // Profile server's public key.
-  bytes ipAddress = 2;                             // IPv4 or IPv6 public address of the network interface on which profile server operates.
-  uint32 primaryPort = 3;                          // TCP port of profile server's primary interface.
+  bytes public_key = 1;                             // Profile server's public key.
+  bytes ip_address = 2;                             // IPv4 or IPv6 public address of the network interface on which profile server operates.
+  uint32 primary_port = 3;                          // TCP port of profile server's primary interface.
 }
 
 
@@ -1902,8 +1902,8 @@ message CanProfileServerContact {
 // Structure of data an identity client can store in CAN storage.
 //
 message CanIdentityData {
-  bytes hostingServerId = 1;                       // Network ID of the profile server that hosts the identity.
-  repeated CanKeyValue keyValueList = 2;           // Key-value dictionary that contain client defined data.
+  bytes hosting_server_id = 1;                     // Network ID of the profile server that hosts the identity.
+  repeated CanKeyValue key_value_list = 2;         // Key-value dictionary that contain client defined data.
                                                    // Keys should not be repeated in the list, but this is not enforced. 
                                                    // However, different application can behave differently if a single key 
                                                    // is used more than once.
@@ -1916,12 +1916,12 @@ message CanIdentityData {
 message CanKeyValue {
   string key = 1;                                  // Name of the item, which should be unique within the client's CAN object.
   oneof ValueType {                                // Type of the item and item value.
-    bytes binaryValue = 2;
-    int32 uint32Value = 3;
-    int64 uint64Value = 4;
-    double doubleValue = 5;
-    bool boolValue = 6;
-    string stringValue = 7;
+    bytes binary_value = 2;
+    int32 uint32_value = 3;
+    int64 uint64_value = 4;
+    double double_value = 5;
+    bool bool_value = 6;
+    string string_value = 7;
   }
 }
 
@@ -1952,7 +1952,7 @@ message CanStoreDataRequest {
 // Specific Error Responses:
 //   * ERROR_REJECTED - CAN server reported error, see 'Response.details' for the error message it sent.
 //   * ERROR_INVALID_VALUE
-//     * Response.details == "data.hostingServerId" - 'CanStoreDataRequest.data.hostingServerId' is not the profile server's network ID.
+//     * Response.details == "data.hostingServerId" - 'CanStoreDataRequest.data.hosting_server_id' is not the profile server's network ID.
 //
 message CanStoreDataResponse {
   bytes hash = 1;                                  // Hash of 'CanStoreDataRequest.data' received from CAN in multihash binary format, or empty array if 'CanStoreDataRequest.data' was null.

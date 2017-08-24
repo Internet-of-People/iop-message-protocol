@@ -30,18 +30,18 @@ enum Status {
 enum ServiceType
 {
 // Low level networks
-  Unstructured = 0;
-  Content      = 1;
-  Latency      = 2;
-  Location     = 3;
+  UNSTRUCTURED = 0;
+  CONTENT      = 1;
+  LATENCY      = 2;
+  LOCATION     = 3;
 
 // High level servers
-  Token       = 10;
-  Profile     = 11;
-  Proximity   = 12;
-  Relay       = 13;
-  Reputation  = 14;
-  Minting     = 15;
+  TOKEN       = 10;
+  PROFILE     = 11;
+  PROXIMITY   = 12;
+  RELAY       = 13;
+  REPUTATION  = 14;
+  MINTING     = 15;
 };
 
 
@@ -51,7 +51,7 @@ enum ServiceType
 message ServiceInfo {
   ServiceType type = 1;
   uint32 port = 2;       // Network port where service is reachable on this host.
-  bytes serviceData = 3; // Optional binary data that the service can share about itself. Has no predefined format, any custom data can be added here. Useful for e.g. sharing the profile server node ID. Must be no more than 1KB.
+  bytes service_data = 3; // Optional binary data that the service can share about itself. Has no predefined format, any custom data can be added here. Useful for e.g. sharing the profile server node ID. Must be no more than 1KB.
 }
 
 
@@ -76,9 +76,9 @@ message GpsLocation {
 // Port must be a simple TCP port which should be uint16, but there is no appropriate data type
 // in ProtoBuf so it is represented as uint32.
 message NodeContact {
-  bytes  ipAddress = 1;
-  uint32 nodePort = 2;   // Port where remote node interface (for nodes of the same network) is available
-  uint32 clientPort = 3; // Port where client interface (for end users) is available
+  bytes  ip_address = 1;
+  uint32 node_port = 2;   // Port where remote node interface (for nodes of the same network) is available
+  uint32 client_port = 3; // Port where client interface (for end users) is available
 }
 
 
@@ -86,7 +86,7 @@ message NodeContact {
 // extended the GPS location of the node.
 message NodeInfo {
   // TODO do we also need a public key here?
-  bytes nodeId = 1;
+  bytes node_id = 1;
   NodeContact contact = 2;
   GpsLocation location = 3;
   repeated ServiceInfo services = 32;
@@ -140,8 +140,8 @@ message Message {
 message Request {
   bytes version = 1;                               
   oneof RequestType {
-    LocalServiceRequest localService = 2;
-    RemoteNodeRequest remoteNode = 3;
+    LocalServiceRequest local_service = 2;
+    RemoteNodeRequest remote_node = 3;
     ClientRequest client = 4;
   }
 }
@@ -154,8 +154,8 @@ message Response {
   string details = 3;                              // In case of an error, this field may contain additional details.
 
   oneof ResponseType {
-    LocalServiceResponse localService = 4;
-    RemoteNodeResponse remoteNode = 5;
+    LocalServiceResponse local_service = 4;
+    RemoteNodeResponse remote_node = 5;
     ClientResponse client = 6;
   }
 }
@@ -165,27 +165,27 @@ message Response {
 message LocalServiceRequest {
   oneof LocalServiceRequestType {
     // These requests are sent as usual from the client to the server asking to perform an operation.
-    RegisterServiceRequest registerService = 1;
-    DeregisterServiceRequest deregisterService = 2;
-    GetNeighbourNodesByDistanceLocalRequest getNeighbourNodes = 3;
+    RegisterServiceRequest register_service = 1;
+    DeregisterServiceRequest deregister_service = 2;
+    GetNeighbourNodesByDistanceLocalRequest get_neighbour_nodes = 3;
 
     // This is an unique, exceptional request. If the client previously sent
-    // a getNeigbhourNodes request to the server and set the keepAlive flag,
+    // a get_neighbour_nodes request to the server and set the keep_alive flag,
     // the server is supposed to keep the connection alive and notify the client
     // about changes in its neigbhourhood by sending the following request to the client.
-    NeighbourhoodChangedNotificationRequest neighbourhoodChanged = 4;
+    NeighbourhoodChangedNotificationRequest neighbourhood_changed = 4;
   }
 }
 
 message LocalServiceResponse {
   oneof LocalServiceResponseType {
     // Responses sent back to the client from the server as usual.
-    RegisterServiceResponse registerService = 1;
-    DeregisterServiceResponse deregisterService = 2;
-    GetNeighbourNodesByDistanceResponse getNeighbourNodes = 3;
+    RegisterServiceResponse register_service = 1;
+    DeregisterServiceResponse deregister_service = 2;
+    GetNeighbourNodesByDistanceResponse get_neighbour_nodes = 3;
 
     // For each neigbhourhood change notification, the client must send this response as an acknowledgement.
-    NeighbourhoodChangedNotificationResponse neighbourhoodUpdated = 4;
+    NeighbourhoodChangedNotificationResponse neighbourhood_updated = 4;
   }
 }
 
@@ -203,7 +203,7 @@ message RegisterServiceResponse {
 
 // Remove a previously registered entry of a service.
 message DeregisterServiceRequest {
-  ServiceType serviceType = 1;
+  ServiceType service_type = 1;
 }
 
 message DeregisterServiceResponse {
@@ -211,10 +211,10 @@ message DeregisterServiceResponse {
 
 
 // Get the list of neighbouring nodes by distance.
-// If the keepAlive flag is set, the server must keep the connection alive and notify the client
+// If the keep_alive flag is set, the server must keep the connection alive and notify the client
 // about changes in its neigbhourhood by sending NeighbourhoodChangeRequests to the client.
 message GetNeighbourNodesByDistanceLocalRequest {
-  bool keepAliveAndSendUpdates = 1;
+  bool keep_alive_and_send_updates = 1;
 }
 
 // Response is a list of node data about all neighbours.
@@ -226,9 +226,9 @@ message GetNeighbourNodesByDistanceResponse {
 // Atomic change notification element: a neigbhour node is either added, updated or deleted.
 message NeighbourhoodChange {
   oneof ChangeType {
-    NodeInfo addedNodeInfo = 1;
-    NodeInfo updatedNodeInfo = 2;
-    bytes removedNodeId = 3;
+    NodeInfo added_node_info = 1;
+    NodeInfo updated_node_info = 2;
+    bytes removed_node_id = 3;
   }; 
 }
 
@@ -243,27 +243,27 @@ message NeighbourhoodChangedNotificationResponse {
 
 message RemoteNodeRequest {
   oneof RemoteNodeRequestType {
-    BuildNetworkRequest acceptColleague = 1;
-    BuildNetworkRequest renewColleague = 2;
-    BuildNetworkRequest acceptNeighbour = 3;
-    BuildNetworkRequest renewNeighbour = 4;
-    GetNodeCountRequest getNodeCount = 5;
-    GetRandomNodesRequest getRandomNodes = 6;
-    GetClosestNodesByDistanceRequest getClosestNodes = 7;
-    GetNodeInfoRequest  getNodeInfo = 8;
+    BuildNetworkRequest accept_colleague = 1;
+    BuildNetworkRequest renew_colleague = 2;
+    BuildNetworkRequest accept_neighbour = 3;
+    BuildNetworkRequest renew_neighbour = 4;
+    GetNodeCountRequest get_node_count = 5;
+    GetRandomNodesRequest get_random_nodes = 6;
+    GetClosestNodesByDistanceRequest get_closest_nodes = 7;
+    GetNodeInfoRequest  get_node_info = 8;
   }
 }
 
 message RemoteNodeResponse {
   oneof RemoteNodeResponseType {
-    BuildNetworkResponse acceptColleague = 1;
-    BuildNetworkResponse renewColleague = 2;
-    BuildNetworkResponse acceptNeighbour = 3;
-    BuildNetworkResponse renewNeighbour = 4;
-    GetNodeCountResponse getNodeCount = 5;
-    GetRandomNodesResponse getRandomNodes = 6;
-    GetClosestNodesByDistanceResponse getClosestNodes = 7;
-    GetNodeInfoResponse  getNodeInfo = 8;
+    BuildNetworkResponse accept_colleague = 1;
+    BuildNetworkResponse renew_colleague = 2;
+    BuildNetworkResponse accept_neighbour = 3;
+    BuildNetworkResponse renew_neighbour = 4;
+    GetNodeCountResponse get_node_count = 5;
+    GetRandomNodesResponse get_random_nodes = 6;
+    GetClosestNodesByDistanceResponse get_closest_nodes = 7;
+    GetNodeInfoResponse  get_node_info = 8;
   }
 }
 
@@ -271,13 +271,13 @@ message RemoteNodeResponse {
 // Initiate/Renew a colleage/neighbour relationship between nodes.
 // The requestor node sends its own node information to the other node in the request.
 message BuildNetworkRequest {
-  NodeInfo requestorNodeInfo = 1;
+  NodeInfo requestor_node_info = 1;
 }
 
 message BuildNetworkResponse {
   bool accepted = 1;             // Whether the remote node agreed to create/renew the requested relation.
-  NodeInfo acceptorNodeInfo = 2; // If the remote node accepted the request, it returns its latest node information to make sure that no outdated external Ip address or location is stored.
-  bytes remoteIpAddress = 3;     // The remote external IP address of the initiator node as detected by the addressed (i.e. this) node. Useful for autodetection of the external IP address and its changes.
+  NodeInfo acceptor_node_info = 2; // If the remote node accepted the request, it returns its latest node information to make sure that no outdated external Ip address or location is stored.
+  bytes remote_ip_address = 3;     // The remote external IP address of the initiator node as detected by the addressed (i.e. this) node. Useful for autodetection of the external IP address and its changes.
 }
 
 // Get the total count of network nodes known by the remote node.
@@ -285,13 +285,13 @@ message GetNodeCountRequest {
 }
 
 message GetNodeCountResponse {
-  uint32 nodeCount = 1;
+  uint32 node_count = 1;
 }
 
 // Request for a list of random nodes.
 message GetRandomNodesRequest {
-  uint32 maxNodeCount = 1;
-  bool includeNeighbours = 2;
+  uint32 max_node_count = 1;
+  bool include_neighbours = 2;
 }
 
 message GetRandomNodesResponse {
@@ -301,9 +301,9 @@ message GetRandomNodesResponse {
 // List the nodes that are closest to a specific location, useful for exploring the map.
 message GetClosestNodesByDistanceRequest {
   GpsLocation location = 1;
-  float maxRadiusKm = 2;
-  uint32 maxNodeCount = 3;
-  bool includeNeighbours = 4;
+  float max_radius_km = 2;
+  uint32 max_node_count = 3;
+  bool include_neighbours = 4;
 }
 
 message GetClosestNodesByDistanceResponse {
@@ -314,17 +314,17 @@ message GetClosestNodesByDistanceResponse {
 
 message ClientRequest {
   oneof ClientRequestType {
-    GetNodeInfoRequest getNodeInfo = 1;
-    GetNeighbourNodesByDistanceClientRequest getNeighbourNodes = 2;
-    GetClosestNodesByDistanceRequest getClosestNodes = 3;
+    GetNodeInfoRequest get_node_info = 1;
+    GetNeighbourNodesByDistanceClientRequest get_neighbour_nodes = 2;
+    GetClosestNodesByDistanceRequest get_closest_nodes = 3;
   }
 }
 
 message ClientResponse {
   oneof ClientResponseType {
-    GetNodeInfoResponse getNodeInfo = 1;
-    GetNeighbourNodesByDistanceResponse getNeighbourNodes = 2;
-    GetClosestNodesByDistanceResponse getClosestNodes = 3;
+    GetNodeInfoResponse get_node_info = 1;
+    GetNeighbourNodesByDistanceResponse get_neighbour_nodes = 2;
+    GetClosestNodesByDistanceResponse get_closest_nodes = 3;
   }
 }
 
@@ -334,7 +334,7 @@ message GetNodeInfoRequest {
 }
 
 message GetNodeInfoResponse {
-  NodeInfo nodeInfo = 1;
+  NodeInfo node_info = 1;
 }
 
 
