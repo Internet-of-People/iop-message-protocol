@@ -1,6 +1,6 @@
 # IoP Message Protocol
 
-[![Lint Status](https://img.shields.io/travis/Internet-of-People/message-protocol/master.svg?style=flat-square&label=lint)](https://travis-ci.org/Internet-of-People/message-protocol)
+[![Lint Status](https://img.shields.io/travis/Internet-of-People/iop-message-protocol/master.svg?style=flat-square&label=lint)](https://travis-ci.org/Internet-of-People/iop-message-protocol)
 
 The protocol for interaction with and between [Profile Servers](https://github.com/Internet-of-People/iop-profile-server) is defined and documented in Google Protobuf v3 [Profile Server Protocol](IopProfileServer.proto) file. 
 
