@@ -317,6 +317,7 @@ message ClientRequest {
     GetNodeInfoRequest get_node_info = 1;
     GetNeighbourNodesByDistanceClientRequest get_neighbour_nodes = 2;
     GetClosestNodesByDistanceRequest get_closest_nodes = 3;
+    ExploreNetworkNodesByDistanceRequest explore_nodes = 4;
   }
 }
 
@@ -325,6 +326,7 @@ message ClientResponse {
     GetNodeInfoResponse get_node_info = 1;
     GetNeighbourNodesByDistanceResponse get_neighbour_nodes = 2;
     GetClosestNodesByDistanceResponse get_closest_nodes = 3;
+    ExploreNetworkNodesByDistanceResponse explore_nodes = 4;
   }
 }
 
@@ -342,5 +344,20 @@ message GetNodeInfoResponse {
 // It's a different request type only because clients are not allowed
 // to keep the connection alive and wait for neighbourhood notication changes.
 message GetNeighbourNodesByDistanceClientRequest {
+}
+
+
+// Explore the closest nodes around the specified location.
+// While GetClosestNodesByDistanceResponse queries information only from this single node,
+// this call requests the node to contact also other nodes which might know the location better
+// so as the mobile client doesn't have to drain too much battery for such network communication.
+message ExploreNetworkNodesByDistanceRequest {
+  GpsLocation location = 1;
+  uint32 target_node_count = 2;
+  uint32 max_node_hops = 3;
+}
+
+message ExploreNetworkNodesByDistanceResponse {
+  repeated NodeInfo closest_nodes = 1;
 }
 
